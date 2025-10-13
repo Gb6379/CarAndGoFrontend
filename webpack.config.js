@@ -6,6 +6,16 @@ const fs = require('fs');
 const appDirectory = fs.realpathSync(process.cwd());
 const resolveApp = (relativePath) => path.resolve(appDirectory, relativePath);
 
+// Try to read the HTML template, if not found, use inline template
+let htmlTemplate;
+const htmlPath = resolveApp('public/index.html');
+if (fs.existsSync(htmlPath)) {
+  htmlTemplate = htmlPath;
+} else {
+  // Fallback: use inline HTML template
+  htmlTemplate = path.join(__dirname, 'public/index.html');
+}
+
 module.exports = {
   entry: resolveApp('src/index.tsx'),
   output: {
@@ -37,7 +47,35 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: resolveApp('public/index.html'),
+      template: htmlTemplate,
+      templateContent: `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/logo.svg">
+    <title>CAR AND GO - Plataforma de Aluguel de Carros</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+                sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        #root {
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+</body>
+</html>
+      `,
     }),
   ],
   devServer: {
