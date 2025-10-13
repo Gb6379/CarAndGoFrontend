@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "webpack serve --mode development",
+    "start:prod": "npx serve -s dist -p $PORT",
     "build": "webpack --mode production",
     "dev": "webpack serve --mode development --open"
   },
