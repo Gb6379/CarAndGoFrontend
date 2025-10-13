@@ -23,6 +23,17 @@ const HeroSection = styled.section`
   justify-content: center;
   position: relative;
   overflow: hidden;
+
+  @media (max-width: 768px) {
+    padding: 3rem 1rem 1.5rem;
+    min-height: 40vh;
+    background-attachment: scroll;
+  }
+
+  @media (max-width: 480px) {
+    padding: 2rem 0.75rem 1rem;
+    min-height: 35vh;
+  }
 `;
 
 const HeroContent = styled.div`
@@ -41,7 +52,12 @@ const HeroTitle = styled.h1`
   line-height: 1.1;
 
   @media (max-width: 768px) {
-    font-size: 2rem;
+    font-size: 1.75rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
   }
 `;
 
@@ -54,8 +70,15 @@ const HeroSubtitle = styled.p`
   margin-right: auto;
 
   @media (max-width: 768px) {
-    font-size: 1rem;
+    font-size: 0.95rem;
     margin-bottom: 1.5rem;
+    padding: 0 1rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+    padding: 0 0.5rem;
   }
 `;
 
@@ -67,6 +90,16 @@ const SearchContainer = styled.div`
   max-width: 900px;
   margin: 0 auto;
   width: 100%;
+
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+    border-radius: 8px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 1rem;
+    border-radius: 8px;
+  }
 `;
 
 const SearchForm = styled.div`
@@ -76,9 +109,19 @@ const SearchForm = styled.div`
   align-items: end;
   margin-bottom: 1.5rem;
 
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
     gap: 1rem;
+  }
+
+  @media (max-width: 480px) {
+    gap: 0.75rem;
+    margin-bottom: 1rem;
   }
 `;
 
@@ -172,12 +215,29 @@ const SearchButton = styled.button`
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(255, 90, 95, 0.3);
   }
+
+  @media (max-width: 1024px) {
+    width: 100%;
+  }
+
+  @media (max-width: 480px) {
+    height: 48px;
+    width: 100%;
+  }
 `;
 
 // How It Works Section
 const HowItWorksSection = styled.section`
   padding: 6rem 2rem;
   background: #f8f9fa;
+
+  @media (max-width: 768px) {
+    padding: 4rem 1.5rem;
+  }
+
+  @media (max-width: 480px) {
+    padding: 3rem 1rem;
+  }
 `;
 
 const SectionTitle = styled.h2`
@@ -189,6 +249,10 @@ const SectionTitle = styled.h2`
 
   @media (max-width: 768px) {
     font-size: 2rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 1.75rem;
   }
 `;
 

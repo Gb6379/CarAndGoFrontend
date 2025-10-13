@@ -23,6 +23,16 @@ const AppContainer = styled.div`
 const MainContent = styled.main`
   padding-top: 90px; /* Account for fixed header */
   min-height: calc(100vh - 90px);
+
+  @media (max-width: 768px) {
+    padding-top: 70px;
+    min-height: calc(100vh - 70px);
+  }
+
+  @media (max-width: 480px) {
+    padding-top: 60px;
+    min-height: calc(100vh - 60px);
+  }
 `;
 
 const PortInfo = styled.div`

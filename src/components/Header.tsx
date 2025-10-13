@@ -16,6 +16,14 @@ const HeaderContainer = styled.header`
   padding: 1rem 2rem;
   z-index: 1000;
   transition: all 0.3s ease;
+
+  @media (max-width: 768px) {
+    padding: 0.75rem 1rem;
+  }
+
+  @media (max-width: 480px) {
+    padding: 0.5rem 0.75rem;
+  }
 `;
 
 const Nav = styled.nav`
@@ -38,12 +46,31 @@ const Logo = styled(Link)`
   &:hover {
     color: #667eea;
   }
+
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 1.3rem;
+    gap: 0.25rem;
+  }
 `;
 
 const LogoImage = styled.img`
   width: 40px;
   height: 40px;
   object-fit: contain;
+
+  @media (max-width: 768px) {
+    width: 32px;
+    height: 32px;
+  }
+
+  @media (max-width: 480px) {
+    width: 28px;
+    height: 28px;
+  }
 `;
 
 const NavLinks = styled.div`
@@ -74,6 +101,10 @@ const AuthButtons = styled.div`
   display: flex;
   gap: 1rem;
   align-items: center;
+
+  @media (max-width: 480px) {
+    gap: 0.5rem;
+  }
 `;
 
 const LoginButton = styled.button`
@@ -107,6 +138,16 @@ const SignUpButton = styled.button`
   &:hover {
     background: #5a6fd8;
     transform: translateY(-1px);
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 480px) {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
   }
 `;
 
