@@ -29,13 +29,28 @@ module.exports = {
   },
   optimization: {
     minimize: true,
+    usedExports: true,
+    sideEffects: false,
     splitChunks: {
       chunks: 'all',
+      maxInitialRequests: 25,
+      minSize: 20000,
       cacheGroups: {
+        default: false,
+        vendors: false,
         vendor: {
-          test: /[\\/]node_modules[\\/]/,
-          name: 'vendors',
+          name: 'vendor',
           chunks: 'all',
+          test: /[\\/]node_modules[\\/]/,
+          priority: 20,
+        },
+        common: {
+          name: 'common',
+          minChunks: 2,
+          chunks: 'all',
+          priority: 10,
+          reuseExistingChunk: true,
+          enforce: true,
         },
       },
     },
@@ -45,11 +60,23 @@ module.exports = {
     maxEntrypointSize: 512000,
     maxAssetSize: 512000,
   },
+  cache: {
+    type: 'filesystem',
+    buildDependencies: {
+      config: [__filename],
+    },
+  },
   module: {
     rules: [
       {
         test: /\.tsx?$/,
-        use: 'ts-loader',
+        use: {
+          loader: 'ts-loader',
+          options: {
+            transpileOnly: true,
+            experimentalWatchApi: true,
+          },
+        },
         exclude: /node_modules/,
       },
       {
