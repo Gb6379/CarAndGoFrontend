@@ -28,29 +28,50 @@ module.exports = {
     extensions: ['.tsx', '.ts', '.js', '.jsx'],
   },
   optimization: {
-    minimize: true,
+    minimize: false, // Disable minification to reduce memory usage
     usedExports: true,
     sideEffects: false,
+    moduleIds: 'deterministic',
+    runtimeChunk: 'single',
     splitChunks: {
-      chunks: 'all',
-      maxInitialRequests: 25,
-      minSize: 20000,
+      chunks: 'async',
+      minSize: 30000,
+      maxSize: 244000,
       cacheGroups: {
         default: false,
         vendors: false,
-        vendor: {
-          name: 'vendor',
+        framework: {
+          name: 'framework',
           chunks: 'all',
-          test: /[\\/]node_modules[\\/]/,
+          test: /[\\/]node_modules[\\/](react|react-dom|scheduler|prop-types|use-subscription)[\\/]/,
+          priority: 40,
+          enforce: true,
+        },
+        lib: {
+          test(module) {
+            return module.size() > 160000;
+          },
+          name(module) {
+            const hash = require('crypto').createHash('sha1');
+            hash.update(module.identifier());
+            return hash.digest('hex').substring(0, 8);
+          },
+          priority: 30,
+          minChunks: 1,
+          reuseExistingChunk: true,
+        },
+        commons: {
+          name: 'commons',
+          minChunks: 2,
           priority: 20,
         },
-        common: {
-          name: 'common',
-          minChunks: 2,
-          chunks: 'all',
+        shared: {
+          name(module, chunks) {
+            return require('crypto').createHash('sha1').update(chunks.reduce((acc, chunk) => acc + chunk.name, '')).digest('hex').substring(0, 8);
+          },
           priority: 10,
+          minChunks: 2,
           reuseExistingChunk: true,
-          enforce: true,
         },
       },
     },
