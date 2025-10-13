@@ -1,10 +1,15 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const fs = require('fs');
+
+// Get the current working directory
+const appDirectory = fs.realpathSync(process.cwd());
+const resolveApp = (relativePath) => path.resolve(appDirectory, relativePath);
 
 module.exports = {
-  entry: path.resolve(__dirname, 'src/index.tsx'),
+  entry: resolveApp('src/index.tsx'),
   output: {
-    path: path.resolve(__dirname, 'dist'),
+    path: resolveApp('dist'),
     filename: 'bundle.js',
   },
   resolve: {
@@ -32,12 +37,12 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: path.resolve(__dirname, 'public/index.html'),
+      template: resolveApp('public/index.html'),
     }),
   ],
   devServer: {
     static: {
-      directory: path.join(__dirname, 'public'),
+      directory: resolveApp('public'),
     },
     compress: true,
     port: 3001,
