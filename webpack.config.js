@@ -20,10 +20,30 @@ module.exports = {
   entry: resolveApp('src/index.tsx'),
   output: {
     path: resolveApp('dist'),
-    filename: 'bundle.js',
+    filename: '[name].[contenthash].js',
+    chunkFilename: '[name].[contenthash].chunk.js',
+    clean: true,
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.jsx'],
+  },
+  optimization: {
+    minimize: true,
+    splitChunks: {
+      chunks: 'all',
+      cacheGroups: {
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          name: 'vendors',
+          chunks: 'all',
+        },
+      },
+    },
+  },
+  performance: {
+    hints: false,
+    maxEntrypointSize: 512000,
+    maxAssetSize: 512000,
   },
   module: {
     rules: [

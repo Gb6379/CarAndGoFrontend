@@ -6,7 +6,7 @@
   "scripts": {
     "start": "webpack serve --mode development",
     "start:prod": "npx serve -s dist -p $PORT",
-    "build": "webpack --mode production",
+    "build": "node --max-old-space-size=4096 node_modules/.bin/webpack --mode production",
     "dev": "webpack serve --mode development --open"
   },
   "dependencies": {
