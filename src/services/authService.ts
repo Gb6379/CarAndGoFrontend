@@ -18,6 +18,21 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Handle API errors globally
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error('API Error:', error.message);
+    if (error.response) {
+      console.error('Response data:', error.response.data);
+      console.error('Response status:', error.response.status);
+    } else if (error.request) {
+      console.error('Request error:', error.request);
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const authService = {
   async login(email: string, password: string) {
     const response = await api.post('/auth/login', { email, password });
