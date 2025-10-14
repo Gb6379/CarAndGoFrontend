@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { Close, User, Lock, Email, Phone, Home } from '../components/IconSystem';
+import { authService } from '../services/authService';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -262,18 +263,17 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
     setError('');
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call real API
+      const response = await authService.login(loginData.email, loginData.password);
       
-      // For demo purposes, accept any email/password
-      if (loginData.email && loginData.password) {
-        onClose();
-        navigate('/dashboard');
-      } else {
-        setError('Por favor, preencha todos os campos');
-      }
-    } catch (err) {
-      setError('Falha no login. Tente novamente.');
+      // Store token
+      localStorage.setItem('token', response.token);
+      localStorage.setItem('user', JSON.stringify(response.user));
+      
+      onClose();
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Falha no login. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -285,18 +285,17 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
     setError('');
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call real API
+      const response = await authService.register(registerData);
       
-      // For demo purposes, accept any valid form
-      if (registerData.firstName && registerData.lastName && registerData.email && registerData.password) {
-        onClose();
-        navigate('/dashboard');
-      } else {
-        setError('Por favor, preencha todos os campos obrigatórios');
-      }
-    } catch (err) {
-      setError('Falha no cadastro. Tente novamente.');
+      // Store token
+      localStorage.setItem('token', response.token);
+      localStorage.setItem('user', JSON.stringify(response.user));
+      
+      onClose();
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Falha no cadastro. Tente novamente.');
     } finally {
       setLoading(false);
     }
