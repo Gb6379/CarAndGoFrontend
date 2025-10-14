@@ -8,4 +8,4 @@ cmds = ["npm ci"]
 cmds = ["npm run build:simple"]
 
 [start]
-cmd = "npm run start:prod"
+cmd = "npx serve -s dist -p $PORT"
