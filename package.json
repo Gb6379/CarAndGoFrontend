@@ -4,8 +4,8 @@
   "description": "CAR AND GO Web Application",
   "main": "index.js",
   "scripts": {
-    "start": "http-server dist -p ${PORT:-3001} -a 0.0.0.0 -c-1",
-    "start:prod": "http-server dist -p ${PORT:-3001} -a 0.0.0.0 -c-1",
+    "start": "node server.js",
+    "start:prod": "node server.js",
     "build": "cross-env NODE_OPTIONS=--max-old-space-size=12288 webpack --mode production",
     "build:simple": "cross-env NODE_OPTIONS=--max-old-space-size=12288 webpack --mode production",
     "dev": "webpack serve --mode development --open"

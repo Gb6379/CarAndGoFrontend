@@ -8,4 +8,4 @@ cmds = ["npm install --legacy-peer-deps"]
 cmds = ["npm run build:simple", "ls -la dist", "echo 'Build completed successfully'"]
 
 [start]
-cmd = "npm start"
+cmd = "node server.js"
