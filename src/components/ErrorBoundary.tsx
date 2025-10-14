@@ -16,14 +16,18 @@ class ErrorBoundary extends Component<Props, State> {
   };
 
   public static getDerivedStateFromError(error: Error): State {
+    console.error('Error caught by ErrorBoundary:', error);
     return { hasError: true, error };
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Uncaught error:', error);
-    console.error('Error info:', errorInfo);
+    console.error('=== ERROR BOUNDARY CAUGHT ERROR ===');
+    console.error('Error:', error);
     console.error('Error message:', error.message);
     console.error('Error stack:', error.stack);
+    console.error('Error name:', error.name);
+    console.error('Component stack:', errorInfo.componentStack);
+    console.error('====================================');
   }
 
   public render() {

@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://carandgobackend-production.up.railway.app/';
+// Use local backend for development, production backend for deployed app
+const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
+  ? 'http://localhost:3000' 
+  : 'https://carandgobackend-production.up.railway.app';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -8,6 +11,9 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// Log the API URL being used for debugging
+console.log('API Base URL:', API_BASE_URL);
 
 // Add token to requests
 api.interceptors.request.use((config) => {
