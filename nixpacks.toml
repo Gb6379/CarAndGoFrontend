@@ -5,7 +5,7 @@ nixPkgs = ["nodejs_18", "npm-8_x"]
 cmds = ["npm install --legacy-peer-deps"]
 
 [phases.build]
-cmds = ["npm run build:simple", "ls -la dist"]
+cmds = ["npm run build:simple", "ls -la dist", "echo 'Build completed successfully'"]
 
 [start]
-cmd = "PORT=${PORT:-3001} npx serve -s dist -p $PORT"
+cmd = "npm start"

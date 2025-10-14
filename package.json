@@ -4,8 +4,8 @@
   "description": "CAR AND GO Web Application",
   "main": "index.js",
   "scripts": {
-    "start": "npx serve -s dist -p $PORT",
-    "start:prod": "npx serve -s dist -p $PORT",
+    "start": "http-server dist -p ${PORT:-3001} -a 0.0.0.0 -c-1",
+    "start:prod": "http-server dist -p ${PORT:-3001} -a 0.0.0.0 -c-1",
     "build": "cross-env NODE_OPTIONS=--max-old-space-size=12288 webpack --mode production",
     "build:simple": "cross-env NODE_OPTIONS=--max-old-space-size=12288 webpack --mode production",
     "dev": "webpack serve --mode development --open"
@@ -32,6 +32,7 @@
     "cross-env": "^7.0.3",
     "css-loader": "^6.7.2",
     "html-webpack-plugin": "^5.5.0",
+    "http-server": "^14.1.1",
     "serve": "^14.2.1",
     "style-loader": "^3.3.1",
     "ts-loader": "^9.4.1",
