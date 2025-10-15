@@ -695,7 +695,6 @@ const VehicleListPage: React.FC = () => {
   const handleSearchLocation = () => {
     if (locationInput.trim()) {
       setSearchingLocation(true);
-      setCurrentSearchLocation(locationInput);
       
       // If user typed something but didn't select a suggestion, use the first one
       if (locationSuggestions.length > 0) {
@@ -706,6 +705,17 @@ const VehicleListPage: React.FC = () => {
           address: firstSuggestion.displayName
         });
         setCurrentSearchLocation(firstSuggestion.displayName);
+      } else {
+        // No suggestions, use the raw input but normalize it
+        let normalizedLocation = locationInput.trim();
+        
+        // Handle common variations of São Paulo
+        if (normalizedLocation.toLowerCase().includes('sao paulo') || 
+            normalizedLocation.toLowerCase().includes('são paulo')) {
+          normalizedLocation = 'São Paulo, SP';
+        }
+        
+        setCurrentSearchLocation(normalizedLocation);
       }
       
       loadVehicles();
@@ -731,6 +741,7 @@ const VehicleListPage: React.FC = () => {
       // Prepare search filters
       const searchFilters = {
         location: currentSearchLocation,
+        city: currentSearchLocation, // Also try city parameter
         fromDate,
         untilDate,
         ...filters,
@@ -743,15 +754,20 @@ const VehicleListPage: React.FC = () => {
         (searchFilters as any).userLng = userLocation.lng;
       }
 
-      // Remove empty filters
+      // Remove empty filters but keep location/city filters
       Object.keys(searchFilters).forEach(key => {
         const value = searchFilters[key as keyof typeof searchFilters];
         if (value === '' || value === 'all' || value === false) {
-          delete searchFilters[key as keyof typeof searchFilters];
+          // Don't remove location or city filters even if they seem empty
+          if (key !== 'location' && key !== 'city') {
+            delete searchFilters[key as keyof typeof searchFilters];
+          }
         }
       });
 
       console.log('Calling API with filters:', searchFilters);
+      console.log('Current search location:', currentSearchLocation);
+      console.log('Location input:', locationInput);
       
       // Add timeout to prevent hanging
       const timeoutPromise = new Promise((_, reject) => {
@@ -764,6 +780,7 @@ const VehicleListPage: React.FC = () => {
       ]);
       
       console.log('Received vehicles data:', vehiclesData);
+      console.log('Number of vehicles received:', vehiclesData?.length || 0);
       setVehicles(vehiclesData);
     } catch (error) {
       console.error('Error loading vehicles:', error);

@@ -251,6 +251,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
     lastName: '',
     email: '',
     password: '',
+    cpfCnpj: '',
     phone: '',
     city: '',
     state: '',
@@ -425,6 +426,22 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                   placeholder="seu@email.com"
                   value={registerData.email}
                   onChange={(e) => setRegisterData(prev => ({ ...prev, email: e.target.value }))}
+                  required
+                />
+              </InputContainer>
+            </InputGroup>
+
+            <InputGroup>
+              <InputLabel>CPF/CNPJ</InputLabel>
+              <InputContainer>
+                <InputIcon>
+                  <User size={18} />
+                </InputIcon>
+                <Input
+                  type="text"
+                  placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                  value={registerData.cpfCnpj}
+                  onChange={(e) => setRegisterData(prev => ({ ...prev, cpfCnpj: e.target.value }))}
                   required
                 />
               </InputContainer>

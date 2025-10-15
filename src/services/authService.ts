@@ -69,12 +69,17 @@ export const vehicleService = {
 
   async searchVehicles(filters: any) {
     console.log('API: Calling searchVehicles with filters:', filters);
+    console.log('API: Full URL will be:', `${API_BASE_URL}/vehicles/search`);
     try {
       const response = await api.get('/vehicles/search', { params: filters });
       console.log('API: Response received:', response.data);
+      console.log('API: Response status:', response.status);
+      console.log('API: Number of vehicles in response:', response.data?.length || 0);
       return response.data;
     } catch (error) {
       console.error('API: Error in searchVehicles:', error);
+      console.error('API: Error response:', error.response?.data);
+      console.error('API: Error status:', error.response?.status);
       throw error;
     }
   },
