@@ -86,23 +86,54 @@ const LinkText = styled.p`
 const ErrorMessage = styled.div`
   background: #ffebee;
   color: #c62828;
-  padding: 0.5rem;
+  padding: 0.75rem;
   border-radius: 5px;
   font-size: 0.9rem;
   margin-bottom: 1rem;
+  line-height: 1.4;
+`;
+
+const RegisterLink = styled(Link)`
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 600;
+  
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setErrorState] = useState<string>('');
+  const [isUserNotFound, setIsUserNotFound] = useState(false);
   const navigate = useNavigate();
+
+  // Safe setError function that only accepts strings
+  const setError = (message: string) => {
+    if (typeof message === 'string') {
+      setErrorState(message);
+    } else {
+      console.error('Attempted to set non-string error:', message);
+      setErrorState('Falha no login. Tente novamente.');
+    }
+  };
+
+  // Monitor error state to ensure it's always a string
+  React.useEffect(() => {
+    if (error && typeof error !== 'string') {
+      console.error('Error state is not a string:', error);
+      setErrorState('Falha no login. Tente novamente.');
+    }
+  }, [error]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setIsUserNotFound(false);
 
     try {
       const response = await authService.login(email, password);
@@ -110,7 +141,41 @@ const LoginPage: React.FC = () => {
       localStorage.setItem('user', JSON.stringify(response.user));
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Falha no login');
+      console.log('Login error:', err);
+      console.log('Error response:', err.response?.data);
+      console.log('Error status:', err.response?.status);
+      
+      // Completely defensive error handling - ensure we never set an object
+      let errorMessage = 'Falha no login. Tente novamente.';
+      let userNotFound = false;
+      
+      try {
+        // Check if it's a user not found error (by message content)
+        if (err.response?.data?.message && typeof err.response.data.message === 'string') {
+          if (err.response.data.message.includes('User not found')) {
+            errorMessage = 'Usuário não cadastrado.';
+            userNotFound = true;
+          } else if (err.response.data.message.includes('Invalid password')) {
+            errorMessage = 'Senha incorreta. Tente novamente.';
+          } else {
+            errorMessage = err.response.data.message;
+          }
+        } else if (typeof err.response?.data === 'string') {
+          errorMessage = err.response.data;
+        } else if (typeof err.message === 'string') {
+          errorMessage = err.message;
+        }
+      } catch (parseError) {
+        console.log('Error parsing error message:', parseError);
+        // Keep default error message
+      }
+      
+      // Final safety check - ensure it's a string
+      const safeErrorMessage = typeof errorMessage === 'string' ? errorMessage : 'Falha no login. Tente novamente.';
+      
+      console.log('Setting error message:', safeErrorMessage);
+      setError(safeErrorMessage);
+      setIsUserNotFound(userNotFound);
     } finally {
       setLoading(false);
     }
@@ -121,7 +186,16 @@ const LoginPage: React.FC = () => {
       <LoginCard>
         <Title><Car size={24} /> Entrar</Title>
         
-        {error && <ErrorMessage>{error}</ErrorMessage>}
+        {error && typeof error === 'string' && (
+          <ErrorMessage>
+            {error}
+            {isUserNotFound && (
+              <div style={{ marginTop: '0.5rem' }}>
+                <RegisterLink to="/register">Clique aqui para se cadastrar</RegisterLink>
+              </div>
+            )}
+          </ErrorMessage>
+        )}
         
         <Form onSubmit={handleSubmit}>
           <Input

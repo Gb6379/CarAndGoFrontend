@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import styled from 'styled-components';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import RouteGuard from './components/RouteGuard';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -70,14 +71,50 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/vehicles" element={<VehicleListPage />} />
-              <Route path="/vehicle/:id" element={<VehicleDetailPage />} />
-              <Route path="/list-vehicle" element={<ListVehiclePage />} />
-              <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/bookings" element={<BookingsPage />} />
-          <Route path="/vehicles/my" element={<MyCarsPage />} />
           <Route path="/how-it-works" element={<HowItWorksPage />} />
+          
+          {/* Public vehicle browsing - accessible to all logged-in users */}
+          <Route path="/vehicles" element={
+            <RouteGuard allowedUserTypes={['lessee', 'lessor', 'both']}>
+              <VehicleListPage />
+            </RouteGuard>
+          } />
+          <Route path="/vehicle/:id" element={
+            <RouteGuard allowedUserTypes={['lessee', 'lessor', 'both']}>
+              <VehicleDetailPage />
+            </RouteGuard>
+          } />
+          
+          {/* Lessee-only routes */}
+          <Route path="/bookings" element={
+            <RouteGuard allowedUserTypes={['lessee', 'both']} redirectTo="/vehicles">
+              <BookingsPage />
+            </RouteGuard>
+          } />
+          
+          {/* Lessor-only routes */}
+          <Route path="/list-vehicle" element={
+            <RouteGuard allowedUserTypes={['lessor', 'both']} redirectTo="/vehicles">
+              <ListVehiclePage />
+            </RouteGuard>
+          } />
+          <Route path="/vehicles/my" element={
+            <RouteGuard allowedUserTypes={['lessor', 'both']} redirectTo="/vehicles">
+              <MyCarsPage />
+            </RouteGuard>
+          } />
+          
+          {/* Common authenticated routes */}
+          <Route path="/dashboard" element={
+            <RouteGuard allowedUserTypes={['lessee', 'lessor', 'both']}>
+              <DashboardPage />
+            </RouteGuard>
+          } />
+          <Route path="/profile" element={
+            <RouteGuard allowedUserTypes={['lessee', 'lessor', 'both']}>
+              <ProfilePage />
+            </RouteGuard>
+          } />
         </Routes>
       </MainContent>
       <Footer />

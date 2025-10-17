@@ -244,6 +244,10 @@ const Header: React.FC = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
   const isLoggedIn = !!localStorage.getItem('token');
+  
+  // Get user data to check userType
+  const userData = JSON.parse(localStorage.getItem('user') || '{}');
+  const userType = userData.userType;
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -274,8 +278,16 @@ const Header: React.FC = () => {
         </Logo>
         
         <NavLinks>
-          <NavLink to="/vehicles">Encontrar Carros</NavLink>
-          <NavLink to="/list-vehicle">Anunciar Seu Carro</NavLink>
+          {/* Show "Encontrar Carros" only for lessees or both */}
+          {(userType === 'lessee' || userType === 'both' || !isLoggedIn) && (
+            <NavLink to="/vehicles">Encontrar Carros</NavLink>
+          )}
+          
+          {/* Show "Anunciar Seu Carro" only for lessors or both */}
+          {(userType === 'lessor' || userType === 'both' || !isLoggedIn) && (
+            <NavLink to="/list-vehicle">Anunciar Seu Carro</NavLink>
+          )}
+          
           <NavLink to="/how-it-works">Como Funciona</NavLink>
           <NavLink to="/help">Ajuda</NavLink>
         </NavLinks>
@@ -290,8 +302,17 @@ const Header: React.FC = () => {
             <DropdownMenu isOpen={isUserMenuOpen}>
               <DropdownItem to="/dashboard">Painel</DropdownItem>
               <DropdownItem to="/profile">Perfil</DropdownItem>
-              <DropdownItem to="/bookings">Minhas Reservas</DropdownItem>
-              <DropdownItem to="/vehicles/my">Meus Carros</DropdownItem>
+              
+              {/* Show "Minhas Reservas" only for lessees or both */}
+              {(userType === 'lessee' || userType === 'both') && (
+                <DropdownItem to="/bookings">Minhas Reservas</DropdownItem>
+              )}
+              
+              {/* Show "Meus Carros" only for lessors or both */}
+              {(userType === 'lessor' || userType === 'both') && (
+                <DropdownItem to="/vehicles/my">Meus Carros</DropdownItem>
+              )}
+              
               <LogoutButton onClick={handleLogout}>Sair</LogoutButton>
             </DropdownMenu>
           </UserMenu>

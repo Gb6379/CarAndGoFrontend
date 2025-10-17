@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { User } from '../components/IconSystem';
+import { authService } from '../services/authService';
 
 const Container = styled.div`
   max-width: 1000px;
@@ -189,7 +190,24 @@ const ProfilePage: React.FC = () => {
 
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem('user') || '{}');
-    if (userData.id) {
+    const token = localStorage.getItem('token');
+    
+    console.log('Profile page - User data:', userData);
+    console.log('Profile page - Token exists:', !!token);
+    
+    // Debug token details
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        console.log('Token payload:', payload);
+        console.log('Token expires:', new Date(payload.exp * 1000));
+        console.log('Token expired:', Date.now() > payload.exp * 1000);
+      } catch (error) {
+        console.log('Token decode error:', error);
+      }
+    }
+    
+    if (userData.id && token) {
       setUser(userData);
       setFormData({
         firstName: userData.firstName || '',
@@ -201,6 +219,7 @@ const ProfilePage: React.FC = () => {
         userType: userData.userType || '',
       });
     } else {
+      console.log('No user data or token, redirecting to login');
       navigate('/login');
     }
   }, [navigate]);
@@ -215,12 +234,45 @@ const ProfilePage: React.FC = () => {
 
   const handleSave = async () => {
     try {
-      // Here you would call the API to update user profile
-      console.log('Saving profile:', formData);
-      alert('Profile updated successfully!');
+      // Check if user is logged in and has a valid token
+      const token = localStorage.getItem('token');
+      const userData = JSON.parse(localStorage.getItem('user') || '{}');
+      
+      if (!token || !userData.id) {
+        alert('You are not logged in. Please log in again.');
+        navigate('/login');
+        return;
+      }
+      
+      console.log('Attempting to update profile...');
+      
+      // Call the API to update user profile
+      const updatedUser = await authService.updateProfile(formData);
+      console.log('Profile updated:', updatedUser);
+      
+      // Update localStorage with new user data
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const newUserData = { ...currentUser, ...formData };
+      localStorage.setItem('user', JSON.stringify(newUserData));
+      
+      // Update local state
+      setUser(newUserData);
+      
+      alert('Profile updated successfully! The page will refresh to apply changes.');
+      
+      // Refresh the page to update the header navigation
+      window.location.reload();
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('Error updating profile');
+      
+      if (error.response?.status === 401) {
+        alert('Your session has expired. Please log in again.');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+      } else {
+        alert('Error updating profile. Please try again.');
+      }
     }
   };
 
@@ -254,7 +306,11 @@ const ProfilePage: React.FC = () => {
             </ProfileImage>
             <UserName>{user.firstName} {user.lastName}</UserName>
             <UserEmail>{user.email}</UserEmail>
-            <UserType>{user.userType}</UserType>
+            <UserType>
+              {user.userType === 'lessee' && 'Quero Alugar Carros'}
+              {user.userType === 'lessor' && 'Quero Alugar Meu Carro'}
+              {user.userType === 'both' && 'Ambos (Locador e Locatário)'}
+            </UserType>
             
             <StatsGrid>
               <StatCard>
@@ -358,6 +414,22 @@ const ProfilePage: React.FC = () => {
                 <option value="TO">Tocantins</option>
                 <option value="DF">Distrito Federal</option>
               </Select>
+            </FormGroup>
+
+            <FormGroup>
+              <Label>Account Type</Label>
+              <Select
+                name="userType"
+                value={formData.userType}
+                onChange={handleInputChange}
+              >
+                <option value="lessee">Quero Alugar Carros (Locatário)</option>
+                <option value="lessor">Quero Alugar Meu Carro (Locador)</option>
+                <option value="both">Ambos (Locador e Locatário)</option>
+              </Select>
+              <small style={{ color: '#666', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>
+                This determines which features you can access in the app.
+              </small>
             </FormGroup>
 
             <Button onClick={handleSave}>Save Changes</Button>

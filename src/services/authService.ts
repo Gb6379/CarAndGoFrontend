@@ -54,6 +54,16 @@ export const authService = {
     const response = await api.get('/users/profile/me');
     return response.data;
   },
+
+  async updateProfile(userData: any) {
+    const token = localStorage.getItem('token');
+    console.log('Updating profile with token:', token ? 'Token exists' : 'No token');
+    console.log('User data being sent:', userData);
+    
+    const response = await api.patch('/users/profile/me', userData);
+    return response.data;
+  },
+
 };
 
 export const vehicleService = {
