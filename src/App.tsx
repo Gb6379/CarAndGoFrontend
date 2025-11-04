@@ -15,6 +15,7 @@ import ProfilePage from './pages/ProfilePage';
 import BookingsPage from './pages/BookingsPage';
 import MyCarsPage from './pages/MyCarsPage';
 import HowItWorksPage from './pages/HowItWorksPage';
+import BecomeHostPage from './pages/BecomeHostPage';
 
 const AppContainer = styled.div`
   min-height: 100vh;
@@ -72,6 +73,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/how-it-works" element={<HowItWorksPage />} />
+          <Route path="/become-host" element={<BecomeHostPage />} />
           
           {/* Public vehicle browsing - accessible to all logged-in users */}
           <Route path="/vehicles" element={

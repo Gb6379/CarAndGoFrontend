@@ -96,6 +96,10 @@ import {
   Store as StoreIcon,
   Restaurant as RestaurantIcon,
   BarChart as BarChartIcon,
+  AccessTime as TimerIcon,
+  TrendingUp as TrendingUpIcon,
+  People as PeopleIcon,
+  Payment as PaymentIcon,
   
   // Transportation
   DirectionsBus as BusIcon,
@@ -466,6 +470,30 @@ export const FlightLand = ({ size = 16, color, margin }: { size?: number; color?
 export const BarChart = ({ size = 16, color, margin }: { size?: number; color?: string; margin?: string }) => (
   <IconWrapper size={size} color={color} margin={margin}>
     <BarChartIcon style={{ fontSize: size }} />
+  </IconWrapper>
+);
+
+export const Timer = ({ size = 16, color, margin }: { size?: number; color?: string; margin?: string }) => (
+  <IconWrapper size={size} color={color} margin={margin}>
+    <TimerIcon fontSize="inherit" />
+  </IconWrapper>
+);
+
+export const TrendingUp = ({ size = 16, color, margin }: { size?: number; color?: string; margin?: string }) => (
+  <IconWrapper size={size} color={color} margin={margin}>
+    <TrendingUpIcon fontSize="inherit" />
+  </IconWrapper>
+);
+
+export const People = ({ size = 16, color, margin }: { size?: number; color?: string; margin?: string }) => (
+  <IconWrapper size={size} color={color} margin={margin}>
+    <PeopleIcon fontSize="inherit" />
+  </IconWrapper>
+);
+
+export const Payment = ({ size = 16, color, margin }: { size?: number; color?: string; margin?: string }) => (
+  <IconWrapper size={size} color={color} margin={margin}>
+    <PaymentIcon fontSize="inherit" />
   </IconWrapper>
 );
 

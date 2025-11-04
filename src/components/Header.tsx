@@ -289,6 +289,9 @@ const Header: React.FC = () => {
           )}
           
           <NavLink to="/how-it-works">Como Funciona</NavLink>
+          {(userType === 'lessor' || userType === 'both' || !isLoggedIn) && (
+            <NavLink to="/become-host">Torne-se Anfitrião</NavLink>
+          )}
           <NavLink to="/help">Ajuda</NavLink>
         </NavLinks>
 
