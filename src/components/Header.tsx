@@ -2,8 +2,17 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import logoSvg from '../assets/logo.svg';
-import { User, ArrowDown, Menu } from './IconSystem';
+import { User, ArrowDown, Menu, Car } from './IconSystem';
 import AuthModal from './AuthModal';
+import { 
+  FavoriteBorder, 
+  Inbox, 
+  CardGiftcard, 
+  Gavel, 
+  HeadsetMic,
+  LogoutOutlined
+} from '@mui/icons-material';
+import { FlightTakeoff } from './IconSystem';
 
 const HeaderContainer = styled.header`
   position: fixed;
@@ -190,38 +199,67 @@ const DropdownMenu = styled.div<{ isOpen: boolean }>`
 `;
 
 const DropdownItem = styled(Link)`
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   padding: 0.75rem 1rem;
   color: #333;
   text-decoration: none;
   transition: background 0.3s ease;
-  
+  border-bottom: 1px solid #f0f0f0;
+
   &:hover {
     background: #f8f9fa;
   }
-  
+
   &:first-child {
     border-radius: 8px 8px 0 0;
   }
-  
-  &:last-child {
-    border-radius: 0 0 8px 8px;
+
+  svg {
+    width: 20px;
+    height: 20px;
+    color: #333;
+    font-size: 20px;
+  }
+
+  &.favorite {
+    svg {
+      color: #8B5CF6;
+    }
+    color: #8B5CF6;
   }
 `;
 
+const DropdownDivider = styled.div`
+  height: 1px;
+  background: #e5e5e5;
+  margin: 0;
+`;
+
 const LogoutButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   width: 100%;
   padding: 0.75rem 1rem;
   border: none;
   background: none;
-  color: #e74c3c;
+  color: #333;
   text-align: left;
   cursor: pointer;
   transition: background 0.3s ease;
   border-radius: 0 0 8px 8px;
-  
+  border-top: 1px solid #f0f0f0;
+
   &:hover {
     background: #f8f9fa;
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
   }
 `;
 
@@ -302,21 +340,57 @@ const Header: React.FC = () => {
               Conta
               <ArrowDown size={12} />
             </UserButton>
-            <DropdownMenu isOpen={isUserMenuOpen}>
-              <DropdownItem to="/dashboard">Painel</DropdownItem>
-              <DropdownItem to="/profile">Perfil</DropdownItem>
-              
-              {/* Show "Minhas Reservas" only for lessees or both */}
-              {(userType === 'lessee' || userType === 'both') && (
-                <DropdownItem to="/bookings">Minhas Reservas</DropdownItem>
-              )}
-              
-              {/* Show "Meus Carros" only for lessors or both */}
-              {(userType === 'lessor' || userType === 'both') && (
-                <DropdownItem to="/vehicles/my">Meus Carros</DropdownItem>
-              )}
-              
-              <LogoutButton onClick={handleLogout}>Sair</LogoutButton>
+                        <DropdownMenu isOpen={isUserMenuOpen}>
+              {/* Seção Superior */}
+              <DropdownItem to="/favorites" className="favorite">
+                <FavoriteBorder fontSize="small" />
+                Favoritos
+              </DropdownItem>
+              <DropdownItem to="/bookings">
+                <FlightTakeoff size={20} />
+                Viagens
+              </DropdownItem>
+              <DropdownItem to="/inbox">
+                <Inbox fontSize="small" />
+                Chat
+              </DropdownItem>
+
+              <DropdownDivider />
+
+              {/* Seção Intermediária */}
+              <DropdownItem to="/profile">
+                <User size={20} />
+                Perfil
+              </DropdownItem>
+              <DropdownItem to="/dashboard">
+                <User size={20} />
+                Painel
+              </DropdownItem>
+              <DropdownItem to="/become-host">
+                <Car size={20} />
+                Torne-se Anfitrião
+              </DropdownItem>
+              <DropdownItem to="/gift-cards">
+                <CardGiftcard fontSize="small" />
+                Cartão Presente
+              </DropdownItem>
+
+              <DropdownDivider />
+
+              {/* Seção Inferior */}
+              <DropdownItem to="/support">
+                <HeadsetMic fontSize="small" />
+                Suporte
+              </DropdownItem>
+              <DropdownItem to="/legal">
+                <Gavel fontSize="small" />
+                Legal
+              </DropdownItem>
+
+              <LogoutButton onClick={handleLogout}>
+                <LogoutOutlined fontSize="small" />
+                Sair
+              </LogoutButton>
             </DropdownMenu>
           </UserMenu>
         ) : (

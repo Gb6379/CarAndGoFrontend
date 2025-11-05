@@ -16,9 +16,9 @@ const RouteGuard: React.FC<RouteGuardProps> = ({
   const userData = JSON.parse(localStorage.getItem('user') || '{}');
   const userType = userData.userType;
 
-  // If user is not logged in, redirect to login
+  // If user is not logged in, redirect to home page where they can use the login modal
   if (!userData.id) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/" state={{ from: location }} replace />;
   }
 
   // If user type is not allowed, redirect to dashboard
