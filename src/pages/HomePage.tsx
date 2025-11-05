@@ -1085,7 +1085,7 @@ const HomePage: React.FC = () => {
             
             <GetToKnowButton onClick={() => navigate('/how-it-works')}>
               <PlayArrow style={{ fontSize: '20px' }} />
-              Get to know CarGo
+              Conheça o CarGo
             </GetToKnowButton>
           </HeroContent>
         </HeroWrapper>
