@@ -6,6 +6,8 @@ import Footer from './components/Footer';
 import RouteGuard from './components/RouteGuard';
 import HomePage from './pages/HomePage';
 import RegisterPage from './pages/RegisterPage';
+import FavoritesPage from './pages/FavoritesPage';
+import TripsPage from './pages/TripsPage';
 import VehicleListPage from './pages/VehicleListPage';
 import VehicleDetailPage from './pages/VehicleDetailPage';
 import ListVehiclePage from './pages/ListVehiclePage';
@@ -73,6 +75,20 @@ function App() {
           <Route path="/how-it-works" element={<HowItWorksPage />} />
           <Route path="/become-host" element={<BecomeHostPage />} />
           
+          {/* Favorites - requires authentication */}
+          <Route path="/favorites" element={
+            <RouteGuard allowedUserTypes={['lessee', 'lessor', 'both']}>
+              <FavoritesPage />
+            </RouteGuard>
+          } />
+          
+          {/* Trips - requires authentication */}
+          <Route path="/bookings" element={
+            <RouteGuard allowedUserTypes={['lessee', 'lessor', 'both']}>
+              <TripsPage />
+            </RouteGuard>
+          } />
+          
           {/* Public vehicle browsing - accessible to all logged-in users */}
           <Route path="/vehicles" element={
             <RouteGuard allowedUserTypes={['lessee', 'lessor', 'both']}>
@@ -86,11 +102,6 @@ function App() {
           } />
           
           {/* Lessee-only routes */}
-          <Route path="/bookings" element={
-            <RouteGuard allowedUserTypes={['lessee', 'both']} redirectTo="/vehicles">
-              <BookingsPage />
-            </RouteGuard>
-          } />
           
           {/* Lessor-only routes */}
           <Route path="/list-vehicle" element={

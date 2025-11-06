@@ -342,15 +342,25 @@ const Header: React.FC = () => {
             </UserButton>
                         <DropdownMenu isOpen={isUserMenuOpen}>
               {/* Seção Superior */}
-              <DropdownItem to="/favorites" className="favorite">
+              <DropdownItem 
+                to="/favorites" 
+                className="favorite"
+                onClick={() => setIsUserMenuOpen(false)}
+              >
                 <FavoriteBorder fontSize="small" />
                 Favoritos
               </DropdownItem>
-              <DropdownItem to="/bookings">
+              <DropdownItem 
+                to="/bookings"
+                onClick={() => setIsUserMenuOpen(false)}
+              >
                 <FlightTakeoff size={20} />
                 Viagens
               </DropdownItem>
-              <DropdownItem to="/inbox">
+              <DropdownItem 
+                to="/inbox"
+                onClick={() => setIsUserMenuOpen(false)}
+              >
                 <Inbox fontSize="small" />
                 Chat
               </DropdownItem>
@@ -358,19 +368,31 @@ const Header: React.FC = () => {
               <DropdownDivider />
 
               {/* Seção Intermediária */}
-              <DropdownItem to="/profile">
+              <DropdownItem 
+                to="/profile"
+                onClick={() => setIsUserMenuOpen(false)}
+              >
                 <User size={20} />
                 Perfil
               </DropdownItem>
-              <DropdownItem to="/dashboard">
+              <DropdownItem 
+                to="/dashboard"
+                onClick={() => setIsUserMenuOpen(false)}
+              >
                 <User size={20} />
                 Painel
               </DropdownItem>
-              <DropdownItem to="/become-host">
+              <DropdownItem 
+                to="/become-host"
+                onClick={() => setIsUserMenuOpen(false)}
+              >
                 <Car size={20} />
                 Torne-se Anfitrião
               </DropdownItem>
-              <DropdownItem to="/gift-cards">
+              <DropdownItem 
+                to="/gift-cards"
+                onClick={() => setIsUserMenuOpen(false)}
+              >
                 <CardGiftcard fontSize="small" />
                 Cartão Presente
               </DropdownItem>
@@ -378,11 +400,17 @@ const Header: React.FC = () => {
               <DropdownDivider />
 
               {/* Seção Inferior */}
-              <DropdownItem to="/support">
+              <DropdownItem 
+                to="/support"
+                onClick={() => setIsUserMenuOpen(false)}
+              >
                 <HeadsetMic fontSize="small" />
                 Suporte
               </DropdownItem>
-              <DropdownItem to="/legal">
+              <DropdownItem 
+                to="/legal"
+                onClick={() => setIsUserMenuOpen(false)}
+              >
                 <Gavel fontSize="small" />
                 Legal
               </DropdownItem>
