@@ -6,6 +6,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { MyLocation, Location, Camera, Schedule, Map, Usb, Bluetooth, AirConditioning, Photo, Money } from '../components/IconSystem';
+import AuthModal from '../components/AuthModal';
 
 const Container = styled.div`
   max-width: 800px;
@@ -344,6 +345,8 @@ const ListVehiclePage: React.FC = () => {
   const [mapCenter, setMapCenter] = useState<[number, number]>([-23.5505, -46.6333]); // São Paulo default
   const [selectedLocation, setSelectedLocation] = useState<[number, number] | null>(null);
   const [gettingLocation, setGettingLocation] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
   const [formData, setFormData] = useState({
     // Basic Information
     make: '',
@@ -379,6 +382,28 @@ const ListVehiclePage: React.FC = () => {
     // Additional Info
     photos: [] as string[]
   });
+
+  // Check if user is logged in when page loads
+  useEffect(() => {
+    const isLoggedIn = !!localStorage.getItem('token');
+    if (!isLoggedIn) {
+      // Show login modal
+      setAuthModalMode('login');
+      setIsAuthModalOpen(true);
+    }
+  }, []);
+
+  // Check if user is logged in when modal closes
+  const handleModalClose = () => {
+    const isLoggedIn = !!localStorage.getItem('token');
+    if (!isLoggedIn) {
+      // If user closes modal without logging in, redirect to home
+      navigate('/');
+    } else {
+      // User logged in successfully, just close the modal
+      setIsAuthModalOpen(false);
+    }
+  };
 
   // Update map center when location changes
   useEffect(() => {
@@ -525,11 +550,14 @@ const ListVehiclePage: React.FC = () => {
         return;
       }
       
-      // Get user ID from localStorage or context
+      // Check if user is logged in
+      const isLoggedIn = !!localStorage.getItem('token');
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       
-      if (!user.id) {
-        alert('Por favor, faça login para anunciar um veículo');
+      if (!isLoggedIn || !user.id) {
+        // Show login modal
+        setAuthModalMode('login');
+        setIsAuthModalOpen(true);
         setLoading(false);
         return;
       }
@@ -963,6 +991,12 @@ const ListVehiclePage: React.FC = () => {
           )}
         </ButtonGroup>
       </FormContainer>
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={handleModalClose} 
+        initialMode={authModalMode}
+        redirectOnSuccess={null}
+      />
     </Container>
   );
 };

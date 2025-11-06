@@ -8,6 +8,7 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialMode?: 'login' | 'register';
+  redirectOnSuccess?: string | null; // If null, don't redirect. If string, redirect to that path
 }
 
 const ModalOverlay = styled.div<{ isOpen: boolean }>`
@@ -225,7 +226,7 @@ const ErrorMessage = styled.div`
   border-left: 4px solid #c33;
 `;
 
-const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'login' }) => {
+const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'login', redirectOnSuccess = '/dashboard' }) => {
   const [mode, setMode] = useState<'login' | 'register'>(initialMode);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -272,7 +273,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
       localStorage.setItem('user', JSON.stringify(response.user));
       
       onClose();
-      navigate('/dashboard');
+      if (redirectOnSuccess) {
+        navigate(redirectOnSuccess);
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Falha no login. Tente novamente.');
     } finally {
@@ -294,7 +297,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
       localStorage.setItem('user', JSON.stringify(response.user));
       
       onClose();
-      navigate('/dashboard');
+      if (redirectOnSuccess) {
+        navigate(redirectOnSuccess);
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Falha no cadastro. Tente novamente.');
     } finally {

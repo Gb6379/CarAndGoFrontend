@@ -988,7 +988,7 @@ const HomePage: React.FC = () => {
           <HeroContent>
             <HeroTitle>Encontre o carro perfeito para você</HeroTitle>
             <HeroSubtitle>
-              Alugue praticamente qualquer carro, praticamente em qualquer lugar
+              Alugue qualquer carro, em qualquer lugar
             </HeroSubtitle>
             <SearchContainer>
             <SearchForm>

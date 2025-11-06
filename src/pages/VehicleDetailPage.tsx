@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { vehicleService } from '../services/authService';
 import { Electric, Car, LocationOn, Star, CheckCircle, Phone, Map, Lock, Shield, Usb, Bluetooth, AirConditioning } from '../components/IconSystem';
+import AuthModal from '../components/AuthModal';
 
 const Container = styled.div`
   max-width: 1200px;
@@ -415,6 +416,8 @@ const VehicleDetailPage: React.FC = () => {
     startDate: '',
     endDate: ''
   });
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
 
   // Parse URL parameters for dates
   const searchParams = new URLSearchParams(location.search);
@@ -498,6 +501,16 @@ const VehicleDetailPage: React.FC = () => {
   };
 
   const handleBooking = () => {
+    // Check if user is logged in
+    const isLoggedIn = !!localStorage.getItem('token');
+    
+    if (!isLoggedIn) {
+      // Show login modal
+      setAuthModalMode('login');
+      setIsAuthModalOpen(true);
+      return;
+    }
+
     // Navigate to booking page with vehicle and date info
     const params = new URLSearchParams({
       vehicleId: id || '',
@@ -771,6 +784,12 @@ const VehicleDetailPage: React.FC = () => {
           </HostSection>
         </RightColumn>
       </MainContent>
+      
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
+        initialMode={authModalMode}
+      />
     </Container>
   );
 };

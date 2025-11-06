@@ -89,26 +89,14 @@ function App() {
             </RouteGuard>
           } />
           
-          {/* Public vehicle browsing - accessible to all logged-in users */}
-          <Route path="/vehicles" element={
-            <RouteGuard allowedUserTypes={['lessee', 'lessor', 'both']}>
-              <VehicleListPage />
-            </RouteGuard>
-          } />
-          <Route path="/vehicle/:id" element={
-            <RouteGuard allowedUserTypes={['lessee', 'lessor', 'both']}>
-              <VehicleDetailPage />
-            </RouteGuard>
-          } />
+          {/* Public vehicle browsing - accessible to all users */}
+          <Route path="/vehicles" element={<VehicleListPage />} />
+          <Route path="/vehicle/:id" element={<VehicleDetailPage />} />
           
           {/* Lessee-only routes */}
           
           {/* Lessor-only routes */}
-          <Route path="/list-vehicle" element={
-            <RouteGuard allowedUserTypes={['lessor', 'both']} redirectTo="/vehicles">
-              <ListVehiclePage />
-            </RouteGuard>
-          } />
+          <Route path="/list-vehicle" element={<ListVehiclePage />} />
           <Route path="/vehicles/my" element={
             <RouteGuard allowedUserTypes={['lessor', 'both']} redirectTo="/vehicles">
               <MyCarsPage />
