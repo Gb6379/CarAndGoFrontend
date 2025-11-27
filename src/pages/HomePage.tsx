@@ -849,69 +849,9 @@ const HomePage: React.FC = () => {
         setFeaturedCars(formattedCars);
       } catch (error) {
         console.error('Error loading featured cars:', error);
-        // Fallback to mock data if API fails
-        setFeaturedCars([
-          {
-            id: '1',
-            title: 'Toyota Corolla 2022',
-            price: '133',
-            days: 3,
-            rating: '5.0',
-            trips: 21,
-            save: 3,
-            location: 'São Paulo, SP'
-          },
-          {
-            id: '2',
-            title: 'Honda Civic 2021',
-            price: '149',
-            days: 3,
-            rating: '5.0',
-            trips: 24,
-            save: 4,
-            location: 'Rio de Janeiro, RJ'
-          },
-          {
-            id: '3',
-            title: 'Volkswagen Golf 2020',
-            price: '126',
-            days: 3,
-            rating: '4.99',
-            trips: 189,
-            save: null,
-            location: 'Belo Horizonte, MG'
-          },
-          {
-            id: '4',
-            title: 'BMW 320i 2021',
-            price: '280',
-            days: 3,
-            rating: '4.9',
-            trips: 45,
-            save: 5,
-            location: 'São Paulo, SP'
-          },
-          {
-            id: '5',
-            title: 'Audi A3 2020',
-            price: '250',
-            days: 3,
-            rating: '4.8',
-            trips: 32,
-            save: null,
-            location: 'Rio de Janeiro, RJ'
-          },
-          {
-            id: '6',
-            title: 'Fiat Argo 2021',
-            price: '100',
-            days: 3,
-            rating: '4.9',
-            trips: 67,
-            save: 2,
-            location: 'Brasília, DF'
-          }
-        ]);
+        // Don't show mock data with invalid IDs - just show empty array
+        // This prevents navigation errors when clicking on non-existent vehicles
+        setFeaturedCars([]);
       } finally {
         setLoadingCars(false);
       }
@@ -1108,38 +1048,40 @@ const HomePage: React.FC = () => {
       </FilterBarSection>
 
       {/* Featured Cars */}
-      <FeaturedSection>
-        <SectionHeader>
-          <SectionTitleWithArrow onClick={() => navigate('/vehicles')}>
-            Carros em destaque perto de você
-            <ArrowRight size={20} />
-          </SectionTitleWithArrow>
-        </SectionHeader>
-        
-        <CarsScrollContainer>
-          {featuredCars.map((car) => (
-            <CarCard key={car.id} onClick={() => navigate(`/vehicle/${car.id}`)}>
-              <CarImage>
-                <Car size={48} />
-              </CarImage>
-              <CarInfo>
-                <CarTitle>{car.title}</CarTitle>
-                <CarRatingRow>
-                  <CarRating>
-                    <Star size={16} color="#8B5CF6" />
-                    {car.rating}
-                  </CarRating>
-                  <CarTrips>({car.trips} viagens)</CarTrips>
-                </CarRatingRow>
-                <CarPriceRow>
-                  <CarPrice>R$ {car.price} por {car.days} dias</CarPrice>
-                  {car.save && <CarSave>Economize R$ {car.save}</CarSave>}
-                </CarPriceRow>
-              </CarInfo>
-            </CarCard>
-          ))}
-        </CarsScrollContainer>
-      </FeaturedSection>
+      {featuredCars.length > 0 && (
+        <FeaturedSection>
+          <SectionHeader>
+            <SectionTitleWithArrow onClick={() => navigate('/vehicles')}>
+              Carros em destaque perto de você
+              <ArrowRight size={20} />
+            </SectionTitleWithArrow>
+          </SectionHeader>
+          
+          <CarsScrollContainer>
+            {featuredCars.map((car) => (
+              <CarCard key={car.id} onClick={() => navigate(`/vehicle/${car.id}`)}>
+                <CarImage>
+                  <Car size={48} />
+                </CarImage>
+                <CarInfo>
+                  <CarTitle>{car.title}</CarTitle>
+                  <CarRatingRow>
+                    <CarRating>
+                      <Star size={16} color="#8B5CF6" />
+                      {car.rating}
+                    </CarRating>
+                    <CarTrips>({car.trips} viagens)</CarTrips>
+                  </CarRatingRow>
+                  <CarPriceRow>
+                    <CarPrice>R$ {car.price} por {car.days} dias</CarPrice>
+                    {car.save && <CarSave>Economize R$ {car.save}</CarSave>}
+                  </CarPriceRow>
+                </CarInfo>
+              </CarCard>
+            ))}
+          </CarsScrollContainer>
+        </FeaturedSection>
+      )}
 
       {/* How It Works */}
       <HowItWorksSection>
