@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import styled from 'styled-components';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -11,12 +11,17 @@ import TripsPage from './pages/TripsPage';
 import VehicleListPage from './pages/VehicleListPage';
 import VehicleDetailPage from './pages/VehicleDetailPage';
 import ListVehiclePage from './pages/ListVehiclePage';
-import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
 import BookingsPage from './pages/BookingsPage';
+import BookingPage from './pages/BookingPage';
+import BookingDetailsPage from './pages/BookingDetailsPage';
+import PaymentPage from './pages/PaymentPage';
+import PaymentCallbackPage from './pages/PaymentCallbackPage';
 import MyCarsPage from './pages/MyCarsPage';
 import HowItWorksPage from './pages/HowItWorksPage';
 import BecomeHostPage from './pages/BecomeHostPage';
+import BankDetailsPage from './pages/BankDetailsPage';
+import VerificationPage from './pages/VerificationPage';
 
 const AppContainer = styled.div`
   min-height: 100vh;
@@ -93,25 +98,62 @@ function App() {
           <Route path="/vehicles" element={<VehicleListPage />} />
           <Route path="/vehicle/:id" element={<VehicleDetailPage />} />
           
+          {/* Booking - requires authentication as lessee */}
+          <Route path="/booking" element={
+            <RouteGuard allowedUserTypes={['rent', 'lessee', 'both']}>
+              <BookingPage />
+            </RouteGuard>
+          } />
+
+          {/* Booking Details - requires authentication */}
+          <Route path="/booking/:id/details" element={
+            <RouteGuard allowedUserTypes={['rent', 'lessee', 'host', 'lessor', 'both']}>
+              <BookingDetailsPage />
+            </RouteGuard>
+          } />
+
+          {/* Payment - after booking */}
+          <Route path="/payment" element={
+            <RouteGuard allowedUserTypes={['rent', 'lessee', 'both']}>
+              <PaymentPage />
+            </RouteGuard>
+          } />
+          <Route path="/payment/callback" element={
+            <RouteGuard allowedUserTypes={['rent', 'lessee', 'both']}>
+              <PaymentCallbackPage />
+            </RouteGuard>
+          } />
+          
           {/* Lessee-only routes */}
           
           {/* Lessor-only routes */}
           <Route path="/list-vehicle" element={<ListVehiclePage />} />
+          <Route path="/list-vehicle/edit/:id" element={<ListVehiclePage />} />
           <Route path="/vehicles/my" element={
             <RouteGuard allowedUserTypes={['lessor', 'both']} redirectTo="/vehicles">
               <MyCarsPage />
             </RouteGuard>
           } />
           
-          {/* Common authenticated routes */}
+          {/* Dashboard removido: painel do locador fica na home (/) */}
           <Route path="/dashboard" element={
             <RouteGuard allowedUserTypes={['lessee', 'lessor', 'both']}>
-              <DashboardPage />
+              <Navigate to="/" replace />
+            </RouteGuard>
+          } />
+          <Route path="/verification" element={
+            <RouteGuard allowedUserTypes={['lessee', 'lessor', 'both']}>
+              <VerificationPage />
             </RouteGuard>
           } />
           <Route path="/profile" element={
             <RouteGuard allowedUserTypes={['lessee', 'lessor', 'both']}>
               <ProfilePage />
+            </RouteGuard>
+          } />
+          <Route path="/bank-details" element={
+            <RouteGuard allowedUserTypes={['lessor', 'both']} redirectTo="/dashboard">
+              <BankDetailsPage />
             </RouteGuard>
           } />
         </Routes>

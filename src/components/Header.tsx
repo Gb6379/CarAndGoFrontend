@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import logoSvg from '../assets/logo.svg';
-import { User, ArrowDown, Menu, Car } from './IconSystem';
+import { User, ArrowDown, Menu, Car, CreditCard } from './IconSystem';
 import AuthModal from './AuthModal';
+import { authService } from '../services/authService';
 import { 
-  FavoriteBorder, 
   Inbox, 
-  CardGiftcard, 
   Gavel, 
   HeadsetMic,
-  LogoutOutlined
+  LogoutOutlined,
+  VerifiedUser
 } from '@mui/icons-material';
 import { FlightTakeoff } from './IconSystem';
 
@@ -182,6 +182,14 @@ const UserButton = styled.button`
   }
 `;
 
+const HeaderAvatar = styled.img`
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+`;
+
 const DropdownMenu = styled.div<{ isOpen: boolean }>`
   position: absolute;
   top: 100%;
@@ -281,11 +289,59 @@ const Header: React.FC = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
+  const [headerPhotoUrl, setHeaderPhotoUrl] = useState<string | null>(null);
+  const headerPhotoBlobRef = useRef<string | null>(null);
   const isLoggedIn = !!localStorage.getItem('token');
   
-  // Get user data to check userType
+  // Get user data to check userType and profile photo
   const userData = JSON.parse(localStorage.getItem('user') || '{}');
   const userType = userData.userType;
+
+  const loadHeaderPhoto = () => {
+    const u = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!u?.profilePhoto) {
+      if (headerPhotoBlobRef.current) {
+        URL.revokeObjectURL(headerPhotoBlobRef.current);
+        headerPhotoBlobRef.current = null;
+      }
+      setHeaderPhotoUrl(null);
+      return;
+    }
+    const url = authService.getProfilePhotoUrl(u.profilePhoto);
+    if (url) {
+      setHeaderPhotoUrl(url);
+      return;
+    }
+    if (u.profilePhoto === 'inline') {
+      authService.fetchProfilePhotoBlobUrl().then((blobUrl) => {
+        if (!blobUrl) return;
+        if (headerPhotoBlobRef.current) URL.revokeObjectURL(headerPhotoBlobRef.current);
+        headerPhotoBlobRef.current = blobUrl;
+        setHeaderPhotoUrl(blobUrl);
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      if (headerPhotoBlobRef.current) {
+        URL.revokeObjectURL(headerPhotoBlobRef.current);
+        headerPhotoBlobRef.current = null;
+      }
+      setHeaderPhotoUrl(null);
+      return;
+    }
+    loadHeaderPhoto();
+    const onPhotoUpdated = () => loadHeaderPhoto();
+    window.addEventListener('profilePhotoUpdated', onPhotoUpdated);
+    return () => {
+      window.removeEventListener('profilePhotoUpdated', onPhotoUpdated);
+      if (headerPhotoBlobRef.current) {
+        URL.revokeObjectURL(headerPhotoBlobRef.current);
+        headerPhotoBlobRef.current = null;
+      }
+    };
+  }, [isLoggedIn, userData?.profilePhoto]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -327,29 +383,22 @@ const Header: React.FC = () => {
           )}
           
           <NavLink to="/how-it-works">Como Funciona</NavLink>
-          {(userType === 'lessor' || userType === 'both' || !isLoggedIn) && (
-            <NavLink to="/become-host">Torne-se Anfitrião</NavLink>
-          )}
           <NavLink to="/help">Ajuda</NavLink>
         </NavLinks>
 
         {isLoggedIn ? (
           <UserMenu>
             <UserButton onClick={toggleUserMenu}>
-              <User size={16} />
+              {headerPhotoUrl ? (
+                <HeaderAvatar src={headerPhotoUrl} alt="" />
+              ) : (
+                <User size={16} />
+              )}
               Conta
               <ArrowDown size={12} />
             </UserButton>
                         <DropdownMenu isOpen={isUserMenuOpen}>
               {/* Seção Superior */}
-              <DropdownItem 
-                to="/favorites" 
-                className="favorite"
-                onClick={() => setIsUserMenuOpen(false)}
-              >
-                <FavoriteBorder fontSize="small" />
-                Favoritos
-              </DropdownItem>
               <DropdownItem 
                 to="/bookings"
                 onClick={() => setIsUserMenuOpen(false)}
@@ -376,27 +425,21 @@ const Header: React.FC = () => {
                 Perfil
               </DropdownItem>
               <DropdownItem 
-                to="/dashboard"
+                to="/verification"
                 onClick={() => setIsUserMenuOpen(false)}
               >
-                <User size={20} />
-                Painel
+                <VerifiedUser size={20} />
+                Verificação
               </DropdownItem>
-              <DropdownItem 
-                to="/become-host"
-                onClick={() => setIsUserMenuOpen(false)}
-              >
-                <Car size={20} />
-                Torne-se Anfitrião
-              </DropdownItem>
-              <DropdownItem 
-                to="/gift-cards"
-                onClick={() => setIsUserMenuOpen(false)}
-              >
-                <CardGiftcard fontSize="small" />
-                Cartão Presente
-              </DropdownItem>
-
+              {(userType === 'lessor' || userType === 'both') && (
+                <DropdownItem 
+                  to="/bank-details"
+                  onClick={() => setIsUserMenuOpen(false)}
+                >
+                  <CreditCard size={20} />
+                  Dados bancários
+                </DropdownItem>
+              )}
               <DropdownDivider />
 
               {/* Seção Inferior */}

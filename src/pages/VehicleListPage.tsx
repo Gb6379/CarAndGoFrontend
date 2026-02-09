@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { vehicleService } from '../services/authService';
+import { Favorite, FavoriteBorder } from '@mui/icons-material';
+import { vehicleService, favoriteService } from '../services/authService';
+import { getFavorites, toggleFavorite } from '../utils/favorites';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -308,6 +310,35 @@ const CarBadge = styled.div<{ type: string }>`
   color: white;
 `;
 
+const FavoriteIconButton = styled.button`
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.95);
+  color: #8B5CF6;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 2;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+
+  &:hover {
+    background: white;
+    transform: scale(1.08);
+    color: #7c3aed;
+  }
+
+  svg {
+    font-size: 22px;
+  }
+`;
+
 const CarInfo = styled.div`
   padding: 1.5rem;
 `;
@@ -538,6 +569,24 @@ const VehicleListPage: React.FC = () => {
     maxPrice: ''
   });
   const [sortBy, setSortBy] = useState('price');
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+  const isLoggedIn = !!localStorage.getItem('token');
+
+  useEffect(() => {
+    const load = async () => {
+      if (isLoggedIn) {
+        try {
+          const ids = await favoriteService.getFavoriteIds();
+          setFavoriteIds(ids || []);
+        } catch {
+          setFavoriteIds([]);
+        }
+      } else {
+        setFavoriteIds(getFavorites());
+      }
+    };
+    load();
+  }, [isLoggedIn]);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number, address: string} | null>(null);
   const [currentSearchLocation, setCurrentSearchLocation] = useState<string>('');
   const [locationInput, setLocationInput] = useState<string>('');
@@ -562,11 +611,12 @@ const VehicleListPage: React.FC = () => {
   const untilDate = searchParams.get('until') || '';
   const age = searchParams.get('age') || '25';
 
+  // Ao mudar a URL, atualizar estado e buscar com a localização da URL (evitar 1ª busca com state vazio)
   useEffect(() => {
     console.log('VehicleListPage mounted, starting to load vehicles...');
     setCurrentSearchLocation(initialLocation);
     setLocationInput(initialLocation);
-    loadVehicles();
+    loadVehicles(initialLocation);
   }, [location.search]);
 
   // Close suggestions when clicking outside
@@ -602,13 +652,14 @@ const VehicleListPage: React.FC = () => {
             setUserLocation({ lat: latitude, lng: longitude, address });
             setCurrentSearchLocation(address);
             
-            // Reload vehicles with new location
-            loadVehicles();
+            // Reload vehicles with new location (passar address para não depender do state)
+            loadVehicles(address);
           } catch (error) {
             console.error('Reverse geocoding error:', error);
-            setUserLocation({ lat: latitude, lng: longitude, address: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}` });
-            setCurrentSearchLocation(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
-            loadVehicles();
+            const fallbackAddress = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+            setUserLocation({ lat: latitude, lng: longitude, address: fallbackAddress });
+            setCurrentSearchLocation(fallbackAddress);
+            loadVehicles(fallbackAddress);
           }
           
           setGettingLocation(false);
@@ -695,6 +746,7 @@ const VehicleListPage: React.FC = () => {
   const handleSearchLocation = () => {
     if (locationInput.trim()) {
       setSearchingLocation(true);
+      let locationToSearch = locationInput.trim();
       
       // If user typed something but didn't select a suggestion, use the first one
       if (locationSuggestions.length > 0) {
@@ -704,33 +756,31 @@ const VehicleListPage: React.FC = () => {
           lng: firstSuggestion.lng,
           address: firstSuggestion.displayName
         });
-        setCurrentSearchLocation(firstSuggestion.displayName);
+        locationToSearch = firstSuggestion.displayName;
+        setCurrentSearchLocation(locationToSearch);
       } else {
         // No suggestions, use the raw input but normalize it
-        let normalizedLocation = locationInput.trim();
-        
-        // Handle common variations of São Paulo
-        if (normalizedLocation.toLowerCase().includes('sao paulo') || 
-            normalizedLocation.toLowerCase().includes('são paulo')) {
-          normalizedLocation = 'São Paulo, SP';
+        if (locationToSearch.toLowerCase().includes('sao paulo') || 
+            locationToSearch.toLowerCase().includes('são paulo')) {
+          locationToSearch = 'São Paulo, SP';
         }
-        
-        setCurrentSearchLocation(normalizedLocation);
+        setCurrentSearchLocation(locationToSearch);
       }
       
-      loadVehicles();
+      loadVehicles(locationToSearch);
       setShowSuggestions(false);
       setSearchingLocation(false);
     }
   };
 
-  const loadVehicles = async () => {
+  const loadVehicles = async (locationOverride?: string) => {
+    const locationToUse = locationOverride !== undefined && locationOverride !== null ? locationOverride : currentSearchLocation;
     try {
       setLoading(true);
       setError(null);
       
       console.log('Loading vehicles with filters:', {
-        location: currentSearchLocation,
+        location: locationToUse,
         fromDate,
         untilDate,
         filters,
@@ -738,10 +788,10 @@ const VehicleListPage: React.FC = () => {
         userLocation
       });
       
-      // Prepare search filters
+      // Prepare search filters (usar local da URL na primeira carga para evitar busca com state vazio)
       const searchFilters = {
-        location: currentSearchLocation,
-        city: currentSearchLocation, // Also try city parameter
+        location: locationToUse,
+        city: locationToUse, // Also try city parameter
         fromDate,
         untilDate,
         ...filters,
@@ -766,8 +816,7 @@ const VehicleListPage: React.FC = () => {
       });
 
       console.log('Calling API with filters:', searchFilters);
-      console.log('Current search location:', currentSearchLocation);
-      console.log('Location input:', locationInput);
+      console.log('Current search location:', locationToUse);
       
       // Add timeout to prevent hanging
       const timeoutPromise = new Promise((_, reject) => {
@@ -792,7 +841,13 @@ const VehicleListPage: React.FC = () => {
   };
 
   const handleCarClick = (carId: string) => {
-    navigate(`/vehicle/${carId}`);
+    // Pass search dates to vehicle detail page
+    const params = new URLSearchParams();
+    if (fromDate) params.set('startDate', fromDate);
+    if (untilDate) params.set('endDate', untilDate);
+    
+    const queryString = params.toString();
+    navigate(`/vehicle/${carId}${queryString ? `?${queryString}` : ''}`);
   };
 
   const handleFilterChange = (filterName: string, value: any) => {
@@ -834,11 +889,11 @@ const VehicleListPage: React.FC = () => {
     if (vehicle.photos && vehicle.photos.length > 0) {
       return vehicle.photos[0];
     }
-    return vehicle.fuelType === 'ELECTRIC' ? <Electric size={48} /> : <Car size={48} />;
+    return vehicle.fuelType === 'eletrico' ? <Electric size={48} /> : <Car size={48} />;
   };
 
   const isElectric = (vehicle: any) => {
-    return vehicle.fuelType === 'ELECTRIC';
+    return vehicle.fuelType === 'eletrico';
   };
 
   console.log('VehicleListPage render - loading:', loading, 'vehicles:', vehicles.length, 'error:', error);
@@ -958,7 +1013,7 @@ const VehicleListPage: React.FC = () => {
         <SearchResults>
           {fromDate && untilDate ? (
             <>
-              De {new Date(fromDate).toLocaleDateString()} até {new Date(untilDate).toLocaleDateString()}
+              De {fromDate.split('-').reverse().join('/')} até {untilDate.split('-').reverse().join('/')}
               <br />
             </>
           ) : null}
@@ -1230,11 +1285,36 @@ const VehicleListPage: React.FC = () => {
           )}
 
           <CarsGrid>
-            {vehicles.map((vehicle) => (
+            {vehicles.map((vehicle) => {
+              const vehicleIdStr = String(vehicle.id);
+              const isFav = favoriteIds.includes(vehicleIdStr);
+              return (
               <CarCard key={vehicle.id} onClick={() => handleCarClick(vehicle.id)}>
                 <CarImage>
                   {getVehicleImage(vehicle)}
                   {isElectric(vehicle) && <CarBadge type="electric">Elétrico</CarBadge>}
+                  <FavoriteIconButton
+                    type="button"
+                    aria-label={isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      if (isLoggedIn) {
+                        try {
+                          const res = await favoriteService.toggleFavorite(vehicleIdStr);
+                          setFavoriteIds((prev) =>
+                            res.isFavorite ? [...prev, vehicleIdStr] : prev.filter((id) => id !== vehicleIdStr)
+                          );
+                        } catch {
+                          // keep state unchanged on error
+                        }
+                      } else {
+                        toggleFavorite(vehicleIdStr);
+                        setFavoriteIds(getFavorites());
+                      }
+                    }}
+                  >
+                    {isFav ? <Favorite /> : <FavoriteBorder />}
+                  </FavoriteIconButton>
                 </CarImage>
                 <CarInfo>
                   <CarTitle>{getVehicleTitle(vehicle)}</CarTitle>
@@ -1256,7 +1336,8 @@ const VehicleListPage: React.FC = () => {
                   </PriceSection>
                 </CarInfo>
               </CarCard>
-            ))}
+            );
+            })}
           </CarsGrid>
 
           <div style={{ textAlign: 'center', marginTop: '2rem', color: '#666' }}>

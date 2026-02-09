@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { Car, Location, Star } from '../components/IconSystem';
+import { vehicleService, bookingService } from '../services/authService';
 
 const Container = styled.div`
   max-width: 1200px;
@@ -223,57 +224,87 @@ const MyCarsPage: React.FC = () => {
       return;
     }
 
-    // Simulate loading user cars
-    setTimeout(() => {
-      setCars([
-        {
-          id: 'CAR001',
-          title: 'Toyota Corolla 2022',
-          dailyRate: 150,
-          status: 'available',
-          rating: 4.9,
-          totalBookings: 12,
-          totalEarnings: 1800,
-          location: 'São Paulo, SP'
-        },
-        {
-          id: 'CAR002',
-          title: 'Honda Civic 2021',
-          dailyRate: 180,
-          status: 'rented',
-          rating: 4.8,
-          totalBookings: 8,
-          totalEarnings: 1440,
-          location: 'Rio de Janeiro, RJ'
+    const loadCars = async () => {
+      try {
+        const [allVehicles, allBookings] = await Promise.all([
+          vehicleService.getAllVehicles(),
+          bookingService.getBookings().catch(() => []),
+        ]);
+        const list = Array.isArray(allVehicles) ? allVehicles : [];
+        const bookings = Array.isArray(allBookings) ? allBookings : [];
+        const myVehicles = list.filter(
+          (v: any) => v.ownerId === user.id || v.owner?.id === user.id
+        );
+        // Calcular reservas e ganhos por veículo a partir das reservas reais
+        const bookingsByVehicle: Record<string, { count: number; earnings: number }> = {};
+        for (const b of bookings) {
+          const vehicleId = b.vehicleId || b.vehicle?.id;
+          if (!vehicleId) continue;
+          if (!bookingsByVehicle[vehicleId]) {
+            bookingsByVehicle[vehicleId] = { count: 0, earnings: 0 };
+          }
+          bookingsByVehicle[vehicleId].count += 1;
+          const amount = typeof b.lessorAmount === 'number' ? b.lessorAmount : parseFloat(b.lessorAmount) || 0;
+          bookingsByVehicle[vehicleId].earnings += amount;
         }
-      ]);
-      setLoading(false);
-    }, 1000);
+        const mapped = myVehicles.map((v: any) => {
+          const stats = bookingsByVehicle[v.id] || { count: 0, earnings: 0 };
+          return {
+            id: v.id,
+            title: [v.make, v.model, v.year].filter(Boolean).join(' ') || 'Veículo',
+            dailyRate: Number(v.dailyRate) || 0,
+            status: v.status || 'available',
+            rating: v.rating != null ? Number(v.rating) : 0,
+            totalBookings: stats.count,
+            totalEarnings: stats.earnings,
+            location: [v.city, v.state].filter(Boolean).join(', ') || '—',
+          };
+        });
+        setCars(mapped);
+      } catch (err) {
+        console.error('Erro ao carregar veículos:', err);
+        setCars([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCars();
   }, [navigate]);
 
   const handleEditCar = (carId: string) => {
-    navigate(`/vehicle/edit/${carId}`);
+    navigate(`/list-vehicle/edit/${carId}`);
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      available: 'Disponível',
+      rented: 'Alugado',
+      maintenance: 'Manutenção',
+      active: 'Ativo',
+    };
+    return labels[status?.toLowerCase()] || status;
   };
 
   const handleDeleteCar = (carId: string) => {
-    if (window.confirm('Are you sure you want to delete this car? This action cannot be undone.')) {
+    if (window.confirm('Tem certeza que deseja excluir este veículo? Esta ação não pode ser desfeita.')) {
       setCars(prev => prev.filter(car => car.id !== carId));
     }
   };
 
   const handleViewBookings = (carId: string) => {
-    navigate(`/vehicle/${carId}/bookings`);
+    navigate(`/vehicle/${carId}`);
   };
 
   const handleAddCar = () => {
-    navigate('/vehicle/add');
+    navigate('/list-vehicle');
   };
 
   if (loading) {
     return (
       <Container>
-        <Title>My Cars</Title>
-        <p>Loading...</p>
+        <Title>Meus Veículos</Title>
+        <p>Carregando...</p>
       </Container>
     );
   }
@@ -281,18 +312,18 @@ const MyCarsPage: React.FC = () => {
   return (
     <Container>
       <Header>
-        <Title>My Cars</Title>
+        <Title>Meus Veículos</Title>
         <AddCarButton onClick={handleAddCar}>
-          + Add New Car
+          + Anunciar veículo
         </AddCarButton>
       </Header>
 
       {cars.length === 0 ? (
         <EmptyState>
-          <h3>No cars listed yet</h3>
-          <p>Start earning money by listing your car for rent.</p>
+          <h3>Nenhum veículo anunciado</h3>
+          <p>Comece a ganhar dinheiro anunciando seu carro para locação.</p>
           <AddCarButton onClick={handleAddCar}>
-            List Your First Car
+            Anunciar seu primeiro veículo
           </AddCarButton>
         </EmptyState>
       ) : (
@@ -301,7 +332,7 @@ const MyCarsPage: React.FC = () => {
             <CarCard key={car.id}>
               <CarImage>
                 <CarStatus status={car.status}>
-                  {car.status.charAt(0).toUpperCase() + car.status.slice(1)}
+                  {getStatusLabel(car.status)}
                 </CarStatus>
                 <Car size={24} />
               </CarImage>
@@ -309,18 +340,18 @@ const MyCarsPage: React.FC = () => {
               <CarInfo>
                 <CarTitle>{car.title}</CarTitle>
                 <CarDetails>
-                  <CarPrice>R$ {car.dailyRate}/day</CarPrice>
+                  <CarPrice>R$ {car.dailyRate}/dia</CarPrice>
                   <CarRating><Star size={14} /> {car.rating}</CarRating>
                 </CarDetails>
                 
                 <CarStats>
                   <Stat>
                     <StatNumber>{car.totalBookings}</StatNumber>
-                    <StatLabel>Bookings</StatLabel>
+                    <StatLabel>Reservas</StatLabel>
                   </Stat>
                   <Stat>
                     <StatNumber>R$ {car.totalEarnings}</StatNumber>
-                    <StatLabel>Earnings</StatLabel>
+                    <StatLabel>Ganhos</StatLabel>
                   </Stat>
                   <Stat>
                     <StatNumber><Location size={16} /></StatNumber>
@@ -333,19 +364,19 @@ const MyCarsPage: React.FC = () => {
                     variant="secondary"
                     onClick={() => handleViewBookings(car.id)}
                   >
-                    Bookings
+                    Reservas
                   </ActionButton>
                   <ActionButton 
                     variant="primary"
                     onClick={() => handleEditCar(car.id)}
                   >
-                    Edit
+                    Editar
                   </ActionButton>
                   <ActionButton 
                     variant="danger"
                     onClick={() => handleDeleteCar(car.id)}
                   >
-                    Delete
+                    Excluir
                   </ActionButton>
                 </CarActions>
               </CarInfo>

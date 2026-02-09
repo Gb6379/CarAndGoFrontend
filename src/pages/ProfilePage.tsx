@@ -1,8 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { User } from '../components/IconSystem';
-import { authService } from '../services/authService';
+import { authService, vehicleService, bookingService } from '../services/authService';
+import { validateCpfCnpj } from '../utils/cpfValidation';
+
+interface IBGECity {
+  id: number;
+  nome: string;
+}
 
 const Container = styled.div`
   max-width: 1000px;
@@ -34,6 +40,13 @@ const ProfileCard = styled.div`
   box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 `;
 
+const ProfileImageWrapper = styled.div`
+  margin: 0 auto 1.5rem;
+  width: 120px;
+  cursor: pointer;
+  position: relative;
+`;
+
 const ProfileImage = styled.div`
   width: 120px;
   height: 120px;
@@ -44,7 +57,28 @@ const ProfileImage = styled.div`
   justify-content: center;
   font-size: 3rem;
   color: white;
-  margin: 0 auto 1.5rem;
+  overflow: hidden;
+`;
+
+const ProfileImageImg = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
+
+const ProfileImageOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: white;
+  opacity: 0;
+  transition: opacity 0.2s;
+  ${ProfileImageWrapper}:hover & { opacity: 1; }
 `;
 
 const UserName = styled.h2`
@@ -183,70 +217,172 @@ const ProfilePage: React.FC = () => {
     lastName: '',
     email: '',
     phone: '',
+    cpfCnpj: '',
     city: '',
     state: '',
     userType: '',
   });
+  const [cpfError, setCpfError] = useState<string | null>(null);
+  const [cities, setCities] = useState<IBGECity[]>([]);
+  const [loadingCities, setLoadingCities] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [profilePhotoDisplayUrl, setProfilePhotoDisplayUrl] = useState<string | null>(null);
+  const [vehiclesCount, setVehiclesCount] = useState<number>(0);
+  const [bookingsCount, setBookingsCount] = useState<number>(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const profilePhotoBlobUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem('user') || '{}');
-    const token = localStorage.getItem('token');
-    
-    console.log('Profile page - User data:', userData);
-    console.log('Profile page - Token exists:', !!token);
-    
-    // Debug token details
-    if (token) {
+    if (!user?.id) return;
+    const loadStats = async () => {
       try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        console.log('Token payload:', payload);
-        console.log('Token expires:', new Date(payload.exp * 1000));
-        console.log('Token expired:', Date.now() > payload.exp * 1000);
-      } catch (error) {
-        console.log('Token decode error:', error);
+        const [vehicles, bookings] = await Promise.all([
+          vehicleService.getAllVehicles().catch(() => []),
+          bookingService.getBookings().catch(() => []),
+        ]);
+        const myVehicles = Array.isArray(vehicles)
+          ? vehicles.filter((v: any) => v.ownerId === user.id || v.owner?.id === user.id)
+          : [];
+        const myBookings = Array.isArray(bookings)
+          ? bookings.filter((b: any) => b.lesseeId === user.id || b.lessee?.id === user.id || b.lessorId === user.id || b.lessor?.id === user.id)
+          : [];
+        setVehiclesCount(myVehicles.length);
+        setBookingsCount(myBookings.length);
+      } catch {
+        setVehiclesCount(0);
+        setBookingsCount(0);
       }
+    };
+    loadStats();
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!user?.profilePhoto) {
+      if (profilePhotoBlobUrlRef.current) {
+        URL.revokeObjectURL(profilePhotoBlobUrlRef.current);
+        profilePhotoBlobUrlRef.current = null;
+      }
+      setProfilePhotoDisplayUrl(null);
+      return;
     }
-    
-    if (userData.id && token) {
-      setUser(userData);
-      setFormData({
-        firstName: userData.firstName || '',
-        lastName: userData.lastName || '',
-        email: userData.email || '',
-        phone: userData.phone || '',
-        city: userData.city || '',
-        state: userData.state || '',
-        userType: userData.userType || '',
+    const url = authService.getProfilePhotoUrl(user.profilePhoto);
+    if (url) {
+      setProfilePhotoDisplayUrl(url);
+      return;
+    }
+    if (user.profilePhoto === 'inline') {
+      authService.fetchProfilePhotoBlobUrl().then((blobUrl) => {
+        if (!blobUrl) return;
+        if (profilePhotoBlobUrlRef.current) URL.revokeObjectURL(profilePhotoBlobUrlRef.current);
+        profilePhotoBlobUrlRef.current = blobUrl;
+        setProfilePhotoDisplayUrl(blobUrl);
       });
-    } else {
-      console.log('No user data or token, redirecting to login');
-      navigate('/login');
+      return () => {
+        if (profilePhotoBlobUrlRef.current) {
+          URL.revokeObjectURL(profilePhotoBlobUrlRef.current);
+          profilePhotoBlobUrlRef.current = null;
+        }
+      };
     }
+    setProfilePhotoDisplayUrl(null);
+  }, [user?.profilePhoto]);
+
+  useEffect(() => {
+    if (formData.state) {
+      setLoadingCities(true);
+      setCities([]);
+      fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${formData.state}/municipios?orderBy=nome`)
+        .then(res => res.json())
+        .then((data: IBGECity[]) => {
+          setCities(data);
+          setLoadingCities(false);
+        })
+        .catch(err => {
+          console.error('Erro ao carregar cidades:', err);
+          setLoadingCities(false);
+        });
+    } else {
+      setCities([]);
+    }
+  }, [formData.state]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+    let cancelled = false;
+    authService
+      .getProfile()
+      .then((profile: any) => {
+        if (cancelled) return;
+        const p = profile || {};
+        setUser(p);
+        setFormData({
+          firstName: p.firstName || '',
+          lastName: p.lastName || '',
+          email: p.email || '',
+          phone: p.phone || '',
+          cpfCnpj: p.cpfCnpj || '',
+          city: p.city || '',
+          state: p.state || '',
+          userType: p.userType || '',
+        });
+        localStorage.setItem('user', JSON.stringify({ ...JSON.parse(localStorage.getItem('user') || '{}'), ...p }));
+      })
+      .catch(() => {
+        if (cancelled) return;
+        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        if (userData.id) {
+          setUser(userData);
+          setFormData({
+            firstName: userData.firstName || '',
+            lastName: userData.lastName || '',
+            email: userData.email || '',
+            phone: userData.phone || '',
+            cpfCnpj: userData.cpfCnpj || '',
+            city: userData.city || '',
+            state: userData.state || '',
+            userType: userData.userType || '',
+          });
+        } else {
+          navigate('/login');
+        }
+      });
+    return () => { cancelled = true; };
   }, [navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    if (name === 'cpfCnpj') setCpfError(null);
+    setFormData(prev => {
+      const next = { ...prev, [name]: value };
+      if (name === 'state') next.city = '';
+      return next;
+    });
   };
 
   const handleSave = async () => {
+    setCpfError(null);
+    const cpfTrimmed = (formData.cpfCnpj || '').replace(/\D/g, '');
+    if (cpfTrimmed.length > 0) {
+      const cpfResult = validateCpfCnpj(formData.cpfCnpj);
+      if (!cpfResult.valid) {
+        setCpfError(cpfResult.message || 'CPF/CNPJ inválido.');
+        return;
+      }
+    }
     try {
-      // Check if user is logged in and has a valid token
       const token = localStorage.getItem('token');
       const userData = JSON.parse(localStorage.getItem('user') || '{}');
       
       if (!token || !userData.id) {
-        alert('You are not logged in. Please log in again.');
+        alert('Você não está logado. Faça login novamente.');
         navigate('/login');
         return;
       }
       
-      console.log('Attempting to update profile...');
-      
-      // Call the API to update user profile
       const updatedUser = await authService.updateProfile(formData);
       console.log('Profile updated:', updatedUser);
       
@@ -262,17 +398,22 @@ const ProfilePage: React.FC = () => {
       
       // Refresh the page to update the header navigation
       window.location.reload();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating profile:', error);
-      
+
       if (error.response?.status === 401) {
-        alert('Your session has expired. Please log in again.');
+        alert('Sua sessão expirou. Faça login novamente.');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         navigate('/login');
-      } else {
-        alert('Error updating profile. Please try again.');
+        return;
       }
+      if (error.response?.status === 409) {
+        const msg = error.response?.data?.message || 'Este CPF/CNPJ já está cadastrado para outra conta.';
+        setCpfError(msg);
+        return;
+      }
+      alert(error.response?.data?.message || 'Erro ao atualizar perfil. Tente novamente.');
     }
   };
 
@@ -283,6 +424,25 @@ const ProfilePage: React.FC = () => {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       navigate('/');
+    }
+  };
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    e.target.value = '';
+    setUploadingPhoto(true);
+    try {
+      const updatedUser = await authService.uploadProfilePhoto(file);
+      setUser((prev: any) => ({ ...prev, profilePhoto: updatedUser.profilePhoto }));
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      localStorage.setItem('user', JSON.stringify({ ...currentUser, profilePhoto: updatedUser.profilePhoto }));
+      window.dispatchEvent(new Event('profilePhotoUpdated'));
+    } catch (err) {
+      console.error(err);
+      alert('Não foi possível enviar a foto. Tente novamente.');
+    } finally {
+      setUploadingPhoto(false);
     }
   };
 
@@ -301,9 +461,31 @@ const ProfilePage: React.FC = () => {
       <ProfileGrid>
         <div>
           <ProfileCard>
-            <ProfileImage>
-              {user.firstName ? user.firstName.charAt(0).toUpperCase() : <User size={24} />}
-            </ProfileImage>
+            <ProfileImageWrapper
+              onClick={() => !uploadingPhoto && fileInputRef.current?.click()}
+              title="Alterar foto de perfil"
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={handlePhotoChange}
+              />
+              <ProfileImage>
+                {profilePhotoDisplayUrl ? (
+                  <ProfileImageImg
+                    src={profilePhotoDisplayUrl}
+                    alt=""
+                  />
+                ) : (
+                  user.firstName ? user.firstName.charAt(0).toUpperCase() : <User size={24} />
+                )}
+              </ProfileImage>
+              <ProfileImageOverlay>
+                {uploadingPhoto ? 'Enviando...' : 'Alterar foto'}
+              </ProfileImageOverlay>
+            </ProfileImageWrapper>
             <UserName>{user.firstName} {user.lastName}</UserName>
             <UserEmail>{user.email}</UserEmail>
             <UserType>
@@ -314,11 +496,11 @@ const ProfilePage: React.FC = () => {
             
             <StatsGrid>
               <StatCard>
-                <StatNumber>0</StatNumber>
+                <StatNumber>{bookingsCount}</StatNumber>
                 <StatLabel>Bookings</StatLabel>
               </StatCard>
               <StatCard>
-                <StatNumber>0</StatNumber>
+                <StatNumber>{vehiclesCount}</StatNumber>
                 <StatLabel>Cars Listed</StatLabel>
               </StatCard>
             </StatsGrid>
@@ -360,7 +542,7 @@ const ProfilePage: React.FC = () => {
             </FormGroup>
 
             <FormGroup>
-              <Label>Phone</Label>
+              <Label>Telefone</Label>
               <Input
                 type="tel"
                 name="phone"
@@ -370,49 +552,74 @@ const ProfilePage: React.FC = () => {
             </FormGroup>
 
             <FormGroup>
-              <Label>City</Label>
+              <Label>CPF / CNPJ</Label>
               <Input
                 type="text"
-                name="city"
-                value={formData.city}
+                name="cpfCnpj"
+                value={formData.cpfCnpj}
                 onChange={handleInputChange}
+                placeholder="Somente números (11 ou 14 dígitos)"
+                maxLength={18}
               />
+              {cpfError && <small style={{ color: '#c62828', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>{cpfError}</small>}
             </FormGroup>
 
             <FormGroup>
-              <Label>State</Label>
+              <Label>Estado</Label>
               <Select
                 name="state"
                 value={formData.state}
                 onChange={handleInputChange}
               >
-                <option value="">Select State</option>
-                <option value="SP">São Paulo</option>
-                <option value="RJ">Rio de Janeiro</option>
-                <option value="MG">Minas Gerais</option>
-                <option value="RS">Rio Grande do Sul</option>
-                <option value="PR">Paraná</option>
-                <option value="BA">Bahia</option>
-                <option value="SC">Santa Catarina</option>
-                <option value="GO">Goiás</option>
-                <option value="PE">Pernambuco</option>
-                <option value="CE">Ceará</option>
-                <option value="PA">Pará</option>
-                <option value="MA">Maranhão</option>
+                <option value="">Selecione seu estado</option>
+                <option value="AC">Acre</option>
+                <option value="AL">Alagoas</option>
+                <option value="AP">Amapá</option>
                 <option value="AM">Amazonas</option>
+                <option value="BA">Bahia</option>
+                <option value="CE">Ceará</option>
+                <option value="DF">Distrito Federal</option>
+                <option value="ES">Espírito Santo</option>
+                <option value="GO">Goiás</option>
+                <option value="MA">Maranhão</option>
                 <option value="MT">Mato Grosso</option>
                 <option value="MS">Mato Grosso do Sul</option>
-                <option value="ES">Espírito Santo</option>
+                <option value="MG">Minas Gerais</option>
+                <option value="PA">Pará</option>
                 <option value="PB">Paraíba</option>
+                <option value="PR">Paraná</option>
+                <option value="PE">Pernambuco</option>
+                <option value="PI">Piauí</option>
+                <option value="RJ">Rio de Janeiro</option>
                 <option value="RN">Rio Grande do Norte</option>
-                <option value="AL">Alagoas</option>
-                <option value="SE">Sergipe</option>
-                <option value="AC">Acre</option>
-                <option value="AP">Amapá</option>
+                <option value="RS">Rio Grande do Sul</option>
                 <option value="RO">Rondônia</option>
                 <option value="RR">Roraima</option>
+                <option value="SC">Santa Catarina</option>
+                <option value="SP">São Paulo</option>
+                <option value="SE">Sergipe</option>
                 <option value="TO">Tocantins</option>
-                <option value="DF">Distrito Federal</option>
+              </Select>
+            </FormGroup>
+
+            <FormGroup>
+              <Label>Cidade</Label>
+              <Select
+                name="city"
+                value={formData.city}
+                onChange={handleInputChange}
+                disabled={!formData.state || loadingCities}
+              >
+                <option value="">
+                  {!formData.state
+                    ? 'Selecione o estado primeiro'
+                    : loadingCities
+                      ? 'Carregando cidades...'
+                      : 'Selecione sua cidade'}
+                </option>
+                {cities.map(c => (
+                  <option key={c.id} value={c.nome}>{c.nome}</option>
+                ))}
               </Select>
             </FormGroup>
 

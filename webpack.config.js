@@ -42,6 +42,10 @@ module.exports = {
     maxAssetSize: 512000,
   },
   cache: false, // Disable filesystem cache to save memory
+  ignoreWarnings: [
+    // react-datepicker usa require dinâmico para locales do date-fns; aviso inofensivo
+    { module: /node_modules\/react-datepicker\/dist\/index\.es\.js/, message: /Critical dependency: the request of a dependency is an expression/ },
+  ],
   module: {
     rules: [
       {
@@ -108,6 +112,7 @@ module.exports = {
     compress: true,
     port: 3001,
     hot: true,
+    historyApiFallback: true,
     onListening: function(devServer) {
       if (!devServer) {
         throw new Error('webpack-dev-server is not defined');

@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import { bookingService } from '../services/authService';
-import { Car, Calendar, Map, Money } from './IconSystem';
+import { Car, Calendar, Map, Money, Lock } from './IconSystem';
 
 const Container = styled.div`
   max-width: 1000px;
@@ -100,6 +103,25 @@ const Input = styled.input`
   &:focus {
     outline: none;
     border-color: #667eea;
+  }
+`;
+
+const DatePickerWrapper = styled.div`
+  .react-datepicker-wrapper {
+    width: 100%;
+  }
+  .react-datepicker__input-container input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+    box-sizing: border-box;
+    &:focus {
+      outline: none;
+      border-color: #667eea;
+    }
   }
 `;
 
@@ -215,17 +237,53 @@ const MapPlaceholder = styled.div`
   font-size: 1.1rem;
 `;
 
+const AvailabilityWarning = styled.div`
+  background: #ffebee;
+  color: #c62828;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+`;
+
+const AvailabilitySuccess = styled.div`
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+`;
+
 interface BookingInterfaceProps {
   vehicle: any;
   onBookingSuccess?: (booking: any) => void;
+  initialStartDate?: string;
+  initialEndDate?: string;
+  initialStartTime?: string;
+  initialEndTime?: string;
 }
 
-const BookingInterface: React.FC<BookingInterfaceProps> = ({ vehicle, onBookingSuccess }) => {
+const BookingInterface: React.FC<BookingInterfaceProps> = ({ 
+  vehicle, 
+  onBookingSuccess,
+  initialStartDate = '',
+  initialEndDate = '',
+  initialStartTime = '',
+  initialEndTime = ''
+}) => {
+  const navigate = useNavigate();
   const [bookingData, setBookingData] = useState({
-    startDate: '',
-    endDate: '',
-    startTime: '10:00',
-    endTime: '18:00',
+    startDate: initialStartDate,
+    endDate: initialEndDate,
+    startTime: initialStartTime || '10:00',
+    endTime: initialEndTime || '10:00',
     originCity: '',
     destinationCity: '',
     originLatitude: '',
@@ -239,6 +297,73 @@ const BookingInterface: React.FC<BookingInterfaceProps> = ({ vehicle, onBookingS
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [bookingSummary, setBookingSummary] = useState<any>(null);
+  const [blockedDates, setBlockedDates] = useState<{ startDate: string; endDate: string; status: string }[]>([]);
+  const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
+  const [checkingAvailability, setCheckingAvailability] = useState(false);
+
+  // Update booking data when initial props change
+  useEffect(() => {
+    setBookingData(prev => ({
+      ...prev,
+      startDate: initialStartDate || prev.startDate,
+      endDate: initialEndDate || prev.endDate,
+      startTime: initialStartTime || prev.startTime,
+      endTime: initialEndTime || prev.endTime,
+    }));
+  }, [initialStartDate, initialEndDate, initialStartTime, initialEndTime]);
+
+  // Fetch blocked dates when component mounts
+  useEffect(() => {
+    const fetchBlockedDates = async () => {
+      if (!vehicle?.id) return;
+      try {
+        const response = await bookingService.getBlockedDates(vehicle.id);
+        setBlockedDates(response.blockedDates || []);
+      } catch (err) {
+        console.error('Erro ao buscar datas bloqueadas:', err);
+      }
+    };
+    fetchBlockedDates();
+  }, [vehicle?.id]);
+
+  // Check availability when dates change
+  const checkAvailability = useCallback(async () => {
+    if (!bookingData.startDate || !bookingData.endDate || !vehicle?.id) {
+      setIsAvailable(null);
+      return;
+    }
+
+    setCheckingAvailability(true);
+    try {
+      const startDateTime = `${bookingData.startDate}T${bookingData.startTime}:00`;
+      const endDateTime = `${bookingData.endDate}T${bookingData.endTime}:00`;
+      const response = await bookingService.checkAvailability(vehicle.id, startDateTime, endDateTime);
+      setIsAvailable(response.available);
+      if (!response.available) {
+        setError('Este veículo não está disponível no período selecionado.');
+        setBookingSummary(null);
+      } else {
+        setError('');
+      }
+    } catch (err: any) {
+      console.error('Erro ao verificar disponibilidade:', err);
+      // Handle error response from API
+      const errorMessage = err.response?.data?.message;
+      if (typeof errorMessage === 'string') {
+        setError(errorMessage);
+      } else if (err.response?.status === 404) {
+        // Endpoint might not exist yet, ignore
+        console.log('Endpoint de disponibilidade não encontrado');
+      }
+      setIsAvailable(null);
+    } finally {
+      setCheckingAvailability(false);
+    }
+  }, [bookingData.startDate, bookingData.endDate, bookingData.startTime, bookingData.endTime, vehicle?.id]);
+
+  useEffect(() => {
+    checkAvailability();
+  }, [checkAvailability]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -246,11 +371,46 @@ const BookingInterface: React.FC<BookingInterfaceProps> = ({ vehicle, onBookingS
       ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
     }));
+    // Reset availability when dates change
+    if (name === 'startDate' || name === 'endDate' || name === 'startTime' || name === 'endTime') {
+      setIsAvailable(null);
+    }
   };
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('pt-BR');
+  };
+
+  const dateToYYYYMMDD = (date: Date) => {
+    const y = date.getFullYear();
+    const m = date.getMonth() + 1;
+    const d = date.getDate();
+    return `${y}-${m < 10 ? '0' + m : m}-${d < 10 ? '0' + d : d}`;
+  };
+
+  // Datas que estão dentro de períodos reservados (indisponíveis no calendário)
+  const excludedDates = useMemo(() => {
+    const dates: Date[] = [];
+    blockedDates.forEach(({ startDate, endDate }) => {
+      if (!startDate || !endDate) return;
+      const startStr = typeof startDate === 'string' ? startDate.slice(0, 10) : '';
+      const endStr = typeof endDate === 'string' ? endDate.slice(0, 10) : '';
+      if (!startStr || !endStr || startStr.length < 10 || endStr.length < 10) return;
+      const [sy, sm, sd] = startStr.split('-').map(Number);
+      const [ey, em, ed] = endStr.split('-').map(Number);
+      const start = new Date(sy, sm - 1, sd);
+      const end = new Date(ey, em - 1, ed);
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        dates.push(new Date(d));
+      }
+    });
+    return dates;
+  }, [blockedDates]);
 
   const calculateBooking = async () => {
     if (!bookingData.startDate || !bookingData.endDate) {
-      setError('Please select start and end dates');
+      setError('Por favor, selecione as datas de retirada e devolução');
       return;
     }
 
@@ -262,10 +422,12 @@ const BookingInterface: React.FC<BookingInterfaceProps> = ({ vehicle, onBookingS
       const totalHours = Math.ceil(durationMs / (1000 * 60 * 60));
       const totalDays = Math.ceil(totalHours / 24);
 
-      const baseAmount = totalDays > 1 ? totalDays * vehicle.dailyRate : totalHours * vehicle.hourlyRate;
+      const dailyRate = parseFloat(vehicle.dailyRate) || 0;
+      const hourlyRate = parseFloat(vehicle.hourlyRate) || dailyRate / 24;
+      const baseAmount = totalDays > 1 ? totalDays * dailyRate : totalHours * hourlyRate;
       const platformFee = baseAmount * 0.30;
       const lessorAmount = baseAmount * 0.70;
-      const securityDeposit = vehicle.securityDeposit || vehicle.dailyRate * 2;
+      const securityDeposit = parseFloat(vehicle.securityDeposit) || dailyRate * 2;
       const totalAmount = baseAmount + securityDeposit;
 
       setBookingSummary({
@@ -278,52 +440,62 @@ const BookingInterface: React.FC<BookingInterfaceProps> = ({ vehicle, onBookingS
         totalAmount,
       });
     } catch (error) {
-      setError('Failed to calculate booking cost');
+      setError('Falha ao calcular o custo da reserva');
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
-    setSuccess('');
 
-    try {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      
-      const startDateTime = new Date(`${bookingData.startDate}T${bookingData.startTime}`);
-      const endDateTime = new Date(`${bookingData.endDate}T${bookingData.endTime}`);
-
-      const bookingPayload = {
-        lesseeId: user.id,
-        lessorId: vehicle.ownerId,
-        vehicleId: vehicle.id,
-        startDate: startDateTime.toISOString(),
-        endDate: endDateTime.toISOString(),
-        dailyRate: vehicle.dailyRate,
-        hourlyRate: vehicle.hourlyRate,
-        securityDeposit: bookingSummary.securityDeposit,
-        ...(bookingData.includeRoute && {
-          originCity: bookingData.originCity,
-          destinationCity: bookingData.destinationCity,
-          originLatitude: bookingData.originLatitude ? parseFloat(bookingData.originLatitude) : undefined,
-          originLongitude: bookingData.originLongitude ? parseFloat(bookingData.originLongitude) : undefined,
-          destinationLatitude: bookingData.destinationLatitude ? parseFloat(bookingData.destinationLatitude) : undefined,
-          destinationLongitude: bookingData.destinationLongitude ? parseFloat(bookingData.destinationLongitude) : undefined,
-        }),
-      };
-
-      const booking = await bookingService.createBooking(bookingPayload);
-      
-      setSuccess('Booking created successfully! You will be redirected to payment.');
-      if (onBookingSuccess) {
-        onBookingSuccess(booking);
-      }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create booking');
-    } finally {
-      setLoading(false);
+    if (!bookingSummary) {
+      setError('Calcule a reserva antes de continuar.');
+      return;
     }
+    if (isAvailable === false) {
+      setError('O veículo não está disponível para as datas selecionadas.');
+      return;
+    }
+
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const startDateTime = new Date(`${bookingData.startDate}T${bookingData.startTime}`);
+    const endDateTime = new Date(`${bookingData.endDate}T${bookingData.endTime}`);
+
+    const bookingPayload = {
+      lesseeId: user.id,
+      lessorId: vehicle.ownerId,
+      vehicleId: vehicle.id,
+      startDate: startDateTime.toISOString(),
+      endDate: endDateTime.toISOString(),
+      dailyRate: vehicle.dailyRate,
+      hourlyRate: vehicle.hourlyRate,
+      securityDeposit: bookingSummary.securityDeposit,
+      ...(bookingData.includeRoute && {
+        originCity: bookingData.originCity,
+        destinationCity: bookingData.destinationCity,
+        originLatitude: bookingData.originLatitude ? parseFloat(bookingData.originLatitude) : undefined,
+        originLongitude: bookingData.originLongitude ? parseFloat(bookingData.originLongitude) : undefined,
+        destinationLatitude: bookingData.destinationLatitude ? parseFloat(bookingData.destinationLatitude) : undefined,
+        destinationLongitude: bookingData.destinationLongitude ? parseFloat(bookingData.destinationLongitude) : undefined,
+      }),
+    };
+
+    // Ir para a página de pagamento; a reserva só será criada após o pagamento
+    navigate('/payment', {
+      replace: true,
+      state: {
+        bookingPayload,
+        vehicle,
+        bookingSummary: {
+          totalAmount: bookingSummary.totalAmount,
+          baseAmount: bookingSummary.baseAmount,
+          platformFee: bookingSummary.platformFee,
+          securityDeposit: bookingSummary.securityDeposit,
+          totalDays: bookingSummary.totalDays,
+          totalHours: bookingSummary.totalHours,
+        },
+      },
+    });
   };
 
   useEffect(() => {
@@ -334,7 +506,7 @@ const BookingInterface: React.FC<BookingInterfaceProps> = ({ vehicle, onBookingS
 
   return (
     <Container>
-      <Title><Car size={24} /> Book This Vehicle</Title>
+      <Title><Car size={24} /> Reservar Este Veículo</Title>
       
       {error && <ErrorMessage>{error}</ErrorMessage>}
       {success && <SuccessMessage>{success}</SuccessMessage>}
@@ -344,47 +516,79 @@ const BookingInterface: React.FC<BookingInterfaceProps> = ({ vehicle, onBookingS
           <VehicleImage><Car size={32} /></VehicleImage>
           <VehicleInfo>
             <VehicleTitle>{vehicle.make} {vehicle.model}</VehicleTitle>
-            <VehicleDetails>Year: {vehicle.year}</VehicleDetails>
-            <VehicleDetails>Type: {vehicle.type}</VehicleDetails>
-            <VehicleDetails>Fuel: {vehicle.fuelType}</VehicleDetails>
-            <VehicleDetails>Transmission: {vehicle.transmission}</VehicleDetails>
-            <VehicleDetails>Seats: {vehicle.seats}</VehicleDetails>
-            <Price>R$ {vehicle.dailyRate}/day</Price>
+            <VehicleDetails>Ano: {vehicle.year}</VehicleDetails>
+            <VehicleDetails>Tipo: {vehicle.type}</VehicleDetails>
+            <VehicleDetails>Combustível: {vehicle.fuelType === 'eletrico' ? 'Elétrico' : vehicle.fuelType === 'combustao' ? 'Combustão' : vehicle.fuelType || 'N/A'}</VehicleDetails>
+            <VehicleDetails>Câmbio: {vehicle.transmission}</VehicleDetails>
+            <VehicleDetails>Lugares: {vehicle.seats}</VehicleDetails>
+            <Price>R$ {typeof vehicle.dailyRate === 'number' ? vehicle.dailyRate.toFixed(2) : vehicle.dailyRate || '0.00'}/dia</Price>
           </VehicleInfo>
         </VehicleCard>
 
         <BookingForm>
-          <FormTitle><Calendar size={18} /> Booking Details</FormTitle>
+          <FormTitle><Calendar size={18} /> Detalhes da Reserva</FormTitle>
+
+          {isAvailable === false && (
+            <AvailabilityWarning>
+              <Lock size={18} />
+              Este veículo não está disponível no período selecionado. Escolha outras datas.
+            </AvailabilityWarning>
+          )}
+
+          {isAvailable === true && (
+            <AvailabilitySuccess>
+              <Calendar size={18} />
+              Veículo disponível para o período selecionado!
+            </AvailabilitySuccess>
+          )}
           
           <form onSubmit={handleSubmit}>
             <FormRow>
               <div>
-                <Label>Start Date *</Label>
-                <Input
-                  type="date"
-                  name="startDate"
-                  value={bookingData.startDate}
-                  onChange={handleChange}
-                  required
-                  min={new Date().toISOString().split('T')[0]}
-                />
+                <Label>Data de Retirada *</Label>
+                <DatePickerWrapper>
+                  <DatePicker
+                    selected={bookingData.startDate ? new Date(bookingData.startDate + 'T12:00:00') : null}
+                    onChange={(date: Date | null) => {
+                      const dateStr = date ? dateToYYYYMMDD(date) : '';
+                      setBookingData(prev => ({ ...prev, startDate: dateStr }));
+                      setIsAvailable(null);
+                    }}
+                    excludeDates={excludedDates}
+                    minDate={new Date()}
+                    dateFormat="dd/MM/yyyy"
+                    placeholderText="Selecione a data"
+                    required
+                  />
+                </DatePickerWrapper>
               </div>
               <div>
-                <Label>End Date *</Label>
-                <Input
-                  type="date"
-                  name="endDate"
-                  value={bookingData.endDate}
-                  onChange={handleChange}
-                  required
-                  min={bookingData.startDate || new Date().toISOString().split('T')[0]}
-                />
+                <Label>Data de Devolução *</Label>
+                <DatePickerWrapper>
+                  <DatePicker
+                    selected={bookingData.endDate ? new Date(bookingData.endDate + 'T12:00:00') : null}
+                    onChange={(date: Date | null) => {
+                      const dateStr = date ? dateToYYYYMMDD(date) : '';
+                      setBookingData(prev => ({ ...prev, endDate: dateStr }));
+                      setIsAvailable(null);
+                    }}
+                    excludeDates={excludedDates}
+                    minDate={
+                      bookingData.startDate
+                        ? new Date(bookingData.startDate + 'T12:00:00')
+                        : new Date()
+                    }
+                    dateFormat="dd/MM/yyyy"
+                    placeholderText="Selecione a data"
+                    required
+                  />
+                </DatePickerWrapper>
               </div>
             </FormRow>
 
             <FormRow>
               <div>
-                <Label>Start Time</Label>
+                <Label>Horário de Retirada</Label>
                 <Input
                   type="time"
                   name="startTime"
@@ -393,7 +597,7 @@ const BookingInterface: React.FC<BookingInterfaceProps> = ({ vehicle, onBookingS
                 />
               </div>
               <div>
-                <Label>End Time</Label>
+                <Label>Horário de Devolução</Label>
                 <Input
                   type="time"
                   name="endTime"
@@ -410,14 +614,14 @@ const BookingInterface: React.FC<BookingInterfaceProps> = ({ vehicle, onBookingS
                 checked={bookingData.includeRoute}
                 onChange={handleChange}
               />
-              <Label>Include route planning</Label>
+              <Label>Incluir planejamento de rota</Label>
             </CheckboxContainer>
 
             {bookingData.includeRoute && (
               <>
                 <FormRow>
                   <div>
-                    <Label>Origin City</Label>
+                    <Label>Cidade de Origem</Label>
                     <Input
                       type="text"
                       name="originCity"
@@ -427,7 +631,7 @@ const BookingInterface: React.FC<BookingInterfaceProps> = ({ vehicle, onBookingS
                     />
                   </div>
                   <div>
-                    <Label>Destination City</Label>
+                    <Label>Cidade de Destino</Label>
                     <Input
                       type="text"
                       name="destinationCity"
@@ -439,9 +643,9 @@ const BookingInterface: React.FC<BookingInterfaceProps> = ({ vehicle, onBookingS
                 </FormRow>
 
                 <RouteSection>
-                  <h4><Map size={16} /> Route Planning</h4>
+                  <h4><Map size={16} /> Planejamento de Rota</h4>
                   <MapPlaceholder>
-                    Interactive map would be displayed here
+                    O mapa interativo será exibido aqui
                   </MapPlaceholder>
                 </RouteSection>
               </>
@@ -449,34 +653,34 @@ const BookingInterface: React.FC<BookingInterfaceProps> = ({ vehicle, onBookingS
 
             {bookingSummary && (
               <SummaryCard>
-                <h4><Money size={16} /> Booking Summary</h4>
+                <h4><Money size={16} /> Resumo da Reserva</h4>
                 <SummaryRow>
-                  <span>Duration:</span>
-                  <span>{bookingSummary.totalDays} days ({bookingSummary.totalHours} hours)</span>
+                  <span>Duração:</span>
+                  <span>{bookingSummary.totalDays} dia(s) ({bookingSummary.totalHours} horas)</span>
                 </SummaryRow>
                 <SummaryRow>
-                  <span>Base Amount:</span>
+                  <span>Valor Base:</span>
                   <span>R$ {bookingSummary.baseAmount.toFixed(2)}</span>
                 </SummaryRow>
                 <SummaryRow>
-                  <span>Security Deposit:</span>
+                  <span>Caução:</span>
                   <span>R$ {bookingSummary.securityDeposit.toFixed(2)}</span>
                 </SummaryRow>
                 <SummaryRow>
-                  <span>Platform Fee (30%):</span>
+                  <span>Taxa da Plataforma (30%):</span>
                   <span>R$ {bookingSummary.platformFee.toFixed(2)}</span>
                 </SummaryRow>
                 <SummaryRow className="total">
-                  <span>Total Amount:</span>
+                  <span>Valor Total:</span>
                   <span>R$ {bookingSummary.totalAmount.toFixed(2)}</span>
                 </SummaryRow>
               </SummaryCard>
             )}
 
-            <Button type="submit" disabled={loading || !bookingSummary}>
-              {loading ? 'Creating Booking...' : (
+            <Button type="submit" disabled={loading || !bookingSummary || isAvailable === false || checkingAvailability}>
+              {loading ? 'Criando Reserva...' : checkingAvailability ? 'Verificando disponibilidade...' : (
                 <>
-                  <Car size={16} /> Book Now
+                  <Car size={16} /> Reservar Agora
                 </>
               )}
             </Button>

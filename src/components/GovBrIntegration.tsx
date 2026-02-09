@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { CheckCircle, Error as ErrorIcon, Lock, Schedule } from './IconSystem';
+import { authService } from '../services/authService';
 
 const Container = styled.div`
   background: white;
@@ -66,105 +67,134 @@ const StatusContainer = styled.div<{ status: 'idle' | 'loading' | 'success' | 'e
   }};
 `;
 
+const VerifiedCard = styled.div`
+  text-align: center;
+  padding: 2.5rem 2rem;
+  background: linear-gradient(180deg, #e8f5e9 0%, #c8e6c9 100%);
+  border: 2px solid #2e7d32;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+`;
+
+const VerifiedTitle = styled.div`
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1b5e20;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+`;
+
+const VerifiedText = styled.p`
+  color: #2e7d32;
+  margin: 0;
+  font-size: 1.05rem;
+`;
+
 const GovBrIntegration: React.FC = () => {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isVerified = user?.documentsVerified === true;
 
   const handleGovBrAuth = async () => {
     setStatus('loading');
-    setMessage('Redirecting to GOV.BR authentication...');
-
+    setMessage('Redirecionando para o GOV.BR...');
     try {
-      // Generate state parameter for security
       const state = Math.random().toString(36).substring(2, 15);
-      
-      // Get authorization URL from backend
-      const response = await fetch('http://localhost:3000/gov-br/auth-url', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const data = await response.json();
-      
+      const data = await authService.getGovBrAuthUrl();
       if (data.authUrl) {
-        // Store state for verification
         localStorage.setItem('govBrState', state);
-        
-        // Redirect to GOV.BR
         window.location.href = data.authUrl;
       } else {
-        throw new Error('Failed to get GOV.BR authorization URL');
+        throw new Error('URL do GOV.BR não retornada');
       }
-    } catch (error) {
+    } catch (error: any) {
       setStatus('error');
-      setMessage('Failed to initiate GOV.BR authentication. Please try again.');
+      const msg = error.response?.data?.message || error.message;
+      setMessage(msg || 'Falha ao iniciar autenticação GOV.BR. Tente novamente.');
       console.error('GOV.BR auth error:', error);
     }
   };
 
   const handleDocumentValidation = async () => {
     setStatus('loading');
-    setMessage('Validating document with GOV.BR...');
+    setMessage('Validando CPF e consultando antecedentes...');
 
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const document = user.cpfCnpj;
+      const document = (user.cpfCnpj || '').replace(/\D/g, '');
 
       if (!document) {
-        throw new Error('No document found for validation');
+        setStatus('error');
+        setMessage('Nenhum CPF/CNPJ encontrado no seu cadastro. Atualize seu perfil com seu CPF.');
+        return;
       }
 
       const documentType = document.length === 11 ? 'CPF' : 'CNPJ';
+      const data = await authService.validateDocument({ document, type: documentType });
 
-      const response = await fetch('http://localhost:3000/gov-br/validate-document', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          document,
-          type: documentType,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success && data.result.isValid) {
+      if (data.success && data.result?.isValid) {
         setStatus('success');
-        setMessage('Document validated successfully with GOV.BR!');
+        setMessage('Documentos validados com sucesso. Você já pode anunciar veículos.');
+        const updatedUser = { ...user, documentsVerified: true };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
       } else {
         setStatus('error');
-        setMessage(data.result?.errors?.join(', ') || 'Document validation failed');
+        setMessage(data.error || data.result?.errors?.join(', ') || 'Falha na validação. Verifique seus dados ou tente mais tarde.');
       }
-    } catch (error) {
+    } catch (error: any) {
       setStatus('error');
-      setMessage('Failed to validate document. Please try again.');
+      const res = error.response;
+      let msg = 'Falha ao validar documentos. Tente novamente.';
+      if (res?.status === 401) {
+        msg = 'Sessão expirada. Faça login novamente.';
+      } else if (res?.data?.error) {
+        msg = res.data.error;
+      } else if (res?.data?.message) {
+        msg = res.data.message;
+      } else if (error.code === 'ERR_NETWORK' || !res) {
+        msg = 'Erro de conexão. Verifique se o servidor está rodando e sua internet.';
+      }
+      setMessage(msg);
       console.error('Document validation error:', error);
     }
   };
 
+  if (isVerified) {
+    return (
+      <Container>
+        <VerifiedCard>
+          <VerifiedTitle>
+            <CheckCircle size={32} strokeWidth={2.5} />
+            Conta verificada
+          </VerifiedTitle>
+          <VerifiedText>Seu CPF e antecedentes foram validados. Você já pode anunciar veículos.</VerifiedText>
+        </VerifiedCard>
+      </Container>
+    );
+  }
+
   return (
     <Container>
       <Title>
-        GOV.BR Integration
+        Verificação de documentos
       </Title>
       
       <Description>
-        Verify your identity and documents through the official Brazilian government platform 
-        for enhanced security and faster approval.
+        Para anunciar veículos, validamos seu CPF e consultamos antecedentes criminais. 
+        Use o botão abaixo para validar com os dados do seu cadastro.
       </Description>
 
       <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
         <Button onClick={handleGovBrAuth}>
-          <Lock size={16} /> Authenticate with GOV.BR
+          <Lock size={16} /> Entrar com GOV.BR
         </Button>
         
         <Button onClick={handleDocumentValidation}>
-          <CheckCircle size={16} /> Validate Documents
+          <CheckCircle size={16} /> Validar CPF e antecedentes
         </Button>
       </div>
 

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { authService } from '../services/authService';
 import { Car } from '../components/IconSystem';
+import { validateCpfCnpj } from '../utils/cpfValidation';
 
 const RegisterContainer = styled.div`
   min-height: 100vh;
@@ -105,6 +106,14 @@ const ErrorMessage = styled.div`
   margin-bottom: 1rem;
 `;
 
+const FieldError = styled.span`
+  display: block;
+  color: #c62828;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+`;
+
 const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState({
     firstName: '',
@@ -119,22 +128,37 @@ const RegisterPage: React.FC = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<{ cpfCnpj?: string; phone?: string }>({});
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const name = e.target.name;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: e.target.value,
     });
+    if (fieldErrors[name as keyof typeof fieldErrors]) {
+      setFieldErrors(prev => ({ ...prev, [name]: undefined }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFieldErrors({});
+    const cpfResult = validateCpfCnpj(formData.cpfCnpj);
+    if (!cpfResult.valid) {
+      setFieldErrors(prev => ({ ...prev, cpfCnpj: cpfResult.message }));
+    }
+    if (!(formData.phone || '').trim()) {
+      setFieldErrors(prev => ({ ...prev, phone: 'Telefone é obrigatório.' }));
+    }
+    if (!cpfResult.valid || !(formData.phone || '').trim()) return;
+
     setLoading(true);
     setError('');
 
     try {
-      const response = await authService.register(formData);
+      const response = await authService.register({ ...formData, phone: (formData.phone || '').trim() });
       localStorage.setItem('token', response.access_token);
       localStorage.setItem('user', JSON.stringify(response.user));
       navigate('/dashboard');
@@ -212,10 +236,12 @@ const RegisterPage: React.FC = () => {
           <Input
             type="tel"
             name="phone"
-            placeholder="Telefone"
+            placeholder="Telefone *"
             value={formData.phone}
             onChange={handleChange}
+            required
           />
+          {fieldErrors.phone && <FieldError>{fieldErrors.phone}</FieldError>}
           
           <Input
             type="text"

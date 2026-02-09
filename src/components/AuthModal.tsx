@@ -1,8 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { Close, User, Lock, Email, Phone, Home } from '../components/IconSystem';
 import { authService } from '../services/authService';
+import { validateCpfCnpj } from '../utils/cpfValidation';
+
+interface IBGECity {
+  id: number;
+  nome: string;
+}
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -118,10 +124,14 @@ const InputLabel = styled.label`
   color: #333;
 `;
 
-const InputContainer = styled.div`
+const InputContainer = styled.div<{ $hasError?: boolean }>`
   position: relative;
   display: flex;
   align-items: center;
+
+  input {
+    border-color: ${props => props.$hasError ? '#c33' : undefined};
+  }
 `;
 
 const InputIcon = styled.div`
@@ -226,6 +236,13 @@ const ErrorMessage = styled.div`
   border-left: 4px solid #c33;
 `;
 
+const FieldError = styled.span`
+  display: block;
+  color: #c33;
+  font-size: 0.8rem;
+  margin-top: 0.35rem;
+`;
+
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'login', redirectOnSuccess = '/dashboard' }) => {
   const [mode, setMode] = useState<'login' | 'register'>(initialMode);
   const [loading, setLoading] = useState(false);
@@ -237,6 +254,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
     if (isOpen) {
       setMode(initialMode);
       setError('');
+      setRegisterErrors({});
     }
   }, [initialMode, isOpen]);
 
@@ -259,6 +277,35 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
     userType: 'rent'
   });
 
+  // Erros de validação por campo (cadastro)
+  const [registerErrors, setRegisterErrors] = useState<{ cpfCnpj?: string; phone?: string }>({});
+
+  // Cities from IBGE API
+  const [cities, setCities] = useState<IBGECity[]>([]);
+  const [loadingCities, setLoadingCities] = useState(false);
+
+  // Fetch cities when state changes
+  useEffect(() => {
+    if (registerData.state) {
+      setLoadingCities(true);
+      setCities([]);
+      setRegisterData(prev => ({ ...prev, city: '' }));
+      
+      fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${registerData.state}/municipios?orderBy=nome`)
+        .then(response => response.json())
+        .then((data: IBGECity[]) => {
+          setCities(data);
+          setLoadingCities(false);
+        })
+        .catch(error => {
+          console.error('Erro ao carregar cidades:', error);
+          setLoadingCities(false);
+        });
+    } else {
+      setCities([]);
+    }
+  }, [registerData.state]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -268,8 +315,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
       // Call real API
       const response = await authService.login(loginData.email, loginData.password);
       
-      // Store token
-      localStorage.setItem('token', response.token);
+      // Store token (backend returns access_token)
+      localStorage.setItem('token', response.access_token);
       localStorage.setItem('user', JSON.stringify(response.user));
       
       onClose();
@@ -285,15 +332,28 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setRegisterErrors({});
+
+    const cpfResult = validateCpfCnpj(registerData.cpfCnpj);
+    if (!cpfResult.valid) {
+      setRegisterErrors(prev => ({ ...prev, cpfCnpj: cpfResult.message }));
+    }
+    const phoneTrimmed = (registerData.phone || '').trim();
+    if (!phoneTrimmed) {
+      setRegisterErrors(prev => ({ ...prev, phone: 'Telefone é obrigatório.' }));
+    }
+    if (!cpfResult.valid || !phoneTrimmed) {
+      return;
+    }
+
     setLoading(true);
     setError('');
 
     try {
-      // Call real API
-      const response = await authService.register(registerData);
+      const response = await authService.register({ ...registerData, phone: phoneTrimmed });
       
-      // Store token
-      localStorage.setItem('token', response.token);
+      // Store token (backend returns access_token)
+      localStorage.setItem('token', response.access_token);
       localStorage.setItem('user', JSON.stringify(response.user));
       
       onClose();
@@ -438,7 +498,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
 
             <InputGroup>
               <InputLabel>CPF/CNPJ</InputLabel>
-              <InputContainer>
+              <InputContainer $hasError={!!registerErrors.cpfCnpj}>
                 <InputIcon>
                   <User size={18} />
                 </InputIcon>
@@ -446,10 +506,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                   type="text"
                   placeholder="000.000.000-00 ou 00.000.000/0000-00"
                   value={registerData.cpfCnpj}
-                  onChange={(e) => setRegisterData(prev => ({ ...prev, cpfCnpj: e.target.value }))}
+                  onChange={(e) => {
+                    setRegisterData(prev => ({ ...prev, cpfCnpj: e.target.value }));
+                    if (registerErrors.cpfCnpj) setRegisterErrors(prev => ({ ...prev, cpfCnpj: undefined }));
+                  }}
                   required
                 />
               </InputContainer>
+              {registerErrors.cpfCnpj && <FieldError>{registerErrors.cpfCnpj}</FieldError>}
             </InputGroup>
 
             <InputGroup>
@@ -469,8 +533,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
             </InputGroup>
 
             <InputGroup>
-              <InputLabel>Telefone</InputLabel>
-              <InputContainer>
+              <InputLabel>Telefone *</InputLabel>
+              <InputContainer $hasError={!!registerErrors.phone}>
                 <InputIcon>
                   <Phone size={18} />
                 </InputIcon>
@@ -478,24 +542,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                   type="tel"
                   placeholder="(11) 99999-9999"
                   value={registerData.phone}
-                  onChange={(e) => setRegisterData(prev => ({ ...prev, phone: e.target.value }))}
+                  onChange={(e) => {
+                    setRegisterData(prev => ({ ...prev, phone: e.target.value }));
+                    if (registerErrors.phone) setRegisterErrors(prev => ({ ...prev, phone: undefined }));
+                  }}
+                  required
                 />
               </InputContainer>
-            </InputGroup>
-
-            <InputGroup>
-              <InputLabel>Cidade</InputLabel>
-              <InputContainer>
-                <InputIcon>
-                  <Home size={18} />
-                </InputIcon>
-                <Input
-                  type="text"
-                  placeholder="Sua cidade"
-                  value={registerData.city}
-                  onChange={(e) => setRegisterData(prev => ({ ...prev, city: e.target.value }))}
-                />
-              </InputContainer>
+              {registerErrors.phone && <FieldError>{registerErrors.phone}</FieldError>}
             </InputGroup>
 
             <InputGroup>
@@ -536,6 +590,33 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                   <option value="SP">São Paulo</option>
                   <option value="SE">Sergipe</option>
                   <option value="TO">Tocantins</option>
+                </Select>
+              </SelectContainer>
+            </InputGroup>
+
+            <InputGroup>
+              <InputLabel>Cidade</InputLabel>
+              <SelectContainer>
+                <InputIcon>
+                  <Home size={18} />
+                </InputIcon>
+                <Select
+                  value={registerData.city}
+                  onChange={(e) => setRegisterData(prev => ({ ...prev, city: e.target.value }))}
+                  disabled={!registerData.state || loadingCities}
+                >
+                  <option value="">
+                    {!registerData.state 
+                      ? 'Selecione o estado primeiro' 
+                      : loadingCities 
+                        ? 'Carregando cidades...' 
+                        : 'Selecione sua cidade'}
+                  </option>
+                  {cities.map(city => (
+                    <option key={city.id} value={city.nome}>
+                      {city.nome}
+                    </option>
+                  ))}
                 </Select>
               </SelectContainer>
             </InputGroup>

@@ -1,10 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
-import { Search, Car, Check, Phone, Calendar, Edit, Smartphone, Money, Shield, Lock, Star, Location, Map, ArrowRight, FlightTakeoff, BarChart } from '../components/IconSystem';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import { Search, Car, Check, Phone, Calendar, Edit, Smartphone, Money, Shield, Lock, Star, Location, Map, ArrowRight, FlightTakeoff, BarChart, LocationOn, User } from '../components/IconSystem';
 import heroBg from '../assets/one-way-car-rentals.png';
+
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 import { PlayArrow } from '@mui/icons-material';
-import { vehicleService } from '../services/authService';
+import { vehicleService, bookingService } from '../services/authService';
 
 // Hero Section with Search - Turo Style
 const HeroSection = styled.section`
@@ -220,7 +230,7 @@ const DateInput = styled.input`
   border: none;
   outline: none;
   font-size: 1rem;
-  padding: 1.25rem 1.5rem;
+  padding: 1.5rem 1rem 0.75rem 1rem;
   background: white;
   color: #333;
   transition: all 0.2s ease;
@@ -229,7 +239,7 @@ const DateInput = styled.input`
   font-weight: 400;
   flex: 1;
   cursor: pointer;
-  min-width: 150px;
+  min-width: 140px;
 
   &:focus {
     background: #fafafa;
@@ -245,7 +255,7 @@ const DateInput = styled.input`
 
   @media (max-width: 768px) {
     height: 56px;
-    padding: 1rem 1.25rem;
+    padding: 1.25rem 1rem 0.5rem 1rem;
     border-bottom: 1px solid #e5e5e5;
   }
 `;
@@ -254,7 +264,7 @@ const TimeSelect = styled.select`
   border: none;
   outline: none;
   font-size: 1rem;
-  padding: 1.25rem 1.5rem;
+  padding: 1.5rem 1rem 0.75rem 1rem;
   background: white;
   color: #333;
   transition: all 0.2s ease;
@@ -264,7 +274,7 @@ const TimeSelect = styled.select`
   flex: 1;
   cursor: pointer;
   border-left: 1px solid #e5e5e5;
-  min-width: 120px;
+  min-width: 90px;
 
   &:focus {
     background: #fafafa;
@@ -272,9 +282,99 @@ const TimeSelect = styled.select`
 
   @media (max-width: 768px) {
     height: 56px;
-    padding: 1rem 1.25rem;
+    padding: 1.25rem 1rem 0.5rem 1rem;
     border-left: none;
     border-bottom: 1px solid #e5e5e5;
+  }
+`;
+
+const DateTimeWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  position: relative;
+
+  &:not(:last-child) {
+    border-right: 1px solid #e5e5e5;
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e5e5e5;
+    
+    &:last-of-type {
+      border-bottom: none;
+    }
+  }
+`;
+
+const DateLabel = styled.span`
+  position: absolute;
+  top: 4px;
+  left: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  z-index: 1;
+`;
+
+const DateTimeInner = styled.div`
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+`;
+
+const LocationInputWrapper = styled.div`
+  display: flex;
+  flex: 1;
+  align-items: center;
+  position: relative;
+
+  &:not(:last-child) {
+    border-right: 1px solid #e5e5e5;
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e5e5e5;
+  }
+`;
+
+const GeoLocationButton = styled.button`
+  position: absolute;
+  right: 8px;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #666;
+
+  &:hover {
+    background: #e0e0e0;
+    color: #333;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  @media (max-width: 768px) {
+    right: 12px;
   }
 `;
 
@@ -789,8 +889,659 @@ const CTAButton = styled.button`
   }
 `;
 
+// Lessor home – painel administrativo
+const LessorHero = styled.section`
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 3rem 2rem;
+  text-align: center;
+`;
+
+const LessorHeroTitle = styled.h1`
+  font-size: 2.25rem;
+  margin: 0 0 0.5rem 0;
+  font-weight: 700;
+  @media (max-width: 768px) { font-size: 1.75rem; }
+`;
+
+const LessorHeroSubtitle = styled.p`
+  font-size: 1.1rem;
+  margin: 0;
+  opacity: 0.95;
+  @media (max-width: 768px) { font-size: 1rem; }
+`;
+
+const LessorContent = styled.div`
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+`;
+
+const LessorStats = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+`;
+
+const LessorStatCard = styled.div`
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  text-align: center;
+`;
+
+const LessorStatIcon = styled.div`
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: center;
+  color: #667eea;
+`;
+
+const LessorStatNumber = styled.div`
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #667eea;
+  margin-bottom: 0.25rem;
+`;
+
+const LessorStatLabel = styled.div`
+  font-size: 0.9rem;
+  color: #666;
+`;
+
+const LessorSectionTitle = styled.h2`
+  font-size: 1.35rem;
+  color: #333;
+  margin: 0 0 1.25rem 0;
+  font-weight: 600;
+`;
+
+const LessorActionsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.25rem;
+`;
+
+const LessorActionCard = styled.button`
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+
+  &:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
+    transform: translateY(-2px);
+  }
+`;
+
+const LessorActionIcon = styled.div`
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+`;
+
+const LessorActionTitle = styled.div`
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #333;
+  margin-bottom: 0.35rem;
+`;
+
+const LessorActionDesc = styled.div`
+  font-size: 0.9rem;
+  color: #666;
+  line-height: 1.4;
+`;
+
+// Conteúdo exibido ao clicar nos cards (sem abas)
+const LessorPanelContent = styled.div`
+  background: white;
+  padding: 1.5rem 2rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+`;
+
+const LessorVehiclesGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+  margin-top: 1rem;
+`;
+
+const LessorVehicleCard = styled.div`
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.25rem;
+  transition: box-shadow 0.2s;
+  &:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+`;
+
+const LessorVehicleCardTitle = styled.div`
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #333;
+  margin-bottom: 0.35rem;
+`;
+
+const LessorVehicleCardMeta = styled.div`
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+`;
+
+const LessorVehicleCardPrice = styled.div`
+  font-weight: 700;
+  color: #667eea;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+`;
+
+const LessorVehicleCardActions = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+`;
+
+const LessorCardBtn = styled.button<{ $primary?: boolean }>`
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid #ddd;
+  background: ${p => p.$primary ? '#667eea' : 'white'};
+  color: ${p => p.$primary ? 'white' : '#333'};
+  &:hover { background: ${p => p.$primary ? '#5a6fd8' : '#f8f9fa'}; }
+`;
+
+const LessorBookingCard = styled.div`
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+  &:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+`;
+
+const LessorBookingCardLink = styled.span`
+  color: #667eea;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  &:hover { text-decoration: underline; }
+`;
+
+const LessorModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 1rem;
+`;
+
+const LessorModalContent = styled.div`
+  background: white;
+  border-radius: 12px;
+  max-width: 480px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+`;
+
+const LessorModalHeader = styled.div`
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const LessorModalTitle = styled.h3`
+  margin: 0;
+  font-size: 1.25rem;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const LessorModalCloseBtn = styled.button`
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #666;
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+  &:hover { color: #333; }
+`;
+
+const LessorModalBody = styled.div`
+  padding: 1.25rem 1.5rem;
+`;
+
+const LessorModalAddress = styled.div`
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  border-left: 4px solid #667eea;
+`;
+
+const LessorModalAddressLine = styled.p`
+  margin: 0;
+  font-size: 1rem;
+  color: #333;
+  line-height: 1.5;
+  & + & { margin-top: 0.25rem; font-size: 0.95rem; color: #555; }
+`;
+
+const LessorModalMapWrap = styled.div`
+  height: 220px;
+  border-radius: 8px;
+  overflow: hidden;
+  .leaflet-container { height: 100%; width: 100%; }
+`;
+
+const LessorProfileRow = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #eee;
+  &:last-child { border-bottom: none; }
+`;
+
+const LessorProfileLabel = styled.span`
+  font-size: 0.8rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+`;
+
+const LessorProfileValue = styled.span`
+  font-size: 1rem;
+  color: #333;
+  a { color: #667eea; text-decoration: none; &:hover { text-decoration: underline; } }
+`;
+
+const LessorHomeView: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [panelView, setPanelView] = useState<'overview' | 'bookings'>(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'bookings') return 'bookings';
+    return 'overview';
+  });
+  const [vehiclesCount, setVehiclesCount] = useState<number>(0);
+  const [bookingsCount, setBookingsCount] = useState<number>(0);
+  const [vehicles, setVehicles] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [pickupLocationBooking, setPickupLocationBooking] = useState<any>(null);
+  const [lesseeProfileBooking, setLesseeProfileBooking] = useState<any>(null);
+  const contentSectionRef = useRef<HTMLDivElement>(null);
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'vehicles') {
+      navigate('/vehicles/my');
+      return;
+    }
+    if (tab === 'bookings') setPanelView('bookings');
+  }, [searchParams, navigate]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    Promise.all([
+      vehicleService.getAllVehicles().catch(() => []),
+      bookingService.getBookings().catch(() => []),
+    ]).then(([allVehicles, allBookings]) => {
+      const myVehicles = Array.isArray(allVehicles) ? allVehicles.filter((v: any) => v.ownerId === user.id || v.owner?.id === user.id) : [];
+      const lessorBookings = Array.isArray(allBookings) ? allBookings.filter((b: any) => b.lessorId === user.id || b.lessor?.id === user.id) : [];
+      setVehiclesCount(myVehicles.length);
+      setBookingsCount(lessorBookings.length);
+      setVehicles(myVehicles);
+      setBookings(Array.isArray(allBookings) ? allBookings : []);
+    }).finally(() => setLoading(false));
+  }, [user?.id]);
+
+  const setTab = (tab: 'overview' | 'bookings') => {
+    setPanelView(tab);
+    if (tab === 'overview') setSearchParams({});
+    else setSearchParams({ tab });
+    if (tab === 'bookings') {
+      setTimeout(() => contentSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+    }
+  };
+
+  const formatDate = (dateString: string | Date) => {
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  };
+
+  const getStatusLabel = (status: string) => {
+    const statusMap: { [key: string]: string } = {
+      'pending': 'Pendente', 'confirmed': 'Confirmada', 'active': 'Em andamento',
+      'awaiting_return': 'Aguardando Devolução', 'completed': 'Concluída', 'cancelled': 'Cancelada',
+      'rejected': 'Rejeitada', 'expired': 'Expirada'
+    };
+    return statusMap[status?.toLowerCase()] || status;
+  };
+
+  const getStatusColor = (status: string) => {
+    const colorMap: { [key: string]: string } = {
+      'pending': '#f59e0b', 'confirmed': '#10b981', 'awaiting_return': '#8b5cf6', 'active': '#3b82f6',
+      'completed': '#6b7280', 'cancelled': '#ef4444', 'rejected': '#ef4444', 'expired': '#9ca3af'
+    };
+    return colorMap[status?.toLowerCase()] || '#6b7280';
+  };
+
+  const lesseeBookings = bookings.filter((b: any) => b.lesseeId === user?.id || b.lessee?.id === user?.id);
+  const lessorBookings = bookings.filter((b: any) => b.lessorId === user?.id || b.lessor?.id === user?.id);
+
+  const actions = [
+    { title: 'Meus veículos', desc: 'Ver e editar seus anúncios', path: '/vehicles/my', icon: <Car size={24} /> },
+    { title: 'Anunciar veículo', desc: 'Cadastrar um novo carro para locação', path: '/list-vehicle', icon: <Edit size={24} /> },
+    { title: 'Reservas', desc: 'Reservas dos seus veículos e locatários', onClick: () => setTab('bookings'), icon: <Calendar size={24} /> },
+    { title: 'Dados bancários', desc: 'Onde receber os pagamentos', path: '/bank-details', icon: <Money size={24} /> },
+  ];
+
+  return (
+    <>
+      <LessorHero>
+        <LessorHeroTitle>Seu painel de locador</LessorHeroTitle>
+        <LessorHeroSubtitle>Gerencie seus anúncios, reservas e recebimentos</LessorHeroSubtitle>
+      </LessorHero>
+      <LessorContent>
+        {loading ? (
+          <p style={{ textAlign: 'center', color: '#666' }}>Carregando...</p>
+        ) : (
+          <>
+            <LessorStats>
+              <LessorStatCard>
+                <LessorStatIcon><Car size={28} /></LessorStatIcon>
+                <LessorStatNumber>{vehiclesCount}</LessorStatNumber>
+                <LessorStatLabel>Veículos anunciados</LessorStatLabel>
+              </LessorStatCard>
+              <LessorStatCard>
+                <LessorStatIcon><Calendar size={28} /></LessorStatIcon>
+                <LessorStatNumber>{bookingsCount}</LessorStatNumber>
+                <LessorStatLabel>Reservas recebidas</LessorStatLabel>
+              </LessorStatCard>
+            </LessorStats>
+            <LessorSectionTitle>Ações rápidas</LessorSectionTitle>
+            <LessorActionsGrid>
+              {actions.map((action) => (
+                <LessorActionCard
+                  key={action.title}
+                  type="button"
+                  onClick={() => ('path' in action && action.path) ? navigate(action.path) : ('onClick' in action && action.onClick) ? action.onClick() : undefined}
+                >
+                  <LessorActionIcon>{action.icon}</LessorActionIcon>
+                  <LessorActionTitle>{action.title}</LessorActionTitle>
+                  <LessorActionDesc>{action.desc}</LessorActionDesc>
+                </LessorActionCard>
+              ))}
+            </LessorActionsGrid>
+
+            <LessorPanelContent ref={contentSectionRef} style={{ marginTop: '2rem' }}>
+              {panelView === 'overview' && (
+                <>
+                  <h3 style={{ marginBottom: '1rem', color: '#333' }}>Resumo</h3>
+                  <p style={{ color: '#666', marginBottom: '1rem' }}>
+                    Você tem <strong>{vehiclesCount}</strong> veículo(s) anunciado(s) e <strong>{bookingsCount}</strong> reserva(s) recebida(s).
+                  </p>
+                  <LessorStats>
+                    <LessorStatCard>
+                      <LessorStatIcon><Car size={28} /></LessorStatIcon>
+                      <LessorStatNumber>{vehiclesCount}</LessorStatNumber>
+                      <LessorStatLabel>Veículos anunciados</LessorStatLabel>
+                    </LessorStatCard>
+                    <LessorStatCard>
+                      <LessorStatIcon><Calendar size={28} /></LessorStatIcon>
+                      <LessorStatNumber>{bookingsCount}</LessorStatNumber>
+                      <LessorStatLabel>Reservas recebidas</LessorStatLabel>
+                    </LessorStatCard>
+                  </LessorStats>
+                </>
+              )}
+              {panelView === 'bookings' && (
+                <>
+                  <h3 style={{ marginBottom: '1rem', color: '#333' }}>Minhas Reservas</h3>
+                  {lesseeBookings.length === 0 && lessorBookings.length === 0 ? (
+                    <p style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>Você ainda não possui reservas.</p>
+                  ) : (
+                    <>
+                      {lesseeBookings.length > 0 && (
+                        <div style={{ marginBottom: '2rem' }}>
+                          <h4 style={{ marginBottom: '1rem', color: '#333' }}>Reservas como Locatário</h4>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            {lesseeBookings.map((booking: any) => (
+                              <LessorBookingCard key={booking.id} onClick={() => booking.vehicle && setPickupLocationBooking(booking)}>
+                                <div style={{ flex: 1, minWidth: '200px' }}>
+                                  <div style={{ fontWeight: 600, fontSize: '1.1rem', marginBottom: '0.5rem' }}>
+                                    {booking.vehicle?.make || 'Veículo'} {booking.vehicle?.model || ''} {booking.vehicle?.year || ''}
+                                  </div>
+                                  <div style={{ color: '#666', fontSize: '0.9rem' }}>
+                                    {formatDate(booking.startDate)} - {formatDate(booking.endDate)}
+                                  </div>
+                                  <div style={{ marginTop: '0.5rem' }}>
+                                    <LessorBookingCardLink onClick={(e) => { e.stopPropagation(); navigate(`/booking/${booking.id}/details`); }}>
+                                      Ver detalhes
+                                    </LessorBookingCardLink>
+                                    {booking.vehicle && (
+                                      <LessorBookingCardLink onClick={(e) => { e.stopPropagation(); setPickupLocationBooking(booking); }}>
+                                        <LocationOn size={14} /> Ver local de retirada
+                                      </LessorBookingCardLink>
+                                    )}
+                                  </div>
+                                </div>
+                                <div style={{ textAlign: 'right' }}>
+                                  <span style={{
+                                    display: 'inline-block',
+                                    padding: '0.25rem 0.75rem',
+                                    borderRadius: '20px',
+                                    fontSize: '0.8rem',
+                                    fontWeight: 500,
+                                    background: `${getStatusColor(booking.status)}20`,
+                                    color: getStatusColor(booking.status),
+                                    marginBottom: '0.5rem'
+                                  }}>
+                                    {getStatusLabel(booking.status)}
+                                  </span>
+                                  <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>
+                                    R$ {typeof booking.totalAmount === 'number' ? booking.totalAmount.toFixed(2) : (parseFloat(booking.totalAmount) || 0).toFixed(2)}
+                                  </div>
+                                </div>
+                              </LessorBookingCard>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {lessorBookings.length > 0 && (
+                        <div>
+                          <h4 style={{ marginBottom: '1rem', color: '#333' }}>Reservas dos Meus Veículos</h4>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            {lessorBookings.map((booking: any) => (
+                              <LessorBookingCard key={booking.id} onClick={() => booking.vehicle && setPickupLocationBooking(booking)}>
+                                <div style={{ flex: 1, minWidth: '200px' }}>
+                                  <div style={{ fontWeight: 600, fontSize: '1.1rem', marginBottom: '0.5rem' }}>
+                                    {booking.vehicle?.make || 'Veículo'} {booking.vehicle?.model || ''} {booking.vehicle?.year || ''}
+                                  </div>
+                                  <div style={{ color: '#666', fontSize: '0.9rem', marginBottom: '0.25rem' }}>
+                                    Locatário: {booking.lessee?.firstName || booking.lessee?.name || 'N/A'}
+                                  </div>
+                                  <div style={{ color: '#666', fontSize: '0.9rem' }}>
+                                    {formatDate(booking.startDate)} - {formatDate(booking.endDate)}
+                                  </div>
+                                  <div style={{ marginTop: '0.5rem' }}>
+                                    <LessorBookingCardLink onClick={(e) => { e.stopPropagation(); navigate(`/booking/${booking.id}/details`); }}>
+                                      Ver detalhes
+                                    </LessorBookingCardLink>
+                                    {booking.lessee && (
+                                      <LessorBookingCardLink onClick={(e) => { e.stopPropagation(); setLesseeProfileBooking(booking); }}>
+                                        <User size={14} /> Ver perfil do locatário
+                                      </LessorBookingCardLink>
+                                    )}
+                                    {booking.vehicle && (
+                                      <LessorBookingCardLink onClick={(e) => { e.stopPropagation(); setPickupLocationBooking(booking); }}>
+                                        <LocationOn size={14} /> Ver local de retirada
+                                      </LessorBookingCardLink>
+                                    )}
+                                  </div>
+                                </div>
+                                <div style={{ textAlign: 'right' }}>
+                                  <span style={{
+                                    display: 'inline-block',
+                                    padding: '0.25rem 0.75rem',
+                                    borderRadius: '20px',
+                                    fontSize: '0.8rem',
+                                    fontWeight: 500,
+                                    background: `${getStatusColor(booking.status)}20`,
+                                    color: getStatusColor(booking.status),
+                                    marginBottom: '0.5rem'
+                                  }}>
+                                    {getStatusLabel(booking.status)}
+                                  </span>
+                                  <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>
+                                    R$ {typeof booking.totalAmount === 'number' ? booking.totalAmount.toFixed(2) : (parseFloat(booking.totalAmount) || 0).toFixed(2)}
+                                  </div>
+                                </div>
+                              </LessorBookingCard>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </>
+              )}
+            </LessorPanelContent>
+          </>
+        )}
+      </LessorContent>
+
+      {pickupLocationBooking?.vehicle && (
+        <LessorModalOverlay onClick={() => setPickupLocationBooking(null)}>
+          <LessorModalContent onClick={(e) => e.stopPropagation()}>
+            <LessorModalHeader>
+              <LessorModalTitle><LocationOn size={22} /> Local de retirada</LessorModalTitle>
+              <LessorModalCloseBtn type="button" onClick={() => setPickupLocationBooking(null)} aria-label="Fechar">×</LessorModalCloseBtn>
+            </LessorModalHeader>
+            <LessorModalBody>
+              <p style={{ margin: '0 0 1rem 0', fontWeight: 600, color: '#333' }}>
+                {pickupLocationBooking.vehicle.make} {pickupLocationBooking.vehicle.model} {pickupLocationBooking.vehicle.year}
+              </p>
+              <LessorModalAddress>
+                <LessorModalAddressLine>{pickupLocationBooking.vehicle.address}</LessorModalAddressLine>
+                <LessorModalAddressLine>
+                  {pickupLocationBooking.vehicle.city}
+                  {pickupLocationBooking.vehicle.state ? `, ${pickupLocationBooking.vehicle.state}` : ''}
+                </LessorModalAddressLine>
+              </LessorModalAddress>
+              {pickupLocationBooking.vehicle.latitude != null && pickupLocationBooking.vehicle.longitude != null && (
+                <LessorModalMapWrap>
+                  <MapContainer
+                    center={[Number(pickupLocationBooking.vehicle.latitude), Number(pickupLocationBooking.vehicle.longitude)]}
+                    zoom={15}
+                    style={{ height: '100%', width: '100%' }}
+                    scrollWheelZoom={false}
+                  >
+                    <TileLayer
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+                    <Marker position={[Number(pickupLocationBooking.vehicle.latitude), Number(pickupLocationBooking.vehicle.longitude)]} />
+                  </MapContainer>
+                </LessorModalMapWrap>
+              )}
+            </LessorModalBody>
+          </LessorModalContent>
+        </LessorModalOverlay>
+      )}
+
+      {lesseeProfileBooking?.lessee && (
+        <LessorModalOverlay onClick={() => setLesseeProfileBooking(null)}>
+          <LessorModalContent onClick={(e) => e.stopPropagation()} style={{ maxWidth: '420px' }}>
+            <LessorModalHeader>
+              <LessorModalTitle><User size={22} /> Perfil do locatário</LessorModalTitle>
+              <LessorModalCloseBtn type="button" onClick={() => setLesseeProfileBooking(null)} aria-label="Fechar">×</LessorModalCloseBtn>
+            </LessorModalHeader>
+            <LessorModalBody>
+              <p style={{ margin: '0 0 0.5rem 0', fontWeight: 600, color: '#333', fontSize: '1.1rem' }}>
+                {lesseeProfileBooking.vehicle?.make} {lesseeProfileBooking.vehicle?.model} {lesseeProfileBooking.vehicle?.year}
+              </p>
+              <p style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', color: '#666' }}>
+                Retirada: {formatDate(lesseeProfileBooking.startDate)} – {formatDate(lesseeProfileBooking.endDate)}
+              </p>
+              <LessorProfileRow>
+                <LessorProfileLabel>Nome</LessorProfileLabel>
+                <LessorProfileValue>
+                  {([lesseeProfileBooking.lessee.firstName, lesseeProfileBooking.lessee.lastName].filter(Boolean).join(' ')) || '—'}
+                </LessorProfileValue>
+              </LessorProfileRow>
+              <LessorProfileRow>
+                <LessorProfileLabel>E-mail</LessorProfileLabel>
+                <LessorProfileValue>
+                  {lesseeProfileBooking.lessee.email ? (
+                    <a href={`mailto:${lesseeProfileBooking.lessee.email}`}>{lesseeProfileBooking.lessee.email}</a>
+                  ) : '—'}
+                </LessorProfileValue>
+              </LessorProfileRow>
+              <LessorProfileRow>
+                <LessorProfileLabel>Telefone</LessorProfileLabel>
+                <LessorProfileValue>
+                  {lesseeProfileBooking.lessee.phone ? (
+                    <a href={`tel:${lesseeProfileBooking.lessee.phone}`}>{lesseeProfileBooking.lessee.phone}</a>
+                  ) : '—'}
+                </LessorProfileValue>
+              </LessorProfileRow>
+              <LessorProfileRow>
+                <LessorProfileLabel>Cidade / Estado</LessorProfileLabel>
+                <LessorProfileValue>
+                  {[lesseeProfileBooking.lessee.city, lesseeProfileBooking.lessee.state].filter(Boolean).join(', ') || '—'}
+                </LessorProfileValue>
+              </LessorProfileRow>
+            </LessorModalBody>
+          </LessorModalContent>
+        </LessorModalOverlay>
+      )}
+    </>
+  );
+};
+
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isLessorHome = (user?.userType === 'lessor' || user?.userType === 'both') && user?.id;
   const [searchData, setSearchData] = useState({
     location: '',
     fromDate: '',
@@ -798,17 +1549,122 @@ const HomePage: React.FC = () => {
     untilDate: '',
     untilTime: '10:00'
   });
+
+  const [geoLoading, setGeoLoading] = useState(false);
+  const [searchError, setSearchError] = useState('');
+
+  // Try to get user's location on mount
+  useEffect(() => {
+    if (navigator.geolocation && !searchData.location) {
+      setGeoLoading(true);
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            // Reverse geocoding using free Nominatim API
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?lat=${position.coords.latitude}&lon=${position.coords.longitude}&format=json&addressdetails=1`,
+              { headers: { 'Accept-Language': 'pt-BR' } }
+            );
+            const data = await response.json();
+            const city = data.address?.city || data.address?.town || data.address?.municipality || '';
+            const state = data.address?.state || '';
+            if (city) {
+              setSearchData(prev => ({ ...prev, location: `${city}${state ? ', ' + state : ''}` }));
+            }
+          } catch (error) {
+            console.error('Erro ao obter localização:', error);
+          } finally {
+            setGeoLoading(false);
+          }
+        },
+        (error) => {
+          console.log('Geolocalização não disponível:', error);
+          setGeoLoading(false);
+        },
+        { timeout: 10000 }
+      );
+    }
+  }, []);
+
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) {
+      alert('Geolocalização não é suportada pelo seu navegador');
+      return;
+    }
+
+    setGeoLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${position.coords.latitude}&lon=${position.coords.longitude}&format=json&addressdetails=1`,
+            { headers: { 'Accept-Language': 'pt-BR' } }
+          );
+          const data = await response.json();
+          const city = data.address?.city || data.address?.town || data.address?.municipality || '';
+          const state = data.address?.state || '';
+          if (city) {
+            setSearchData(prev => ({ ...prev, location: `${city}${state ? ', ' + state : ''}` }));
+          }
+        } catch (error) {
+          console.error('Erro ao obter localização:', error);
+          alert('Erro ao obter sua localização');
+        } finally {
+          setGeoLoading(false);
+        }
+      },
+      (error) => {
+        setGeoLoading(false);
+        alert('Não foi possível obter sua localização. Verifique as permissões do navegador.');
+      },
+      { timeout: 10000 }
+    );
+  };
   const [activeTab, setActiveTab] = useState('rent');
   const [activeFilter, setActiveFilter] = useState('all');
   const [featuredCars, setFeaturedCars] = useState<any[]>([]);
   const [loadingCars, setLoadingCars] = useState(true);
+  const [carsLoadError, setCarsLoadError] = useState(false);
+
+  const validateDates = (): string | null => {
+    if (!searchData.fromDate || !searchData.untilDate) {
+      return null; // Don't validate if dates are not set
+    }
+
+    const fromDateTime = new Date(`${searchData.fromDate}T${searchData.fromTime}`);
+    const untilDateTime = new Date(`${searchData.untilDate}T${searchData.untilTime}`);
+
+    // Check if "from" date is after "until" date
+    if (fromDateTime >= untilDateTime) {
+      return 'A data/hora de devolução deve ser posterior à data/hora de retirada';
+    }
+
+    // Check minimum rental period (1 day = 24 hours)
+    const diffInHours = (untilDateTime.getTime() - fromDateTime.getTime()) / (1000 * 60 * 60);
+    if (diffInHours < 24) {
+      return 'O período mínimo de locação é de 1 dia (24 horas)';
+    }
+
+    return null;
+  };
 
   const handleSearch = () => {
+    setSearchError('');
+
+    // Validate dates
+    const error = validateDates();
+    if (error) {
+      setSearchError(error);
+      return;
+    }
+
     // Navigate to vehicles page with search parameters
     const params = new URLSearchParams({
       location: searchData.location,
       from: searchData.fromDate,
-      until: searchData.untilDate
+      fromTime: searchData.fromTime,
+      until: searchData.untilDate,
+      untilTime: searchData.untilTime
     });
     navigate(`/vehicles?${params.toString()}`);
   };
@@ -831,27 +1687,27 @@ const HomePage: React.FC = () => {
     const loadFeaturedCars = async () => {
       try {
         setLoadingCars(true);
-        const vehicles = await vehicleService.getAllVehicles();
+        setCarsLoadError(false);
+        const data = await vehicleService.getAllVehicles();
+        const vehicles = Array.isArray(data) ? data : [];
         
-        // Take first 6 vehicles and format them for display
         const formattedCars = vehicles.slice(0, 6).map((vehicle: any, index: number) => ({
           id: vehicle.id,
           title: `${vehicle.make} ${vehicle.model} ${vehicle.year}`,
-          price: Math.round(vehicle.dailyRate * 3).toString(),
+          price: Math.round((Number(vehicle.dailyRate) || 0) * 3).toString(),
           days: 3,
-          rating: vehicle.rating?.toFixed(2) || '4.9',
-          trips: vehicle.totalBookings || 0,
+          rating: vehicle.rating != null ? Number(vehicle.rating).toFixed(2) : '4.9',
+          trips: vehicle.totalBookings ?? 0,
           save: index < 3 ? Math.floor(Math.random() * 5) + 2 : null,
-          location: `${vehicle.city}, ${vehicle.state}`,
+          location: `${vehicle.city || ''}, ${vehicle.state || ''}`.trim() || '—',
           dailyRate: vehicle.dailyRate
         }));
         
         setFeaturedCars(formattedCars);
       } catch (error) {
         console.error('Error loading featured cars:', error);
-        // Don't show mock data with invalid IDs - just show empty array
-        // This prevents navigation errors when clicking on non-existent vehicles
         setFeaturedCars([]);
+        setCarsLoadError(true);
       } finally {
         setLoadingCars(false);
       }
@@ -920,6 +1776,10 @@ const HomePage: React.FC = () => {
     }
   ];
 
+  if (isLessorHome) {
+    return <LessorHomeView navigate={navigate} />;
+  }
+
   return (
     <>
       {/* Hero Section */}
@@ -932,95 +1792,134 @@ const HomePage: React.FC = () => {
             </HeroSubtitle>
             <SearchContainer>
             <SearchForm>
-              <SearchField>
+              <LocationInputWrapper>
                 <SearchInput
                   type="text"
-                  placeholder="City, airport, address or hotel"
+                  placeholder={geoLoading ? "Obtendo sua localização..." : "Cidade, aeroporto ou endereço"}
                   value={searchData.location}
                   onChange={(e) => setSearchData(prev => ({ ...prev, location: e.target.value }))}
                 />
-              </SearchField>
-              
-              <DateTimeContainer>
-                <DateInput
-                  type="date"
-                  placeholder="Add dates"
-                  value={searchData.fromDate}
-                  onChange={(e) => setSearchData(prev => ({ ...prev, fromDate: e.target.value }))}
-                />
-                <TimeSelect
-                  value={searchData.fromTime}
-                  onChange={(e) => setSearchData(prev => ({ ...prev, fromTime: e.target.value }))}
+                <GeoLocationButton 
+                  onClick={handleGetLocation} 
+                  disabled={geoLoading}
+                  title="Usar minha localização"
+                  type="button"
                 >
-                  <option value="00:00">12:00 AM</option>
-                  <option value="01:00">1:00 AM</option>
-                  <option value="02:00">2:00 AM</option>
-                  <option value="03:00">3:00 AM</option>
-                  <option value="04:00">4:00 AM</option>
-                  <option value="05:00">5:00 AM</option>
-                  <option value="06:00">6:00 AM</option>
-                  <option value="07:00">7:00 AM</option>
-                  <option value="08:00">8:00 AM</option>
-                  <option value="09:00">9:00 AM</option>
-                  <option value="10:00">10:00 AM</option>
-                  <option value="11:00">11:00 AM</option>
-                  <option value="12:00">12:00 PM</option>
-                  <option value="13:00">1:00 PM</option>
-                  <option value="14:00">2:00 PM</option>
-                  <option value="15:00">3:00 PM</option>
-                  <option value="16:00">4:00 PM</option>
-                  <option value="17:00">5:00 PM</option>
-                  <option value="18:00">6:00 PM</option>
-                  <option value="19:00">7:00 PM</option>
-                  <option value="20:00">8:00 PM</option>
-                  <option value="21:00">9:00 PM</option>
-                  <option value="22:00">10:00 PM</option>
-                  <option value="23:00">11:00 PM</option>
-                </TimeSelect>
-              </DateTimeContainer>
+                  <Location size={18} />
+                </GeoLocationButton>
+              </LocationInputWrapper>
               
-              <DateTimeContainer>
-                <DateInput
-                  type="date"
-                  placeholder="Add dates"
-                  value={searchData.untilDate}
-                  onChange={(e) => setSearchData(prev => ({ ...prev, untilDate: e.target.value }))}
-                />
-                <TimeSelect
-                  value={searchData.untilTime}
-                  onChange={(e) => setSearchData(prev => ({ ...prev, untilTime: e.target.value }))}
-                >
-                  <option value="00:00">12:00 AM</option>
-                  <option value="01:00">1:00 AM</option>
-                  <option value="02:00">2:00 AM</option>
-                  <option value="03:00">3:00 AM</option>
-                  <option value="04:00">4:00 AM</option>
-                  <option value="05:00">5:00 AM</option>
-                  <option value="06:00">6:00 AM</option>
-                  <option value="07:00">7:00 AM</option>
-                  <option value="08:00">8:00 AM</option>
-                  <option value="09:00">9:00 AM</option>
-                  <option value="10:00">10:00 AM</option>
-                  <option value="11:00">11:00 AM</option>
-                  <option value="12:00">12:00 PM</option>
-                  <option value="13:00">1:00 PM</option>
-                  <option value="14:00">2:00 PM</option>
-                  <option value="15:00">3:00 PM</option>
-                  <option value="16:00">4:00 PM</option>
-                  <option value="17:00">5:00 PM</option>
-                  <option value="18:00">6:00 PM</option>
-                  <option value="19:00">7:00 PM</option>
-                  <option value="20:00">8:00 PM</option>
-                  <option value="21:00">9:00 PM</option>
-                  <option value="22:00">10:00 PM</option>
-                  <option value="23:00">11:00 PM</option>
-                </TimeSelect>
-              </DateTimeContainer>
+              <DateTimeWrapper>
+                <DateLabel>De</DateLabel>
+                <DateTimeInner>
+                  <DateInput
+                    type="date"
+                    value={searchData.fromDate}
+                    onChange={(e) => {
+                      setSearchError('');
+                      setSearchData(prev => ({ ...prev, fromDate: e.target.value }));
+                    }}
+                    min={new Date().toISOString().split('T')[0]}
+                  />
+                  <TimeSelect
+                    value={searchData.fromTime}
+                    onChange={(e) => {
+                      setSearchError('');
+                      setSearchData(prev => ({ ...prev, fromTime: e.target.value }));
+                    }}
+                  >
+                    <option value="00:00">00:00</option>
+                    <option value="01:00">01:00</option>
+                    <option value="02:00">02:00</option>
+                    <option value="03:00">03:00</option>
+                    <option value="04:00">04:00</option>
+                    <option value="05:00">05:00</option>
+                    <option value="06:00">06:00</option>
+                    <option value="07:00">07:00</option>
+                    <option value="08:00">08:00</option>
+                    <option value="09:00">09:00</option>
+                    <option value="10:00">10:00</option>
+                    <option value="11:00">11:00</option>
+                    <option value="12:00">12:00</option>
+                    <option value="13:00">13:00</option>
+                    <option value="14:00">14:00</option>
+                    <option value="15:00">15:00</option>
+                    <option value="16:00">16:00</option>
+                    <option value="17:00">17:00</option>
+                    <option value="18:00">18:00</option>
+                    <option value="19:00">19:00</option>
+                    <option value="20:00">20:00</option>
+                    <option value="21:00">21:00</option>
+                    <option value="22:00">22:00</option>
+                    <option value="23:00">23:00</option>
+                  </TimeSelect>
+                </DateTimeInner>
+              </DateTimeWrapper>
+              
+              <DateTimeWrapper>
+                <DateLabel>Até</DateLabel>
+                <DateTimeInner>
+                  <DateInput
+                    type="date"
+                    value={searchData.untilDate}
+                    onChange={(e) => {
+                      setSearchError('');
+                      setSearchData(prev => ({ ...prev, untilDate: e.target.value }));
+                    }}
+                    min={searchData.fromDate || new Date().toISOString().split('T')[0]}
+                  />
+                  <TimeSelect
+                    value={searchData.untilTime}
+                    onChange={(e) => {
+                      setSearchError('');
+                      setSearchData(prev => ({ ...prev, untilTime: e.target.value }));
+                    }}
+                  >
+                    <option value="00:00">00:00</option>
+                    <option value="01:00">01:00</option>
+                    <option value="02:00">02:00</option>
+                    <option value="03:00">03:00</option>
+                    <option value="04:00">04:00</option>
+                    <option value="05:00">05:00</option>
+                    <option value="06:00">06:00</option>
+                    <option value="07:00">07:00</option>
+                    <option value="08:00">08:00</option>
+                    <option value="09:00">09:00</option>
+                    <option value="10:00">10:00</option>
+                    <option value="11:00">11:00</option>
+                    <option value="12:00">12:00</option>
+                    <option value="13:00">13:00</option>
+                    <option value="14:00">14:00</option>
+                    <option value="15:00">15:00</option>
+                    <option value="16:00">16:00</option>
+                    <option value="17:00">17:00</option>
+                    <option value="18:00">18:00</option>
+                    <option value="19:00">19:00</option>
+                    <option value="20:00">20:00</option>
+                    <option value="21:00">21:00</option>
+                    <option value="22:00">22:00</option>
+                    <option value="23:00">23:00</option>
+                  </TimeSelect>
+                </DateTimeInner>
+              </DateTimeWrapper>
               
               <SearchButton onClick={handleSearch}>
                 <Search size={24} color="white" />
               </SearchButton>
             </SearchForm>
+            {searchError && (
+              <div style={{ 
+                color: '#c33', 
+                backgroundColor: '#fee', 
+                padding: '0.75rem 1rem', 
+                borderRadius: '0 0 12px 12px',
+                fontSize: '0.9rem',
+                textAlign: 'center',
+                borderTop: '1px solid #fcc'
+              }}>
+                {searchError}
+              </div>
+            )}
             </SearchContainer>
             
             <GetToKnowButton onClick={() => navigate('/how-it-works')}>
@@ -1047,16 +1946,58 @@ const HomePage: React.FC = () => {
         </FilterBar>
       </FilterBarSection>
 
-      {/* Featured Cars */}
-      {featuredCars.length > 0 && (
-        <FeaturedSection>
-          <SectionHeader>
-            <SectionTitleWithArrow onClick={() => navigate('/vehicles')}>
-              Carros em destaque perto de você
-              <ArrowRight size={20} />
-            </SectionTitleWithArrow>
-          </SectionHeader>
-          
+      {/* Featured Cars - sempre exibir a seção */}
+      <FeaturedSection>
+        <SectionHeader>
+          <SectionTitleWithArrow onClick={() => navigate('/vehicles')}>
+            Carros em destaque perto de você
+            <ArrowRight size={20} />
+          </SectionTitleWithArrow>
+        </SectionHeader>
+        
+        {loadingCars ? (
+          <div style={{ textAlign: 'center', padding: '3rem', color: '#666' }}>
+            Carregando carros...
+          </div>
+        ) : carsLoadError ? (
+          <div style={{ textAlign: 'center', padding: '2rem' }}>
+            <p style={{ color: '#666', marginBottom: '1rem' }}>Não foi possível carregar os carros.</p>
+            <button
+              type="button"
+              onClick={() => navigate('/vehicles')}
+              style={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                border: 'none',
+                padding: '0.75rem 1.5rem',
+                borderRadius: '8px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              Ver todos os veículos
+            </button>
+          </div>
+        ) : featuredCars.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '2rem' }}>
+            <p style={{ color: '#666', marginBottom: '1rem' }}>Nenhum carro em destaque no momento.</p>
+            <button
+              type="button"
+              onClick={() => navigate('/vehicles')}
+              style={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                border: 'none',
+                padding: '0.75rem 1.5rem',
+                borderRadius: '8px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              Ver todos os veículos
+            </button>
+          </div>
+        ) : (
           <CarsScrollContainer>
             {featuredCars.map((car) => (
               <CarCard key={car.id} onClick={() => navigate(`/vehicle/${car.id}`)}>
@@ -1080,8 +2021,8 @@ const HomePage: React.FC = () => {
               </CarCard>
             ))}
           </CarsScrollContainer>
-        </FeaturedSection>
-      )}
+        )}
+      </FeaturedSection>
 
       {/* How It Works */}
       <HowItWorksSection>

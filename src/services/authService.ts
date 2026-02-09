@@ -55,6 +55,16 @@ export const authService = {
     return response.data;
   },
 
+  async getGovBrAuthUrl(): Promise<{ authUrl?: string }> {
+    const response = await api.get('/gov-br/auth-url');
+    return response.data;
+  },
+
+  async validateDocument(body: { document: string; type: 'CPF' | 'CNPJ' }): Promise<{ success: boolean; result?: any; error?: string }> {
+    const response = await api.post('/gov-br/validate-document', body);
+    return response.data;
+  },
+
   async updateProfile(userData: any) {
     const token = localStorage.getItem('token');
     console.log('Updating profile with token:', token ? 'Token exists' : 'No token');
@@ -62,6 +72,32 @@ export const authService = {
     
     const response = await api.patch('/users/profile/me', userData);
     return response.data;
+  },
+
+  async uploadProfilePhoto(file: File) {
+    const formData = new FormData();
+    formData.append('photo', file);
+    const response = await api.post('/users/profile/me/photo', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
+  /** URL para foto armazenada em arquivo (legado). Para foto no DB (profilePhoto === 'inline') use fetchProfilePhotoBlobUrl(). */
+  getProfilePhotoUrl(profilePhoto: string | undefined): string | undefined {
+    if (!profilePhoto || profilePhoto === 'inline') return undefined;
+    if (profilePhoto.startsWith('http')) return profilePhoto;
+    return `${API_BASE_URL}${profilePhoto.startsWith('/') ? '' : '/'}${profilePhoto}`;
+  },
+
+  /** Busca a foto de perfil do backend (armazenada no DB) e retorna uma blob URL. Revogue com URL.revokeObjectURL ao desmontar. */
+  async fetchProfilePhotoBlobUrl(): Promise<string | null> {
+    try {
+      const response = await api.get('/users/profile/me/photo', { responseType: 'blob' });
+      return URL.createObjectURL(response.data);
+    } catch {
+      return null;
+    }
   },
 
 };
@@ -98,6 +134,11 @@ export const vehicleService = {
     const response = await api.post('/vehicles', vehicleData);
     return response.data;
   },
+
+  async updateVehicle(id: string, vehicleData: any) {
+    const response = await api.patch(`/vehicles/${id}`, vehicleData);
+    return response.data;
+  },
 };
 
 export const bookingService = {
@@ -114,5 +155,106 @@ export const bookingService = {
   async getBooking(id: string) {
     const response = await api.get(`/bookings/${id}`);
     return response.data;
+  },
+
+  async checkAvailability(vehicleId: string, startDate: string, endDate: string) {
+    const response = await api.get(`/bookings/availability/${vehicleId}`, {
+      params: { startDate, endDate }
+    });
+    return response.data;
+  },
+
+  async getBlockedDates(vehicleId: string) {
+    const response = await api.get(`/bookings/blocked-dates/${vehicleId}`);
+    return response.data;
+  },
+
+  async confirmBooking(id: string) {
+    const response = await api.post(`/bookings/${id}/confirm`);
+    return response.data;
+  },
+
+  async rejectBooking(id: string, reason?: string) {
+    const response = await api.post(`/bookings/${id}/reject`, { reason });
+    return response.data;
+  },
+
+  async confirmReturn(id: string, notes?: string) {
+    const response = await api.post(`/bookings/${id}/confirm-return`, { notes });
+    return response.data;
+  },
+
+  async cancelBooking(id: string, reason: string) {
+    const response = await api.post(`/bookings/${id}/cancel`, { reason });
+    return response.data;
+  },
+
+  async getPendingForLessor(lessorId: string) {
+    const response = await api.get(`/bookings/lessor/${lessorId}/pending`);
+    return response.data;
+  },
+
+  async getAwaitingReturnForLessor(lessorId: string) {
+    const response = await api.get(`/bookings/lessor/${lessorId}/awaiting-return`);
+    return response.data;
+  },
+};
+
+export const paymentService = {
+  async pay(bookingId: string, method: 'credit_card' | 'pix', cardData?: { number: string; name: string; expiry: string; cvv: string }) {
+    const response = await api.post('/payments/pay', { bookingId, method, cardData });
+    return response.data;
+  },
+};
+
+export const favoriteService = {
+  async getFavorites() {
+    const response = await api.get('/favorites');
+    return response.data;
+  },
+
+  async getFavoriteIds(): Promise<string[]> {
+    const response = await api.get('/favorites/ids');
+    return response.data;
+  },
+
+  async checkFavorite(vehicleId: string): Promise<boolean> {
+    const response = await api.get(`/favorites/check/${vehicleId}`);
+    return response.data.isFavorite;
+  },
+
+  async addFavorite(vehicleId: string) {
+    const response = await api.post('/favorites', { vehicleId });
+    return response.data;
+  },
+
+  async removeFavorite(vehicleId: string) {
+    await api.delete(`/favorites/${vehicleId}`);
+  },
+
+  async toggleFavorite(vehicleId: string): Promise<{ isFavorite: boolean }> {
+    const response = await api.post('/favorites/toggle', { vehicleId });
+    return response.data;
+  },
+};
+
+export const reviewService = {
+  async getVehicleReviews(vehicleId: string) {
+    const response = await api.get(`/vehicles/${vehicleId}/reviews`);
+    return response.data;
+  },
+
+  async createReview(vehicleId: string, data: { rating: number; comment?: string }) {
+    const response = await api.post(`/vehicles/${vehicleId}/reviews`, data);
+    return response.data;
+  },
+
+  async updateReview(reviewId: string, data: { rating?: number; comment?: string }) {
+    const response = await api.put(`/vehicles/reviews/${reviewId}`, data);
+    return response.data;
+  },
+
+  async deleteReview(reviewId: string) {
+    await api.delete(`/vehicles/reviews/${reviewId}`);
   },
 };

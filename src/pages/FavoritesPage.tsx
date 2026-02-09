@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { Car, Star, Location, Search } from '../components/IconSystem';
-import { vehicleService } from '../services/authService';
+import { vehicleService, favoriteService } from '../services/authService';
 import { getFavorites } from '../utils/favorites';
 
 const Container = styled.div`
@@ -261,30 +261,32 @@ const FavoritesPage: React.FC = () => {
   const userData = JSON.parse(localStorage.getItem('user') || '{}');
   const userName = `${userData.firstName || 'Usuário'} ${userData.lastName || ''}`.trim() || 'Usuário';
 
+  const isLoggedIn = !!localStorage.getItem('token');
+
   useEffect(() => {
     loadFavorites();
-  }, []);
+  }, [isLoggedIn]);
 
   const loadFavorites = async () => {
     try {
       setLoading(true);
-      const favoriteIds = getFavorites();
-      
-      if (favoriteIds.length === 0) {
-        setFavoriteVehicles([]);
-        setLoading(false);
-        return;
+      if (isLoggedIn) {
+        const favorites = await favoriteService.getFavorites();
+        const vehicles = (favorites || []).map((f: any) => f.vehicle).filter(Boolean);
+        setFavoriteVehicles(vehicles);
+      } else {
+        const favoriteIds = getFavorites();
+        if (favoriteIds.length === 0) {
+          setFavoriteVehicles([]);
+          setLoading(false);
+          return;
+        }
+        const vehiclesPromises = favoriteIds.map((id: string) =>
+          vehicleService.getVehicle(id).catch(() => null)
+        );
+        const vehicles = await Promise.all(vehiclesPromises);
+        setFavoriteVehicles(vehicles.filter((v: any) => v !== null));
       }
-
-      // Fetch vehicle details for each favorite ID
-      const vehiclesPromises = favoriteIds.map((id: string) => 
-        vehicleService.getVehicle(id).catch(() => null)
-      );
-      
-      const vehicles = await Promise.all(vehiclesPromises);
-      const validVehicles = vehicles.filter(v => v !== null);
-      
-      setFavoriteVehicles(validVehicles);
     } catch (error) {
       console.error('Error loading favorites:', error);
       setFavoriteVehicles([]);

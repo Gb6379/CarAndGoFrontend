@@ -1,9 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { vehicleService } from '../services/authService';
+import { Favorite, FavoriteBorder } from '@mui/icons-material';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import { vehicleService, favoriteService, reviewService } from '../services/authService';
 import { Electric, Car, LocationOn, Star, CheckCircle, Phone, Map, Lock, Shield, Usb, Bluetooth, AirConditioning } from '../components/IconSystem';
 import AuthModal from '../components/AuthModal';
+import { isFavorite, toggleFavorite } from '../utils/favorites';
+
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 const Container = styled.div`
   max-width: 1200px;
@@ -33,11 +45,45 @@ const Breadcrumb = styled.div`
   }
 `;
 
+const TitleRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+`;
+
 const VehicleTitle = styled.h1`
   font-size: 2.5rem;
   color: #333;
-  margin-bottom: 0.5rem;
+  margin: 0;
   font-weight: 700;
+`;
+
+const FavoriteButton = styled.button`
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.1);
+  background: white;
+  color: #8B5CF6;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+
+  &:hover {
+    background: #f8f9fa;
+    transform: scale(1.05);
+    color: #7c3aed;
+  }
+
+  svg {
+    font-size: 26px;
+  }
 `;
 
 const VehicleSubtitle = styled.div`
@@ -160,6 +206,60 @@ const InfoValue = styled.span`
   font-size: 1.1rem;
   color: #333;
   font-weight: 600;
+`;
+
+const MapSection = styled.div`
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  padding: 1.5rem 1.5rem 0 1.5rem;
+`;
+
+const MapSectionTitle = styled.h2`
+  font-size: 1.5rem;
+  color: #333;
+  margin: 0 0 1rem 0;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const MapAddressBlock = styled.div`
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  border-left: 4px solid #667eea;
+`;
+
+const MapAddressLine = styled.p`
+  margin: 0;
+  font-size: 1rem;
+  color: #333;
+  line-height: 1.5;
+  &:first-child {
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+  & + & {
+    margin-top: 0.25rem;
+    font-size: 0.95rem;
+    color: #555;
+  }
+`;
+
+const MapWrapper = styled.div`
+  height: 280px;
+  border-radius: 0 0 12px 12px;
+  overflow: hidden;
+  margin: 0 -1.5rem 0 -1.5rem;
+
+  .leaflet-container {
+    height: 100%;
+    width: 100%;
+  }
 `;
 
 // Features Section
@@ -371,6 +471,63 @@ const ReviewText = styled.div`
   line-height: 1.6;
 `;
 
+const ReviewForm = styled.form`
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eee;
+`;
+
+const ReviewFormTitle = styled.div`
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.75rem;
+`;
+
+const StarRatingInput = styled.div`
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+  cursor: pointer;
+`;
+
+const ReviewTextarea = styled.textarea`
+  width: 100%;
+  min-height: 100px;
+  padding: 0.75rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  margin-bottom: 0.75rem;
+  &:focus {
+    outline: none;
+    border-color: #667eea;
+  }
+`;
+
+const SubmitReviewButton = styled.button`
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  &:hover {
+    background: #5a6fd8;
+  }
+  &:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
+`;
+
+const ReviewEmpty = styled.p`
+  color: #666;
+  font-style: italic;
+`;
+
 // Safety Section
 const SafetySection = styled.div`
   background: white;
@@ -414,15 +571,25 @@ const VehicleDetailPage: React.FC = () => {
   const [selectedPhoto, setSelectedPhoto] = useState(0);
   const [selectedDates, setSelectedDates] = useState({
     startDate: '',
-    endDate: ''
+    endDate: '',
+    startTime: '10:00',
+    endTime: '10:00'
   });
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
+  const [isFav, setIsFav] = useState(false);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
+  const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const isLoggedIn = !!localStorage.getItem('token');
 
   // Parse URL parameters for dates
   const searchParams = new URLSearchParams(location.search);
-  const startDate = searchParams.get('startDate') || '';
-  const endDate = searchParams.get('endDate') || '';
+  const startDate = searchParams.get('startDate') || searchParams.get('from') || '';
+  const endDate = searchParams.get('endDate') || searchParams.get('until') || '';
+  const startTime = searchParams.get('startTime') || searchParams.get('fromTime') || '10:00';
+  const endTime = searchParams.get('endTime') || searchParams.get('untilTime') || '10:00';
 
   useEffect(() => {
     if (id) {
@@ -431,11 +598,46 @@ const VehicleDetailPage: React.FC = () => {
   }, [id]);
 
   useEffect(() => {
+    if (!vehicle?.id) return;
+    const loadFav = async () => {
+      if (isLoggedIn) {
+        try {
+          const fav = await favoriteService.checkFavorite(String(vehicle.id));
+          setIsFav(fav);
+        } catch {
+          setIsFav(false);
+        }
+      } else {
+        setIsFav(isFavorite(String(vehicle.id)));
+      }
+    };
+    loadFav();
+  }, [vehicle?.id, isLoggedIn]);
+
+  useEffect(() => {
+    if (!id) return;
+    const loadReviews = async () => {
+      setLoadingReviews(true);
+      try {
+        const data = await reviewService.getVehicleReviews(id);
+        setReviews(Array.isArray(data) ? data : []);
+      } catch {
+        setReviews([]);
+      } finally {
+        setLoadingReviews(false);
+      }
+    };
+    loadReviews();
+  }, [id]);
+
+  useEffect(() => {
     setSelectedDates({
       startDate,
-      endDate
+      endDate,
+      startTime,
+      endTime
     });
-  }, [startDate, endDate]);
+  }, [startDate, endDate, startTime, endTime]);
 
   const loadVehicle = async (vehicleId: string) => {
     try {
@@ -453,7 +655,7 @@ const VehicleDetailPage: React.FC = () => {
         model: 'Mustang Mach-E',
         year: 2023,
         type: 'SUV',
-        fuelType: 'ELECTRIC',
+        fuelType: 'eletrico',
         dailyRate: 286,
         rating: 5.0,
         totalBookings: 3,
@@ -515,7 +717,9 @@ const VehicleDetailPage: React.FC = () => {
     const params = new URLSearchParams({
       vehicleId: id || '',
       startDate: selectedDates.startDate,
-      endDate: selectedDates.endDate
+      endDate: selectedDates.endDate,
+      startTime: selectedDates.startTime,
+      endTime: selectedDates.endTime
     });
     navigate(`/booking?${params.toString()}`);
   };
@@ -524,7 +728,7 @@ const VehicleDetailPage: React.FC = () => {
     if (vehicle?.photos && vehicle.photos[index]) {
       return vehicle.photos[index];
     }
-    return vehicle?.fuelType === 'ELECTRIC' ? <Electric size={20} /> : <Car size={20} />;
+    return vehicle?.fuelType === 'eletrico' ? <Electric size={20} /> : <Car size={20} />;
   };
 
   const calculateTotalPrice = () => {
@@ -539,6 +743,40 @@ const VehicleDetailPage: React.FC = () => {
 
   const getInitials = (firstName: string, lastName: string) => {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  };
+
+  const handleToggleFavorite = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!vehicle?.id) return;
+    if (isLoggedIn) {
+      try {
+        const res = await favoriteService.toggleFavorite(String(vehicle.id));
+        setIsFav(res.isFavorite);
+      } catch {
+        setAuthModalMode('login');
+        setIsAuthModalOpen(true);
+      }
+    } else {
+      const newState = toggleFavorite(String(vehicle.id));
+      setIsFav(newState);
+    }
+  };
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id || !isLoggedIn || submittingReview) return;
+    setSubmittingReview(true);
+    try {
+      await reviewService.createReview(id, { rating: reviewForm.rating, comment: reviewForm.comment || undefined });
+      const data = await reviewService.getVehicleReviews(id);
+      setReviews(Array.isArray(data) ? data : []);
+      setReviewForm({ rating: 5, comment: '' });
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Não foi possível enviar a avaliação.');
+    } finally {
+      setSubmittingReview(false);
+    }
   };
 
   if (loading) {
@@ -576,6 +814,10 @@ const VehicleDetailPage: React.FC = () => {
     );
   }
 
+  const vehicleLat = vehicle?.latitude != null ? Number(vehicle.latitude) : NaN;
+  const vehicleLng = vehicle?.longitude != null ? Number(vehicle.longitude) : NaN;
+  const showMap = Number.isFinite(vehicleLat) && Number.isFinite(vehicleLng);
+
   return (
     <Container>
       {/* Header */}
@@ -588,8 +830,13 @@ const VehicleDetailPage: React.FC = () => {
           <span>{vehicle.make} {vehicle.model}</span>
         </Breadcrumb>
         
-        <VehicleTitle>{vehicle.make} {vehicle.model} {vehicle.year}</VehicleTitle>
-        
+        <TitleRow>
+          <VehicleTitle>{vehicle.make} {vehicle.model} {vehicle.year}</VehicleTitle>
+          <FavoriteButton onClick={handleToggleFavorite} type="button" aria-label={isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}>
+            {isFav ? <Favorite /> : <FavoriteBorder />}
+          </FavoriteButton>
+        </TitleRow>
+
         <VehicleSubtitle>
           <RatingSection>
             <Star size={16} /> {vehicle.rating} ({vehicle.totalBookings} trips)
@@ -632,7 +879,7 @@ const VehicleDetailPage: React.FC = () => {
               </InfoItem>
               <InfoItem>
                 <InfoLabel>Tipo de Combustível</InfoLabel>
-                <InfoValue>{vehicle.fuelType}</InfoValue>
+                <InfoValue>{vehicle.fuelType === 'eletrico' ? 'Elétrico' : vehicle.fuelType === 'combustao' ? 'Combustão' : vehicle.fuelType}</InfoValue>
               </InfoItem>
               <InfoItem>
                 <InfoLabel>Transmissão</InfoLabel>
@@ -657,6 +904,39 @@ const VehicleDetailPage: React.FC = () => {
             </InfoGrid>
           </VehicleInfoSection>
 
+          {/* Mapa - Localização do veículo */}
+          {showMap && (
+            <MapSection>
+              <MapSectionTitle><LocationOn size={24} /> Onde fica o carro</MapSectionTitle>
+              <MapAddressBlock>
+                <MapAddressLine>{vehicle.address}</MapAddressLine>
+                <MapAddressLine>{vehicle.city}{vehicle.state ? `, ${vehicle.state}` : ''}</MapAddressLine>
+              </MapAddressBlock>
+              <MapWrapper>
+                <MapContainer
+                  center={[vehicleLat, vehicleLng]}
+                  zoom={15}
+                  style={{ height: '100%', width: '100%' }}
+                  scrollWheelZoom={false}
+                >
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+                  <Marker position={[vehicleLat, vehicleLng]}>
+                    <Popup>
+                      <strong>{vehicle.make} {vehicle.model}</strong>
+                      <br />
+                      {vehicle.address}
+                      <br />
+                      {vehicle.city}, {vehicle.state}
+                    </Popup>
+                  </Marker>
+                </MapContainer>
+              </MapWrapper>
+            </MapSection>
+          )}
+
           {/* Features */}
           <FeaturesSection>
             <SectionTitle>Recursos e Comodidades</SectionTitle>
@@ -677,7 +957,7 @@ const VehicleDetailPage: React.FC = () => {
                 <FeatureIcon><Map size={20} /></FeatureIcon>
                 <FeatureText>Navegação GPS</FeatureText>
               </FeatureItem>
-              {vehicle.fuelType === 'ELECTRIC' && (
+              {vehicle.fuelType === 'eletrico' && (
                 <FeatureItem>
                   <FeatureIcon><Electric size={20} /></FeatureIcon>
                   <FeatureText>Veículo Elétrico</FeatureText>
@@ -688,21 +968,59 @@ const VehicleDetailPage: React.FC = () => {
 
           {/* Reviews */}
           <ReviewsSection>
-            <SectionTitle>Avaliações ({vehicle.reviews?.length || 0})</SectionTitle>
-            {vehicle.reviews?.map((review: any) => (
-              <ReviewItem key={review.id}>
-                <ReviewHeader>
-                  <ReviewInfo>
-                    <ReviewerName>{review.reviewerName}</ReviewerName>
-                    <ReviewDate>{new Date(review.date).toLocaleDateString()}</ReviewDate>
+            <SectionTitle>Avaliações ({reviews.length})</SectionTitle>
+            {loadingReviews ? (
+              <ReviewEmpty>Carregando avaliações...</ReviewEmpty>
+            ) : reviews.length === 0 ? (
+              <ReviewEmpty>Nenhuma avaliação ainda. Seja o primeiro a avaliar!</ReviewEmpty>
+            ) : (
+              reviews.map((review: any) => (
+                <ReviewItem key={review.id}>
+                  <ReviewHeader>
+                    <ReviewInfo>
+                    <ReviewerName>
+                      {review.user ? `${review.user.firstName} ${review.user.lastName}` : 'Anônimo'}
+                    </ReviewerName>
+                    <ReviewDate>{new Date(review.createdAt).toLocaleDateString('pt-BR')}</ReviewDate>
                   </ReviewInfo>
                   <ReviewRating>
-                    {[...Array(review.rating)].map((_, i) => <Star key={i} size={14} />)}
+                    {[...Array(5)].map((_, i) => (
+                      <span key={i} style={{ color: i < review.rating ? '#ffa500' : '#ddd' }}>★</span>
+                    ))}
                   </ReviewRating>
                 </ReviewHeader>
-                <ReviewText>{review.text}</ReviewText>
+                {review.comment && <ReviewText>{review.comment}</ReviewText>}
               </ReviewItem>
-            ))}
+              ))
+            )}
+            {isLoggedIn && (
+              <ReviewForm onSubmit={handleSubmitReview}>
+                <ReviewFormTitle>Escreva sua avaliação</ReviewFormTitle>
+                <StarRatingInput>
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <span
+                      key={star}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setReviewForm((f) => ({ ...f, rating: star }))}
+                      onKeyDown={(e) => e.key === 'Enter' && setReviewForm((f) => ({ ...f, rating: star }))}
+                      style={{ color: star <= reviewForm.rating ? '#ffa500' : '#ddd', cursor: 'pointer', fontSize: '1.5rem' }}
+                    >
+                      ★
+                    </span>
+                  ))}
+                </StarRatingInput>
+                <ReviewTextarea
+                  placeholder="Conte como foi sua experiência (opcional)"
+                  value={reviewForm.comment}
+                  onChange={(e) => setReviewForm((f) => ({ ...f, comment: e.target.value }))}
+                  maxLength={2000}
+                />
+                <SubmitReviewButton type="submit" disabled={submittingReview}>
+                  {submittingReview ? 'Enviando...' : 'Enviar avaliação'}
+                </SubmitReviewButton>
+              </ReviewForm>
+            )}
           </ReviewsSection>
 
           {/* Safety */}

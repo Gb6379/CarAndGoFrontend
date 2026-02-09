@@ -144,7 +144,7 @@ const VehicleRegistrationForm: React.FC = () => {
     year: new Date().getFullYear(),
     licensePlate: '',
     type: 'sedan',
-    fuelType: 'gasoline',
+    fuelType: 'combustao',
     engineCapacity: '',
     mileage: '',
     dailyRate: '',
@@ -208,7 +208,7 @@ const VehicleRegistrationForm: React.FC = () => {
         year: new Date().getFullYear(),
         licensePlate: '',
         type: 'sedan',
-        fuelType: 'gasoline',
+        fuelType: 'combustao',
         engineCapacity: '',
         mileage: '',
         dailyRate: '',
@@ -312,13 +312,8 @@ const VehicleRegistrationForm: React.FC = () => {
             <div>
               <label>Fuel Type *</label>
               <Select name="fuelType" value={formData.fuelType} onChange={handleChange} required>
-                <option value="gasoline">Gasoline</option>
-                <option value="ethanol">Ethanol</option>
-                <option value="flex">Flex</option>
-                <option value="diesel">Diesel</option>
-                <option value="electric">Electric</option>
-                <option value="hybrid">Hybrid</option>
-                <option value="cng">CNG</option>
+                <option value="combustao">Combustão</option>
+                <option value="eletrico">Elétrico</option>
               </Select>
             </div>
             <div>

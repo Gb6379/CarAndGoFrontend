@@ -255,6 +255,7 @@ const TripStatus = styled.span<{ status: string }>`
     switch(props.status?.toLowerCase()) {
       case 'confirmed': return '#e8f5e8';
       case 'active': return '#d1ecf1';
+      case 'awaiting_return': return '#ede9fe';
       case 'completed': return '#d4edda';
       case 'pending': return '#fff3cd';
       case 'cancelled': return '#f8d7da';
@@ -265,6 +266,7 @@ const TripStatus = styled.span<{ status: string }>`
     switch(props.status?.toLowerCase()) {
       case 'confirmed': return '#155724';
       case 'active': return '#0c5460';
+      case 'awaiting_return': return '#7c3aed';
       case 'completed': return '#155724';
       case 'pending': return '#856404';
       case 'cancelled': return '#721c24';
@@ -327,6 +329,7 @@ const getStatusLabel = (status: string): string => {
     'pending': 'Pendente',
     'confirmed': 'Confirmada',
     'active': 'Em andamento',
+    'awaiting_return': 'Aguardando Devolução',
     'completed': 'Concluída',
     'cancelled': 'Cancelada',
     'rejected': 'Rejeitada',
@@ -479,10 +482,10 @@ const TripsPage: React.FC = () => {
                   {formatDate(trip.startDate)} - {formatDate(trip.endDate)}
                 </TripDates>
                 <TripFooter>
-                  <TripPrice>R$ {trip.totalAmount?.toFixed(2) || '0.00'}</TripPrice>
+                  <TripPrice>R$ {typeof trip.totalAmount === 'number' ? trip.totalAmount.toFixed(2) : (parseFloat(trip.totalAmount) || 0).toFixed(2)}</TripPrice>
                   <TripAction onClick={(e) => {
                     e.stopPropagation();
-                    navigate(`/bookings`);
+                    navigate(`/booking/${trip.id}/details`);
                   }}>
                     Ver detalhes
                   </TripAction>
