@@ -126,7 +126,9 @@ const LoginButton = styled.button`
   border-radius: 6px;
   transition: all 0.3s ease;
   cursor: pointer;
-  
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
+
   &:hover {
     color: #667eea;
     background: rgba(102, 126, 234, 0.1);
@@ -143,7 +145,9 @@ const SignUpButton = styled.button`
   transition: all 0.3s ease;
   border: none;
   cursor: pointer;
-  
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
+
   &:hover {
     background: #5a6fd8;
     transform: translateY(-1px);
@@ -176,7 +180,9 @@ const UserButton = styled.button`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
+
   &:hover {
     background: rgba(102, 126, 234, 0.1);
   }
@@ -278,15 +284,87 @@ const MobileMenuButton = styled.button`
   font-size: 1.5rem;
   color: #333;
   cursor: pointer;
-  
+  padding: 0.5rem;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  -webkit-tap-highlight-color: transparent;
+
+  @media (max-width: 768px) {
+    display: flex;
+  }
+`;
+
+const MobileMenuOverlay = styled.div<{ isOpen: boolean }>`
+  display: none;
   @media (max-width: 768px) {
     display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 999;
+    opacity: ${p => p.isOpen ? 1 : 0};
+    visibility: ${p => p.isOpen ? 'visible' : 'hidden'};
+    transition: opacity 0.2s, visibility 0.2s;
   }
+`;
+
+const MobileMenuPanel = styled.div<{ isOpen: boolean }>`
+  display: none;
+  @media (max-width: 768px) {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: min(320px, 100vw - 2rem);
+    max-width: 100%;
+    height: 100vh;
+    background: white;
+    box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+    z-index: 1001;
+    padding: 4rem 0 1.5rem;
+    overflow-y: auto;
+    transform: ${p => p.isOpen ? 'translateX(0)' : 'translateX(100%)'};
+    transition: transform 0.25s ease;
+  }
+`;
+
+const MobileMenuLink = styled(Link)`
+  padding: 1rem 1.5rem;
+  color: #333;
+  text-decoration: none;
+  font-weight: 500;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #f0f0f0;
+  -webkit-tap-highlight-color: transparent;
+`;
+
+const MobileMenuButtonAction = styled.button`
+  width: 100%;
+  padding: 1rem 1.5rem;
+  text-align: left;
+  border: none;
+  background: none;
+  color: #333;
+  font-weight: 500;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 `;
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
   const [headerPhotoUrl, setHeaderPhotoUrl] = useState<string | null>(null);
@@ -321,6 +399,13 @@ const Header: React.FC = () => {
       });
     }
   };
+
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = ''; };
+    }
+  }, [isMobileMenuOpen]);
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -363,8 +448,45 @@ const Header: React.FC = () => {
     setIsAuthModalOpen(false);
   };
 
+  const closeMobileMenu = () => setIsMobileMenuOpen(false);
+
   return (
     <HeaderContainer>
+      <MobileMenuOverlay isOpen={isMobileMenuOpen} onClick={closeMobileMenu} aria-hidden="true" />
+      <MobileMenuPanel isOpen={isMobileMenuOpen}>
+        {(userType === 'lessee' || userType === 'both' || !isLoggedIn) && (
+          <MobileMenuLink to="/vehicles" onClick={closeMobileMenu}>Encontrar Carros</MobileMenuLink>
+        )}
+        {(userType === 'lessor' || userType === 'both' || !isLoggedIn) && (
+          <MobileMenuLink to="/list-vehicle" onClick={closeMobileMenu}>Anunciar Seu Carro</MobileMenuLink>
+        )}
+        <MobileMenuLink to="/how-it-works" onClick={closeMobileMenu}>Como Funciona</MobileMenuLink>
+        <MobileMenuLink to="/help" onClick={closeMobileMenu}>Ajuda</MobileMenuLink>
+        {isLoggedIn ? (
+          <>
+            <MobileMenuLink to="/bookings" onClick={closeMobileMenu}>Viagens</MobileMenuLink>
+            <MobileMenuLink to="/profile" onClick={closeMobileMenu}>Perfil</MobileMenuLink>
+            <MobileMenuLink to="/verification" onClick={closeMobileMenu}>Verificação</MobileMenuLink>
+            {(userType === 'lessor' || userType === 'both') && (
+              <MobileMenuLink to="/bank-details" onClick={closeMobileMenu}>Dados bancários</MobileMenuLink>
+            )}
+            <MobileMenuButtonAction
+              onClick={() => { closeMobileMenu(); handleLogout(); }}
+            >
+              <LogoutOutlined fontSize="small" /> Sair
+            </MobileMenuButtonAction>
+          </>
+        ) : (
+          <>
+            <MobileMenuButtonAction onClick={() => { closeMobileMenu(); openAuthModal('login'); }}>
+              Entrar
+            </MobileMenuButtonAction>
+            <MobileMenuButtonAction onClick={() => { closeMobileMenu(); openAuthModal('register'); }}>
+              Cadastrar
+            </MobileMenuButtonAction>
+          </>
+        )}
+      </MobileMenuPanel>
       <Nav>
         <Logo to="/">
           <LogoImage src={logoSvg} alt="Car and Go Logo" />
@@ -471,7 +593,10 @@ const Header: React.FC = () => {
           </AuthButtons>
         )}
 
-        <MobileMenuButton>
+        <MobileMenuButton
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          aria-label="Abrir menu"
+        >
           <Menu size={24} />
         </MobileMenuButton>
       </Nav>

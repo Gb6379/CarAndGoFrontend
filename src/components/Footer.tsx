@@ -7,8 +7,12 @@ import { Facebook, Instagram, Twitter, LinkedIn } from './IconSystem';
 const FooterContainer = styled.footer`
   background: #1a1a1a;
   color: white;
-  padding: 4rem 2rem 2rem;
+  padding: 4rem 2rem calc(2rem + env(safe-area-inset-bottom, 0px));
   margin-top: 4rem;
+
+  @media (max-width: 768px) {
+    padding: 2rem 1rem calc(1.5rem + env(safe-area-inset-bottom, 0px));
+  }
 `;
 
 const FooterContent = styled.div`

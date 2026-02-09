@@ -25,12 +25,15 @@ import VerificationPage from './pages/VerificationPage';
 
 const AppContainer = styled.div`
   min-height: 100vh;
+  min-height: calc(100vh - env(safe-area-inset-bottom, 0px));
   background-color: #f8f9fa;
+  overflow-x: hidden;
 `;
 
 const MainContent = styled.main`
   padding-top: 90px; /* Account for fixed header */
   min-height: calc(100vh - 90px);
+  -webkit-overflow-scrolling: touch;
 
   @media (max-width: 768px) {
     padding-top: 70px;
@@ -55,6 +58,9 @@ const PortInfo = styled.div`
   font-weight: bold;
   z-index: 1000;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;
 
 function App() {
