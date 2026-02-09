@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import logoSvg from '../assets/logo.svg';
-import { User, ArrowDown, Menu, Car, CreditCard } from './IconSystem';
+import { User, ArrowDown, Menu, Car, CreditCard, Close } from './IconSystem';
 import AuthModal from './AuthModal';
 import { authService } from '../services/authService';
 import { 
@@ -10,7 +10,12 @@ import {
   Gavel, 
   HeadsetMic,
   LogoutOutlined,
-  VerifiedUser
+  VerifiedUser,
+  Dashboard as DashboardIcon,
+  Add as AddIcon,
+  Info as InfoIcon,
+  Help as HelpIcon,
+  DirectionsCar as CarIcon
 } from '@mui/icons-material';
 import { FlightTakeoff } from './IconSystem';
 
@@ -164,6 +169,12 @@ const SignUpButton = styled.button`
   }
 `;
 
+const DesktopOnly = styled.div`
+  @media (max-width: 768px) {
+    display: none !important;
+  }
+`;
+
 const UserMenu = styled.div`
   position: relative;
 `;
@@ -308,6 +319,8 @@ const MobileMenuOverlay = styled.div<{ isOpen: boolean }>`
     opacity: ${p => p.isOpen ? 1 : 0};
     visibility: ${p => p.isOpen ? 'visible' : 'hidden'};
     transition: opacity 0.2s, visibility 0.2s;
+    pointer-events: ${p => p.isOpen ? 'auto' : 'none'};
+    cursor: pointer;
   }
 `;
 
@@ -325,11 +338,51 @@ const MobileMenuPanel = styled.div<{ isOpen: boolean }>`
     background: white;
     box-shadow: -4px 0 20px rgba(0,0,0,0.15);
     z-index: 1001;
-    padding: 4rem 0 1.5rem;
+    padding: 0 0 1.5rem;
     overflow-y: auto;
     transform: ${p => p.isOpen ? 'translateX(0)' : 'translateX(100%)'};
     transition: transform 0.25s ease;
   }
+`;
+
+const MobileMenuHeader = styled.div`
+  display: none;
+  @media (max-width: 768px) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #eee;
+    flex-shrink: 0;
+  }
+`;
+
+const MobileMenuUser = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+`;
+
+const MobileMenuAvatar = styled.img`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+`;
+
+const MobileMenuCloseBtn = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: none;
+  color: #333;
+  cursor: pointer;
+  border-radius: 8px;
+  -webkit-tap-highlight-color: transparent;
+  &:hover { background: #f0f0f0; }
 `;
 
 const MobileMenuLink = styled(Link)`
@@ -340,8 +393,10 @@ const MobileMenuLink = styled(Link)`
   min-height: 48px;
   display: flex;
   align-items: center;
+  gap: 0.75rem;
   border-bottom: 1px solid #f0f0f0;
   -webkit-tap-highlight-color: transparent;
+  svg { flex-shrink: 0; font-size: 20px; }
 `;
 
 const MobileMenuButtonAction = styled.button`
@@ -359,6 +414,7 @@ const MobileMenuButtonAction = styled.button`
   border-bottom: 1px solid #f0f0f0;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  svg { flex-shrink: 0; font-size: 20px; }
 `;
 
 const Header: React.FC = () => {
@@ -452,23 +508,52 @@ const Header: React.FC = () => {
 
   return (
     <HeaderContainer>
-      <MobileMenuOverlay isOpen={isMobileMenuOpen} onClick={closeMobileMenu} aria-hidden="true" />
+      <MobileMenuOverlay
+        isOpen={isMobileMenuOpen}
+        onClick={closeMobileMenu}
+        onPointerDown={closeMobileMenu}
+        aria-hidden="true"
+        role="button"
+        tabIndex={-1}
+      />
       <MobileMenuPanel isOpen={isMobileMenuOpen}>
+        <MobileMenuHeader>
+          <MobileMenuUser>
+            {isLoggedIn && (headerPhotoUrl ? (
+              <MobileMenuAvatar src={headerPhotoUrl} alt="" />
+            ) : (
+              <MobileMenuAvatar as="span" style={{ width: 40, height: 40, borderRadius: '50%', background: '#e0e0e0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <User size={24} color="#666" />
+              </MobileMenuAvatar>
+            ))}
+            <span style={{ fontWeight: 600, color: '#333' }}>
+              {isLoggedIn ? (userData?.firstName ? `Olá, ${userData.firstName}` : 'Conta') : 'Menu'}
+            </span>
+          </MobileMenuUser>
+          <MobileMenuCloseBtn
+            type="button"
+            onClick={closeMobileMenu}
+            aria-label="Fechar menu"
+          >
+            <Close size={24} />
+          </MobileMenuCloseBtn>
+        </MobileMenuHeader>
+        <MobileMenuLink to="/" onClick={closeMobileMenu}><DashboardIcon fontSize="small" /> Painel</MobileMenuLink>
         {(userType === 'lessee' || userType === 'both' || !isLoggedIn) && (
-          <MobileMenuLink to="/vehicles" onClick={closeMobileMenu}>Encontrar Carros</MobileMenuLink>
+          <MobileMenuLink to="/vehicles" onClick={closeMobileMenu}><CarIcon fontSize="small" /> Encontrar Carros</MobileMenuLink>
         )}
         {(userType === 'lessor' || userType === 'both' || !isLoggedIn) && (
-          <MobileMenuLink to="/list-vehicle" onClick={closeMobileMenu}>Anunciar Seu Carro</MobileMenuLink>
+          <MobileMenuLink to="/list-vehicle" onClick={closeMobileMenu}><AddIcon fontSize="small" /> Anunciar Seu Carro</MobileMenuLink>
         )}
-        <MobileMenuLink to="/how-it-works" onClick={closeMobileMenu}>Como Funciona</MobileMenuLink>
-        <MobileMenuLink to="/help" onClick={closeMobileMenu}>Ajuda</MobileMenuLink>
+        <MobileMenuLink to="/how-it-works" onClick={closeMobileMenu}><InfoIcon fontSize="small" /> Como Funciona</MobileMenuLink>
+        <MobileMenuLink to="/help" onClick={closeMobileMenu}><HelpIcon fontSize="small" /> Ajuda</MobileMenuLink>
         {isLoggedIn ? (
           <>
-            <MobileMenuLink to="/bookings" onClick={closeMobileMenu}>Viagens</MobileMenuLink>
-            <MobileMenuLink to="/profile" onClick={closeMobileMenu}>Perfil</MobileMenuLink>
-            <MobileMenuLink to="/verification" onClick={closeMobileMenu}>Verificação</MobileMenuLink>
+            <MobileMenuLink to="/bookings" onClick={closeMobileMenu}><FlightTakeoff size={20} /> Viagens</MobileMenuLink>
+            <MobileMenuLink to="/profile" onClick={closeMobileMenu}><User size={20} /> Perfil</MobileMenuLink>
+            <MobileMenuLink to="/verification" onClick={closeMobileMenu}><VerifiedUser fontSize="small" /> Verificação</MobileMenuLink>
             {(userType === 'lessor' || userType === 'both') && (
-              <MobileMenuLink to="/bank-details" onClick={closeMobileMenu}>Dados bancários</MobileMenuLink>
+              <MobileMenuLink to="/bank-details" onClick={closeMobileMenu}><CreditCard size={20} /> Dados bancários</MobileMenuLink>
             )}
             <MobileMenuButtonAction
               onClick={() => { closeMobileMenu(); handleLogout(); }}
@@ -509,6 +594,7 @@ const Header: React.FC = () => {
         </NavLinks>
 
         {isLoggedIn ? (
+          <DesktopOnly>
           <UserMenu>
             <UserButton onClick={toggleUserMenu}>
               {headerPhotoUrl ? (
@@ -520,6 +606,15 @@ const Header: React.FC = () => {
               <ArrowDown size={12} />
             </UserButton>
                         <DropdownMenu isOpen={isUserMenuOpen}>
+              {/* Painel = tela inicial */}
+              <DropdownItem 
+                to="/"
+                onClick={() => setIsUserMenuOpen(false)}
+              >
+                <DashboardIcon fontSize="small" />
+                Painel
+              </DropdownItem>
+              <DropdownDivider />
               {/* Seção Superior */}
               <DropdownItem 
                 to="/bookings"
@@ -586,11 +681,14 @@ const Header: React.FC = () => {
               </LogoutButton>
             </DropdownMenu>
           </UserMenu>
+          </DesktopOnly>
         ) : (
+          <DesktopOnly>
           <AuthButtons>
             <LoginButton onClick={() => openAuthModal('login')}>Entrar</LoginButton>
             <SignUpButton onClick={() => openAuthModal('register')}>Cadastrar</SignUpButton>
           </AuthButtons>
+          </DesktopOnly>
         )}
 
         <MobileMenuButton

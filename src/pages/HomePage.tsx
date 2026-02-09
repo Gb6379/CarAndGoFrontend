@@ -141,17 +141,25 @@ const SearchContainer = styled.div`
   @media (max-width: 768px) {
     flex-direction: column;
     border-radius: 12px;
+    margin: 0 0.5rem;
+    width: calc(100% - 1rem);
+  }
+  @media (max-width: 480px) {
+    margin: 0 0.25rem;
+    width: calc(100% - 0.5rem);
   }
 `;
 
 const SearchForm = styled.div`
   display: flex;
-  align-items: center;
+  align-items: stretch;
   width: 100%;
   gap: 0;
+  min-width: 0;
 
   @media (max-width: 768px) {
     flex-direction: column;
+    align-items: stretch;
   }
 `;
 
@@ -160,6 +168,7 @@ const SearchField = styled.div`
   flex-direction: column;
   flex: 1;
   position: relative;
+  min-width: 0;
 
   &:not(:last-child) {
     border-right: 1px solid #e5e5e5;
@@ -167,6 +176,7 @@ const SearchField = styled.div`
 
   @media (max-width: 768px) {
     width: 100%;
+    flex: none;
     border-right: none;
     border-bottom: 1px solid #e5e5e5;
     
@@ -240,6 +250,7 @@ const DateInput = styled.input`
   flex: 1;
   cursor: pointer;
   min-width: 140px;
+  width: 100%;
 
   &:focus {
     background: #fafafa;
@@ -251,12 +262,21 @@ const DateInput = styled.input`
 
   &::-webkit-calendar-picker-indicator {
     cursor: pointer;
+    opacity: 0.7;
   }
 
   @media (max-width: 768px) {
-    height: 56px;
-    padding: 1.25rem 1rem 0.5rem 1rem;
-    border-bottom: 1px solid #e5e5e5;
+    height: 52px;
+    min-height: 48px;
+    padding: 1rem 0.75rem 0.5rem 0.75rem;
+    border-bottom: none;
+    min-width: 0;
+    font-size: 0.95rem;
+  }
+  @media (max-width: 480px) {
+    flex: none;
+    width: 100%;
+    border-bottom: 1px solid #eee;
   }
 `;
 
@@ -281,10 +301,20 @@ const TimeSelect = styled.select`
   }
 
   @media (max-width: 768px) {
-    height: 56px;
-    padding: 1.25rem 1rem 0.5rem 1rem;
+    height: 52px;
+    min-height: 48px;
+    padding: 1rem 0.75rem 0.5rem 0.75rem;
+    border-left: 1px solid #eee;
+    border-bottom: none;
+    min-width: 0;
+    flex: 1;
+    font-size: 0.95rem;
+  }
+  @media (max-width: 480px) {
+    flex: none;
+    width: 100%;
     border-left: none;
-    border-bottom: 1px solid #e5e5e5;
+    border-top: 1px solid #eee;
   }
 `;
 
@@ -293,6 +323,7 @@ const DateTimeWrapper = styled.div`
   flex-direction: column;
   flex: 1;
   position: relative;
+  min-width: 0;
 
   &:not(:last-child) {
     border-right: 1px solid #e5e5e5;
@@ -300,6 +331,7 @@ const DateTimeWrapper = styled.div`
 
   @media (max-width: 768px) {
     width: 100%;
+    flex: none;
     border-right: none;
     border-bottom: 1px solid #e5e5e5;
     
@@ -319,14 +351,25 @@ const DateLabel = styled.span`
   text-transform: uppercase;
   letter-spacing: 0.5px;
   z-index: 1;
+
+  @media (max-width: 480px) {
+    left: 10px;
+    top: 6px;
+  }
 `;
 
 const DateTimeInner = styled.div`
   display: flex;
   flex-direction: row;
   flex: 1;
+  min-width: 0;
 
   @media (max-width: 768px) {
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  @media (max-width: 480px) {
     flex-direction: column;
   }
 `;
@@ -336,6 +379,7 @@ const LocationInputWrapper = styled.div`
   flex: 1;
   align-items: center;
   position: relative;
+  min-width: 0;
 
   &:not(:last-child) {
     border-right: 1px solid #e5e5e5;
@@ -343,6 +387,7 @@ const LocationInputWrapper = styled.div`
 
   @media (max-width: 768px) {
     width: 100%;
+    flex: none;
     border-right: none;
     border-bottom: 1px solid #e5e5e5;
   }
