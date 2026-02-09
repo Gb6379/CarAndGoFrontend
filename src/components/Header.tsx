@@ -335,13 +335,28 @@ const MobileMenuPanel = styled.div<{ isOpen: boolean }>`
     width: min(320px, 100vw - 2rem);
     max-width: 100%;
     height: 100vh;
+    height: 100dvh;
     background: white;
     box-shadow: -4px 0 20px rgba(0,0,0,0.15);
     z-index: 1001;
-    padding: 0 0 1.5rem;
-    overflow-y: auto;
+    padding: 0;
+    overflow: hidden;
     transform: ${p => p.isOpen ? 'translateX(0)' : 'translateX(100%)'};
     transition: transform 0.25s ease;
+  }
+`;
+
+const MobileMenuScroll = styled.div`
+  display: none;
+  @media (max-width: 768px) {
+    display: block;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding-bottom: 1.5rem;
   }
 `;
 
@@ -538,6 +553,7 @@ const Header: React.FC = () => {
             <Close size={24} />
           </MobileMenuCloseBtn>
         </MobileMenuHeader>
+        <MobileMenuScroll>
         <MobileMenuLink to="/" onClick={closeMobileMenu}><DashboardIcon fontSize="small" /> Painel</MobileMenuLink>
         {(userType === 'lessee' || userType === 'both' || !isLoggedIn) && (
           <MobileMenuLink to="/vehicles" onClick={closeMobileMenu}><CarIcon fontSize="small" /> Encontrar Carros</MobileMenuLink>
@@ -571,6 +587,7 @@ const Header: React.FC = () => {
             </MobileMenuButtonAction>
           </>
         )}
+        </MobileMenuScroll>
       </MobileMenuPanel>
       <Nav>
         <Logo to="/">
