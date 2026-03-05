@@ -93,7 +93,9 @@ export const authService = {
   /** Busca a foto de perfil do backend (armazenada no DB) e retorna uma blob URL. Revogue com URL.revokeObjectURL ao desmontar. */
   async fetchProfilePhotoBlobUrl(): Promise<string | null> {
     try {
-      const response = await api.get('/users/profile/me/photo', { responseType: 'blob' });
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const userId = user?.id || '';
+      const response = await api.get(`/users/profile/me/photo?u=${encodeURIComponent(userId)}`, { responseType: 'blob' });
       return URL.createObjectURL(response.data);
     } catch {
       return null;
@@ -256,5 +258,55 @@ export const reviewService = {
 
   async deleteReview(reviewId: string) {
     await api.delete(`/vehicles/reviews/${reviewId}`);
+  },
+};
+
+export const adminService = {
+  async getDashboard() {
+    const res = await api.get('/admin/dashboard');
+    return res.data;
+  },
+  async getUsers(userType?: string) {
+    const params = userType ? { userType } : {};
+    const res = await api.get('/admin/users', { params });
+    return res.data;
+  },
+  async updateUserStatus(userId: string, status: string) {
+    const res = await api.patch(`/admin/users/${userId}/status`, { status });
+    return res.data;
+  },
+  /** Retorna blob URL do documento CNH do usuário (para abrir em nova aba). Revogar com URL.revokeObjectURL. */
+  async getUserCnhDocumentBlobUrl(userId: string): Promise<string | null> {
+    try {
+      const res = await api.get(`/admin/users/${userId}/documents/cnh`, { responseType: 'blob' });
+      return URL.createObjectURL(res.data);
+    } catch {
+      return null;
+    }
+  },
+  /** Retorna blob URL do documento CAC do usuário (para abrir em nova aba). Revogar com URL.revokeObjectURL. */
+  async getUserCacDocumentBlobUrl(userId: string): Promise<string | null> {
+    try {
+      const res = await api.get(`/admin/users/${userId}/documents/cac`, { responseType: 'blob' });
+      return URL.createObjectURL(res.data);
+    } catch {
+      return null;
+    }
+  },
+  async getBookings() {
+    const res = await api.get('/admin/bookings');
+    return res.data;
+  },
+  async approveBooking(bookingId: string) {
+    const res = await api.post(`/admin/bookings/${bookingId}/approve`);
+    return res.data;
+  },
+  async cancelBooking(bookingId: string, reason?: string) {
+    const res = await api.post(`/admin/bookings/${bookingId}/cancel`, { reason });
+    return res.data;
+  },
+  async rejectBooking(bookingId: string, reason?: string) {
+    const res = await api.post(`/admin/bookings/${bookingId}/reject`, { reason });
+    return res.data;
   },
 };

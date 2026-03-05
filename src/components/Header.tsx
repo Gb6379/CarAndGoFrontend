@@ -448,7 +448,7 @@ const Header: React.FC = () => {
 
   const loadHeaderPhoto = () => {
     const u = JSON.parse(localStorage.getItem('user') || '{}');
-    if (!u?.profilePhoto) {
+    if (!u?.id) {
       if (headerPhotoBlobRef.current) {
         URL.revokeObjectURL(headerPhotoBlobRef.current);
         headerPhotoBlobRef.current = null;
@@ -456,18 +456,26 @@ const Header: React.FC = () => {
       setHeaderPhotoUrl(null);
       return;
     }
-    const url = authService.getProfilePhotoUrl(u.profilePhoto);
-    if (url) {
-      setHeaderPhotoUrl(url);
-      return;
+    if (u?.profilePhoto && u.profilePhoto !== 'inline') {
+      const url = authService.getProfilePhotoUrl(u.profilePhoto);
+      if (url) {
+        setHeaderPhotoUrl(url);
+        return;
+      }
     }
-    if (u.profilePhoto === 'inline') {
+    if (u?.profilePhoto === 'inline' || (u?.id && u?.profilePhoto === undefined)) {
       authService.fetchProfilePhotoBlobUrl().then((blobUrl) => {
         if (!blobUrl) return;
         if (headerPhotoBlobRef.current) URL.revokeObjectURL(headerPhotoBlobRef.current);
         headerPhotoBlobRef.current = blobUrl;
         setHeaderPhotoUrl(blobUrl);
       });
+    } else {
+      if (headerPhotoBlobRef.current) {
+        URL.revokeObjectURL(headerPhotoBlobRef.current);
+        headerPhotoBlobRef.current = null;
+      }
+      setHeaderPhotoUrl(null);
     }
   };
 
@@ -489,9 +497,12 @@ const Header: React.FC = () => {
     }
     loadHeaderPhoto();
     const onPhotoUpdated = () => loadHeaderPhoto();
+    const onUserLoggedIn = () => loadHeaderPhoto();
     window.addEventListener('profilePhotoUpdated', onPhotoUpdated);
+    window.addEventListener('userLoggedIn', onUserLoggedIn);
     return () => {
       window.removeEventListener('profilePhotoUpdated', onPhotoUpdated);
+      window.removeEventListener('userLoggedIn', onUserLoggedIn);
       if (headerPhotoBlobRef.current) {
         URL.revokeObjectURL(headerPhotoBlobRef.current);
         headerPhotoBlobRef.current = null;
@@ -565,6 +576,9 @@ const Header: React.FC = () => {
         <MobileMenuLink to="/help" onClick={closeMobileMenu}><HelpIcon fontSize="small" /> Ajuda</MobileMenuLink>
         {isLoggedIn ? (
           <>
+            {userType === 'admin' && (
+              <MobileMenuLink to="/admin" onClick={closeMobileMenu}><DashboardIcon fontSize="small" /> Painel Admin</MobileMenuLink>
+            )}
             <MobileMenuLink to="/bookings" onClick={closeMobileMenu}><FlightTakeoff size={20} /> Viagens</MobileMenuLink>
             <MobileMenuLink to="/profile" onClick={closeMobileMenu}><User size={20} /> Perfil</MobileMenuLink>
             <MobileMenuLink to="/verification" onClick={closeMobileMenu}><VerifiedUser fontSize="small" /> Verificação</MobileMenuLink>
@@ -631,6 +645,15 @@ const Header: React.FC = () => {
                 <DashboardIcon fontSize="small" />
                 Painel
               </DropdownItem>
+              {userType === 'admin' && (
+                <DropdownItem 
+                  to="/admin"
+                  onClick={() => setIsUserMenuOpen(false)}
+                >
+                  <DashboardIcon fontSize="small" />
+                  Painel Admin
+                </DropdownItem>
+              )}
               <DropdownDivider />
               {/* Seção Superior */}
               <DropdownItem 

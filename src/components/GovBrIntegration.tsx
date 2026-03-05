@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { CheckCircle, Error as ErrorIcon, Lock, Schedule } from './IconSystem';
+import { CheckCircle, Error as ErrorIcon, Schedule } from './IconSystem';
 import { authService } from '../services/authService';
 
 const Container = styled.div`
@@ -94,29 +95,14 @@ const VerifiedText = styled.p`
 `;
 
 const GovBrIntegration: React.FC = () => {
+  const navigate = useNavigate();
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const isVerified = user?.documentsVerified === true;
 
-  const handleGovBrAuth = async () => {
-    setStatus('loading');
-    setMessage('Redirecionando para o GOV.BR...');
-    try {
-      const state = Math.random().toString(36).substring(2, 15);
-      const data = await authService.getGovBrAuthUrl();
-      if (data.authUrl) {
-        localStorage.setItem('govBrState', state);
-        window.location.href = data.authUrl;
-      } else {
-        throw new Error('URL do GOV.BR não retornada');
-      }
-    } catch (error: any) {
-      setStatus('error');
-      const msg = error.response?.data?.message || error.message;
-      setMessage(msg || 'Falha ao iniciar autenticação GOV.BR. Tente novamente.');
-      console.error('GOV.BR auth error:', error);
-    }
+  const handleGoToUploadDocuments = () => {
+    navigate('/verification/upload-documents');
   };
 
   const handleDocumentValidation = async () => {
@@ -189,12 +175,8 @@ const GovBrIntegration: React.FC = () => {
       </Description>
 
       <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-        <Button onClick={handleGovBrAuth}>
-          <Lock size={16} /> Entrar com GOV.BR
-        </Button>
-        
-        <Button onClick={handleDocumentValidation}>
-          <CheckCircle size={16} /> Validar CPF e antecedentes
+        <Button onClick={handleGoToUploadDocuments}>
+          <CheckCircle size={16} /> Validar documentos
         </Button>
       </div>
 

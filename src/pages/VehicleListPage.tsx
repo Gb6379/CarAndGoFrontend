@@ -17,10 +17,6 @@ import {
   City, 
   Home, 
   Road,
-  AirConditioning,
-  Bluetooth,
-  GPS,
-  Seat,
   Map,
   Car
 } from '../components/IconSystem';
@@ -31,6 +27,19 @@ L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+// Ícone de carrinho para marcadores do mapa
+const carMarkerIcon = L.divIcon({
+  className: 'car-marker-icon',
+  html: `<div style="
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    background: #667eea; border-radius: 50%;
+    border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  "><svg width="20" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg></div>`,
+  iconSize: [36, 36],
+  iconAnchor: [18, 18],
 });
 
 const Container = styled.div`
@@ -596,11 +605,8 @@ const VehicleListPage: React.FC = () => {
   const [searchingLocation, setSearchingLocation] = useState(false);
   const [openSections, setOpenSections] = useState<{[key: string]: boolean}>({
     brand: true,
-    year: true,
     price: true,
-    mileage: false,
     transmission: false,
-    fuelType: false,
     features: false
   });
 
@@ -1060,97 +1066,44 @@ const VehicleListPage: React.FC = () => {
             </FilterSectionContent>
           </FilterSection>
 
-          {/* Year Filter */}
-          <FilterSection>
-            <FilterSectionHeader onClick={() => toggleSection('year')}>
-              <FilterSectionTitle>Ano</FilterSectionTitle>
-              <FilterSectionIcon isOpen={openSections.year}>▼</FilterSectionIcon>
-            </FilterSectionHeader>
-            <FilterSectionContent isOpen={openSections.year}>
-              <FilterGroup>
-                <div style={{ marginBottom: '0.5rem', color: '#666', fontSize: '0.85rem' }}>Escolha um intervalo</div>
-                <YearPriceGrid>
-                  <FilterInput
-                    type="number"
-                    placeholder="Ano mínimo"
-                    value={filters.year === 'all' ? '' : filters.year}
-                    onChange={(e) => handleFilterChange('year', e.target.value || 'all')}
-                  />
-                  <FilterInput
-                    type="number"
-                    placeholder="Ano máximo"
-                  />
-                </YearPriceGrid>
-                <div style={{ marginTop: '0.75rem', marginBottom: '0.5rem', color: '#666', fontSize: '0.85rem' }}>Ou escolha um ano específico</div>
-                <QuickFilterButtons>
-                  {['2025', '2024', '2023', '2022', '2021', '2020'].map(year => (
-                    <QuickFilterButton
-                      key={year}
-                      active={filters.year === year}
-                      onClick={() => handleFilterChange('year', filters.year === year ? 'all' : year)}
-                    >
-                      {year}
-                    </QuickFilterButton>
-                  ))}
-                </QuickFilterButtons>
-              </FilterGroup>
-            </FilterSectionContent>
-          </FilterSection>
-
-          {/* Price Filter */}
+          {/* Price Filter (daily rate) */}
           <FilterSection>
             <FilterSectionHeader onClick={() => toggleSection('price')}>
-              <FilterSectionTitle>Preço</FilterSectionTitle>
+              <FilterSectionTitle>Preço (diária)</FilterSectionTitle>
               <FilterSectionIcon isOpen={openSections.price}>▼</FilterSectionIcon>
             </FilterSectionHeader>
             <FilterSectionContent isOpen={openSections.price}>
               <FilterGroup>
-                <div style={{ marginBottom: '0.5rem', color: '#666', fontSize: '0.85rem' }}>Escolha um intervalo</div>
+                <div style={{ marginBottom: '0.5rem', color: '#666', fontSize: '0.85rem' }}>Escolha um intervalo de diária</div>
                 <YearPriceGrid>
                   <FilterInput
                     type="number"
-                    placeholder="Preço mínimo"
+                    placeholder="Diária mín. (R$)"
                     value={filters.minPrice}
                     onChange={(e) => handleFilterChange('minPrice', e.target.value)}
                   />
                   <FilterInput
                     type="number"
-                    placeholder="Preço máximo"
+                    placeholder="Diária máx. (R$)"
                     value={filters.maxPrice}
                     onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
                   />
                 </YearPriceGrid>
-                <div style={{ marginTop: '0.75rem', marginBottom: '0.5rem', color: '#666', fontSize: '0.85rem' }}>Ou escolha uma faixa de preço</div>
+                <div style={{ marginTop: '0.75rem', marginBottom: '0.5rem', color: '#666', fontSize: '0.85rem' }}>Ou escolha uma faixa de diária</div>
                 <QuickFilterButtons>
-                  <QuickFilterButton onClick={() => { handleFilterChange('minPrice', ''); handleFilterChange('maxPrice', '60000'); }}>
-                    Até R$ 60k
+                  <QuickFilterButton onClick={() => { handleFilterChange('minPrice', ''); handleFilterChange('maxPrice', '100'); }}>
+                    Até R$ 100/dia
                   </QuickFilterButton>
-                  <QuickFilterButton onClick={() => { handleFilterChange('minPrice', ''); handleFilterChange('maxPrice', '100000'); }}>
-                    Até R$ 100k
+                  <QuickFilterButton onClick={() => { handleFilterChange('minPrice', ''); handleFilterChange('maxPrice', '200'); }}>
+                    Até R$ 200/dia
                   </QuickFilterButton>
-                  <QuickFilterButton onClick={() => { handleFilterChange('minPrice', ''); handleFilterChange('maxPrice', '150000'); }}>
-                    Até R$ 150k
+                  <QuickFilterButton onClick={() => { handleFilterChange('minPrice', ''); handleFilterChange('maxPrice', '300'); }}>
+                    Até R$ 300/dia
                   </QuickFilterButton>
-                  <QuickFilterButton onClick={() => { handleFilterChange('minPrice', ''); handleFilterChange('maxPrice', '200000'); }}>
-                    Até R$ 200k
+                  <QuickFilterButton onClick={() => { handleFilterChange('minPrice', ''); handleFilterChange('maxPrice', '500'); }}>
+                    Até R$ 500/dia
                   </QuickFilterButton>
                 </QuickFilterButtons>
-              </FilterGroup>
-            </FilterSectionContent>
-          </FilterSection>
-
-          {/* Mileage Filter */}
-          <FilterSection>
-            <FilterSectionHeader onClick={() => toggleSection('mileage')}>
-              <FilterSectionTitle>Quilometragem</FilterSectionTitle>
-              <FilterSectionIcon isOpen={openSections.mileage}>▼</FilterSectionIcon>
-            </FilterSectionHeader>
-            <FilterSectionContent isOpen={openSections.mileage}>
-              <FilterGroup>
-                <YearPriceGrid>
-                  <FilterInput type="number" placeholder="Km mín." />
-                  <FilterInput type="number" placeholder="Km máx." />
-                </YearPriceGrid>
               </FilterGroup>
             </FilterSectionContent>
           </FilterSection>
@@ -1175,42 +1128,6 @@ const VehicleListPage: React.FC = () => {
             </FilterSectionContent>
           </FilterSection>
 
-          {/* Fuel Type Filter */}
-          <FilterSection>
-            <FilterSectionHeader onClick={() => toggleSection('fuelType')}>
-              <FilterSectionTitle>Tipo de Combustível</FilterSectionTitle>
-              <FilterSectionIcon isOpen={openSections.fuelType}>▼</FilterSectionIcon>
-            </FilterSectionHeader>
-            <FilterSectionContent isOpen={openSections.fuelType}>
-              <FilterGroup>
-                <FilterCheckbox>
-                  <input 
-                    type="checkbox" 
-                    checked={filters.electric}
-                    onChange={(e) => handleFilterChange('electric', e.target.checked)}
-                  />
-                  <span><Electric size={14} /> Elétrico</span>
-                </FilterCheckbox>
-                <FilterCheckbox>
-                  <input type="checkbox" />
-                  <span>Gasolina</span>
-                </FilterCheckbox>
-                <FilterCheckbox>
-                  <input type="checkbox" />
-                  <span>Flex</span>
-                </FilterCheckbox>
-                <FilterCheckbox>
-                  <input type="checkbox" />
-                  <span>Diesel</span>
-                </FilterCheckbox>
-                <FilterCheckbox>
-                  <input type="checkbox" />
-                  <span>Híbrido</span>
-                </FilterCheckbox>
-              </FilterGroup>
-            </FilterSectionContent>
-          </FilterSection>
-
           {/* Vehicle Type/Features */}
           <FilterSection>
             <FilterSectionHeader onClick={() => toggleSection('features')}>
@@ -1219,36 +1136,22 @@ const VehicleListPage: React.FC = () => {
             </FilterSectionHeader>
             <FilterSectionContent isOpen={openSections.features}>
               <FilterGroup>
-                <FilterSelect 
-                  value={filters.vehicleType} 
-                  onChange={(e) => handleFilterChange('vehicleType', e.target.value)}
-                >
-                  <option value="all">Todos os tipos</option>
-                  <option value="sedan">Sedan</option>
-                  <option value="suv">SUV</option>
-                  <option value="hatchback">Hatchback</option>
-                  <option value="pickup">Pickup</option>
-                  <option value="coupe">Coupe</option>
-                  <option value="convertible">Convertible</option>
-                </FilterSelect>
-                <div style={{ marginTop: '1rem' }}>
-                  <FilterCheckbox>
-                    <input type="checkbox" />
-                    <span><Seat size={14} /> {filters.seats === 'all' ? '5+' : filters.seats} assentos</span>
-                  </FilterCheckbox>
-                  <FilterCheckbox>
-                    <input type="checkbox" />
-                    <span><AirConditioning size={14} /> Ar Condicionado</span>
-                  </FilterCheckbox>
-                  <FilterCheckbox>
-                    <input type="checkbox" />
-                    <span><Bluetooth size={14} /> Bluetooth</span>
-                  </FilterCheckbox>
-                  <FilterCheckbox>
-                    <input type="checkbox" />
-                    <span><GPS size={14} /> GPS</span>
-                  </FilterCheckbox>
-                </div>
+                <FilterCheckbox>
+                  <input
+                    type="checkbox"
+                    checked={filters.vehicleType === 'eletrico'}
+                    onChange={() => handleFilterChange('vehicleType', filters.vehicleType === 'eletrico' ? 'all' : 'eletrico')}
+                  />
+                  <span><Electric size={14} /> Elétrico</span>
+                </FilterCheckbox>
+                <FilterCheckbox>
+                  <input
+                    type="checkbox"
+                    checked={filters.vehicleType === 'combustao'}
+                    onChange={() => handleFilterChange('vehicleType', filters.vehicleType === 'combustao' ? 'all' : 'combustao')}
+                  />
+                  <span><Car size={14} /> Combustão</span>
+                </FilterCheckbox>
               </FilterGroup>
             </FilterSectionContent>
           </FilterSection>
@@ -1367,6 +1270,7 @@ const VehicleListPage: React.FC = () => {
                       <Marker
                         key={vehicle.id}
                         position={[vehicle.latitude, vehicle.longitude]}
+                        icon={carMarkerIcon}
                       >
                         <Popup>
                           <div style={{ minWidth: '200px' }}>

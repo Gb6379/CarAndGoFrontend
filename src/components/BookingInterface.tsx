@@ -423,8 +423,8 @@ const BookingInterface: React.FC<BookingInterfaceProps> = ({
       const totalDays = Math.ceil(totalHours / 24);
 
       const dailyRate = parseFloat(vehicle.dailyRate) || 0;
-      const hourlyRate = parseFloat(vehicle.hourlyRate) || dailyRate / 24;
-      const baseAmount = totalDays > 1 ? totalDays * dailyRate : totalHours * hourlyRate;
+      // Valor base sempre por dia: o anúncio mostra R$/dia, então 1 dia = 1 × dailyRate
+      const baseAmount = totalDays * dailyRate;
       const platformFee = baseAmount * 0.30;
       const lessorAmount = baseAmount * 0.70;
       const securityDeposit = parseFloat(vehicle.securityDeposit) || dailyRate * 2;

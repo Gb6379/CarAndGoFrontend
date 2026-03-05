@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { authService } from '../services/authService';
 import { Car } from '../components/IconSystem';
 import { validateCpfCnpj } from '../utils/cpfValidation';
@@ -114,7 +115,36 @@ const FieldError = styled.span`
   margin-bottom: 0.5rem;
 `;
 
+const PasswordWrapper = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+`;
+
+const PasswordInput = styled(Input)`
+  padding-right: 3rem;
+`;
+
+const PasswordToggleBtn = styled.button`
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  -webkit-tap-highlight-color: transparent;
+  &:hover { color: #333; background: #f0f0f0; }
+`;
+
 const RegisterPage: React.FC = () => {
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -204,14 +234,23 @@ const RegisterPage: React.FC = () => {
             required
           />
           
-          <Input
-            type="password"
-            name="password"
-            placeholder="Senha"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
+          <PasswordWrapper>
+            <PasswordInput
+              type={showPassword ? 'text' : 'password'}
+              name="password"
+              placeholder="Senha"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+            <PasswordToggleBtn
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+            >
+              {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+            </PasswordToggleBtn>
+          </PasswordWrapper>
           
           <Input
             type="text"

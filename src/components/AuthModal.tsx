@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { Close, User, Lock, Email, Phone, Home } from '../components/IconSystem';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { authService } from '../services/authService';
 import { validateCpfCnpj } from '../utils/cpfValidation';
 
@@ -158,6 +159,28 @@ const Input = styled.input`
   &::placeholder {
     color: #999;
   }
+
+  &.with-password-toggle {
+    padding-right: 3rem;
+  }
+`;
+
+const PasswordToggleBtn = styled.button`
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  -webkit-tap-highlight-color: transparent;
+  &:hover { color: #333; background: #f0f0f0; }
 `;
 
 const SelectContainer = styled.div`
@@ -279,6 +302,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
 
   // Erros de validação por campo (cadastro)
   const [registerErrors, setRegisterErrors] = useState<{ cpfCnpj?: string; phone?: string }>({});
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
 
   // Cities from IBGE API
   const [cities, setCities] = useState<IBGECity[]>([]);
@@ -318,7 +343,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
       // Store token (backend returns access_token)
       localStorage.setItem('token', response.access_token);
       localStorage.setItem('user', JSON.stringify(response.user));
-      
+      window.dispatchEvent(new Event('userLoggedIn'));
       onClose();
       if (redirectOnSuccess) {
         navigate(redirectOnSuccess);
@@ -355,7 +380,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
       // Store token (backend returns access_token)
       localStorage.setItem('token', response.access_token);
       localStorage.setItem('user', JSON.stringify(response.user));
-      
+      window.dispatchEvent(new Event('userLoggedIn'));
       onClose();
       if (redirectOnSuccess) {
         navigate(redirectOnSuccess);
@@ -433,12 +458,20 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                   <Lock size={18} />
                 </InputIcon>
                 <Input
-                  type="password"
+                  type={showLoginPassword ? 'text' : 'password'}
                   placeholder="Sua senha"
                   value={loginData.password}
                   onChange={(e) => setLoginData(prev => ({ ...prev, password: e.target.value }))}
+                  className="with-password-toggle"
                   required
                 />
+                <PasswordToggleBtn
+                  type="button"
+                  onClick={() => setShowLoginPassword(!showLoginPassword)}
+                  aria-label={showLoginPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                >
+                  {showLoginPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                </PasswordToggleBtn>
               </InputContainer>
             </InputGroup>
 
@@ -523,12 +556,20 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                   <Lock size={18} />
                 </InputIcon>
                 <Input
-                  type="password"
+                  type={showRegisterPassword ? 'text' : 'password'}
                   placeholder="Sua senha"
                   value={registerData.password}
                   onChange={(e) => setRegisterData(prev => ({ ...prev, password: e.target.value }))}
+                  className="with-password-toggle"
                   required
                 />
+                <PasswordToggleBtn
+                  type="button"
+                  onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                  aria-label={showRegisterPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                >
+                  {showRegisterPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                </PasswordToggleBtn>
               </InputContainer>
             </InputGroup>
 

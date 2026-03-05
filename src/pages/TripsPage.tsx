@@ -395,15 +395,14 @@ const TripsPage: React.FC = () => {
     }
   };
 
+  // Próximas: pendentes e em andamento. Passadas: somente finalizadas (concluída, cancelada, rejeitada)
   const filteredTrips = trips.filter(trip => {
-    const now = new Date();
-    const endDate = new Date(trip.endDate);
-    const status = trip.status?.toLowerCase();
+    const status = (trip.status || '').toLowerCase();
 
     if (activeTab === 'upcoming') {
-      return endDate >= now && status !== 'cancelled' && status !== 'completed';
+      return ['pending', 'confirmed', 'active', 'awaiting_return'].includes(status);
     } else {
-      return endDate < now || status === 'completed' || status === 'cancelled';
+      return ['completed', 'cancelled', 'rejected'].includes(status);
     }
   });
 
@@ -460,7 +459,7 @@ const TripsPage: React.FC = () => {
       ) : (
         <TripsGrid>
           {filteredTrips.map((trip) => (
-            <TripCard key={trip.id} onClick={() => navigate(`/vehicle/${trip.vehicleId || trip.vehicle?.id}`)}>
+            <TripCard key={trip.id} onClick={() => navigate(`/booking/${trip.id}/details`)}>
               <TripImage>
                 <Car size={48} />
               </TripImage>

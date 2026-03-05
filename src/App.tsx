@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -22,6 +22,11 @@ import HowItWorksPage from './pages/HowItWorksPage';
 import BecomeHostPage from './pages/BecomeHostPage';
 import BankDetailsPage from './pages/BankDetailsPage';
 import VerificationPage from './pages/VerificationPage';
+import DocumentVerificationUploadPage from './pages/DocumentVerificationUploadPage';
+import AdminLayout from './components/AdminLayout';
+import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import AdminUsersPage from './pages/admin/AdminUsersPage';
+import AdminBookingsPage from './pages/admin/AdminBookingsPage';
 
 const AppContainer = styled.div`
   min-height: 100vh;
@@ -64,22 +69,31 @@ const PortInfo = styled.div`
 `;
 
 function App() {
-  // Get the current port from window.location
+  const location = useLocation();
+  const isAdminPath = location.pathname.startsWith('/admin');
   const currentPort = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
-  
-  // Log port information to console
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isAdminUser = user?.userType === 'admin';
+
+  // Admin só vê o painel admin: redireciona qualquer rota comum para /admin
+  if (isAdminUser && !isAdminPath) {
+    return <Navigate to="/admin" replace />;
+  }
+
   console.log('CAR AND GO Web App');
   console.log(`Running on port: ${currentPort}`);
   console.log(`Full URL: ${window.location.origin}`);
   console.log('=====================================');
-  
+
   return (
     <AppContainer>
-      <PortInfo>
-        Port: {currentPort}
-      </PortInfo>
-      <Header />
-      <MainContent>
+      {!isAdminPath && (
+        <PortInfo>
+          Port: {currentPort}
+        </PortInfo>
+      )}
+      {!isAdminPath && <Header />}
+      <MainContent style={isAdminPath ? { paddingTop: 0 } : undefined}>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -152,6 +166,11 @@ function App() {
               <VerificationPage />
             </RouteGuard>
           } />
+          <Route path="/verification/upload-documents" element={
+            <RouteGuard allowedUserTypes={['lessee', 'lessor', 'both']}>
+              <DocumentVerificationUploadPage />
+            </RouteGuard>
+          } />
           <Route path="/profile" element={
             <RouteGuard allowedUserTypes={['lessee', 'lessor', 'both']}>
               <ProfilePage />
@@ -162,9 +181,20 @@ function App() {
               <BankDetailsPage />
             </RouteGuard>
           } />
+
+          {/* Painel administrativo - apenas admin */}
+          <Route path="/admin" element={
+            <RouteGuard allowedUserTypes={['admin']} redirectTo="/">
+              <AdminLayout />
+            </RouteGuard>
+          }>
+            <Route index element={<AdminDashboardPage />} />
+            <Route path="users" element={<AdminUsersPage />} />
+            <Route path="bookings" element={<AdminBookingsPage />} />
+          </Route>
         </Routes>
       </MainContent>
-      <Footer />
+      {!isAdminPath && <Footer />}
     </AppContainer>
   );
 }
