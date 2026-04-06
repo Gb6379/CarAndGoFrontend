@@ -5,6 +5,7 @@
 export function getErrorMessage(err: unknown, fallback: string): string {
   if (err == null) return fallback;
   const data = (err as any)?.response?.data;
+  if (typeof data === 'string' && data.trim()) return data;
   if (data && typeof data === 'object') {
     const m = data.message;
     if (typeof m === 'string') return m;
