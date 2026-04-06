@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Search, Car, Check, Phone, Calendar, Edit, Smartphone, Money, Shield, Lock, Star, Location, Map, ArrowRight, FlightTakeoff, BarChart, LocationOn, User } from '../components/IconSystem';
+import { Search, Car, Check, Phone, Calendar, Edit, Smartphone, Money, Shield, Lock, Star, Location, Map, ArrowRight, LocationOn, User, Electric } from '../components/IconSystem';
 import heroBg from '../assets/one-way-car-rentals.png';
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -15,6 +15,28 @@ L.Icon.Default.mergeOptions({
 });
 import { PlayArrow } from '@mui/icons-material';
 import { vehicleService, bookingService } from '../services/authService';
+
+function normalizePhotoSrc(raw: unknown): string | null {
+  if (typeof raw !== 'string') return null;
+  const s = raw.trim();
+  if (!s) return null;
+  if (s.startsWith('data:')) return s;
+  if (s.startsWith('http://') || s.startsWith('https://')) return s;
+
+  const head = s.slice(0, 12);
+  const mime =
+    head.startsWith('iVBOR') ? 'image/png'
+    : head.startsWith('/9j/') ? 'image/jpeg'
+    : head.startsWith('R0lGOD') ? 'image/gif'
+    : head.startsWith('UklGR') ? 'image/webp'
+    : 'image/jpeg';
+  return `data:${mime};base64,${s}`;
+}
+
+function getFeaturedCarImageSrc(vehicle: any): string | null {
+  const raw = vehicle?.thumbnail || vehicle?.photos?.[0];
+  return normalizePhotoSrc(raw);
+}
 
 // Hero Section with Search - Turo Style
 const HeroSection = styled.section`
@@ -715,6 +737,15 @@ const CarImage = styled.div`
   position: relative;
   overflow: hidden;
 
+  img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+  }
+
   svg {
     position: relative;
     z-index: 1;
@@ -769,12 +800,6 @@ const CarPrice = styled.div`
   text-decoration: underline;
   text-decoration-thickness: 2px;
   text-underline-offset: 3px;
-`;
-
-const CarSave = styled.span`
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: #10b981;
 `;
 
 const ViewAllButton = styled.button`
@@ -1716,11 +1741,8 @@ const HomePage: React.FC = () => {
 
   const filterOptions = [
     { id: 'all', label: 'Todos', icon: <Car size={16} /> },
-    { id: 'airports', label: 'Aeroportos', icon: <FlightTakeoff size={16} /> },
-    { id: 'monthly', label: 'Mensal', icon: <Calendar size={16} /> },
+    { id: 'monthly', label: 'Mensalistas', icon: <Calendar size={16} /> },
     { id: 'nearby', label: 'Próximo', icon: <Location size={16} /> },
-    { id: 'delivered', label: 'Entregue', icon: <ArrowRight size={16} /> },
-    { id: 'cities', label: 'Cidades', icon: <BarChart size={16} /> },
   ];
 
   const handleFilterChange = (filterId: string) => {
@@ -1729,36 +1751,74 @@ const HomePage: React.FC = () => {
   };
 
   useEffect(() => {
+    let cancelled = false;
+
     const loadFeaturedCars = async () => {
       try {
         setLoadingCars(true);
         setCarsLoadError(false);
-        const data = await vehicleService.getAllVehicles();
-        const vehicles = Array.isArray(data) ? data : [];
-        
-        const formattedCars = vehicles.slice(0, 6).map((vehicle: any, index: number) => ({
+
+        const coords = await new Promise<{ lat: number; lng: number } | null>((resolve) => {
+          if (!navigator.geolocation) {
+            resolve(null);
+            return;
+          }
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              resolve({
+                lat: pos.coords.latitude,
+                lng: pos.coords.longitude,
+              });
+            },
+            () => resolve(null),
+            { enableHighAccuracy: false, timeout: 12000, maximumAge: 300000 }
+          );
+        });
+
+        if (cancelled) return;
+
+        let vehicles: any[];
+        if (coords) {
+          vehicles = await vehicleService.searchVehicles({
+            userLat: coords.lat,
+            userLng: coords.lng,
+            sortBy: 'distance',
+            sortOrder: 'ASC',
+          });
+        } else {
+          const data = await vehicleService.getAllVehicles();
+          vehicles = Array.isArray(data) ? data : [];
+        }
+
+        const formattedCars = vehicles.slice(0, 6).map((vehicle: any) => ({
           id: vehicle.id,
           title: `${vehicle.make} ${vehicle.model} ${vehicle.year}`,
           price: Math.round((Number(vehicle.dailyRate) || 0) * 3).toString(),
           days: 3,
           rating: vehicle.rating != null ? Number(vehicle.rating).toFixed(2) : '4.9',
           trips: vehicle.totalBookings ?? 0,
-          save: index < 3 ? Math.floor(Math.random() * 5) + 2 : null,
           location: `${vehicle.city || ''}, ${vehicle.state || ''}`.trim() || '—',
-          dailyRate: vehicle.dailyRate
+          dailyRate: vehicle.dailyRate,
+          imageSrc: getFeaturedCarImageSrc(vehicle),
+          fuelType: vehicle.fuelType,
         }));
-        
+
         setFeaturedCars(formattedCars);
       } catch (error) {
         console.error('Error loading featured cars:', error);
         setFeaturedCars([]);
         setCarsLoadError(true);
       } finally {
-        setLoadingCars(false);
+        if (!cancelled) {
+          setLoadingCars(false);
+        }
       }
     };
 
     loadFeaturedCars();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const renterSteps = [
@@ -2047,7 +2107,13 @@ const HomePage: React.FC = () => {
             {featuredCars.map((car) => (
               <CarCard key={car.id} onClick={() => navigate(`/vehicle/${car.id}`)}>
                 <CarImage>
-                  <Car size={48} />
+                  {car.imageSrc ? (
+                    <img src={car.imageSrc} alt={car.title} loading="lazy" />
+                  ) : car.fuelType === 'eletrico' ? (
+                    <Electric size={48} />
+                  ) : (
+                    <Car size={48} />
+                  )}
                 </CarImage>
                 <CarInfo>
                   <CarTitle>{car.title}</CarTitle>
@@ -2060,7 +2126,6 @@ const HomePage: React.FC = () => {
                   </CarRatingRow>
                   <CarPriceRow>
                     <CarPrice>R$ {car.price} por {car.days} dias</CarPrice>
-                    {car.save && <CarSave>Economize R$ {car.save}</CarSave>}
                   </CarPriceRow>
                 </CarInfo>
               </CarCard>
