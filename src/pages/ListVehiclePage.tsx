@@ -9,6 +9,16 @@ import { MyLocation, Location, Camera, Schedule, Map, Usb, Bluetooth, AirConditi
 import AuthModal from '../components/AuthModal';
 import { vehicleBrands, getModelsByBrand } from '../data/vehicleBrands';
 
+/** Reconhece CEP brasileiro (com ou sem máscara / prefixo "CEP") sem confundir com endereço com números. */
+function parseBrazilianCepDigits(raw: string): string | null {
+  const t = raw.trim();
+  let m = t.match(/^(\s*cep\s*)?(\d{5})[\s.-]?(\d{3})\s*$/i);
+  if (m) return m[2] + m[3];
+  m = t.match(/^(\s*cep\s*)?(\d{8})\s*$/i);
+  if (m) return m[2];
+  return null;
+}
+
 const Container = styled.div`
   max-width: 800px;
   margin: 0 auto;
@@ -45,12 +55,17 @@ const StepsContainer = styled.div`
   }
 `;
 
-const Step = styled.div<{ active?: boolean; completed?: boolean }>`
+const Step = styled.button<{ active?: boolean; completed?: boolean }>`
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 1rem 1.5rem;
   border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
   background: ${props => {
     if (props.completed) return '#4CAF50';
     if (props.active) return '#667eea';
@@ -60,11 +75,16 @@ const Step = styled.div<{ active?: boolean; completed?: boolean }>`
     if (props.completed || props.active) return 'white';
     return '#666';
   }};
-  font-weight: 600;
   transition: all 0.3s;
+
+  &:focus-visible {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
+  }
 
   @media (max-width: 768px) {
     justify-content: center;
+    text-align: center;
   }
 `;
 
@@ -868,6 +888,8 @@ const ListVehiclePage: React.FC = () => {
     const stateTrim = state.trim();
     if (q.length < 8) return;
     if (addrTrim.length < 4 && !(cityTrim && stateTrim)) return;
+    // Só CEP no campo, ainda sem cidade/UF: aguarda ViaCEP (evita Nominatim inútil)
+    if (parseBrazilianCepDigits(addrTrim) && !(cityTrim && stateTrim)) return;
 
     geocodeAbortRef.current?.abort();
     const aborter = new AbortController();
@@ -910,17 +932,74 @@ const ListVehiclePage: React.FC = () => {
     }
   };
 
-  const scheduleForwardGeocode = (address: string, city: string, state: string) => {
-    if (geocodeDebounceRef.current) clearTimeout(geocodeDebounceRef.current);
-    geocodeDebounceRef.current = setTimeout(() => {
-      void runForwardGeocode(address, city, state);
-    }, 1000);
+  const runCepLookup = async (cepDigits: string) => {
+    geocodeAbortRef.current?.abort();
+    const aborter = new AbortController();
+    geocodeAbortRef.current = aborter;
+
+    setGeocodingAddress(true);
+    let addressLine = '';
+    let city = '';
+    let state = '';
+    let ok = false;
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${cepDigits}/json/`, {
+        signal: aborter.signal,
+      });
+      if (!res.ok) throw new Error('CEP request failed');
+      const data = (await res.json()) as {
+        erro?: boolean;
+        logradouro?: string;
+        bairro?: string;
+        localidade?: string;
+        uf?: string;
+      };
+      if (data.erro) {
+        alert('CEP não encontrado.');
+        return;
+      }
+      const logradouro = (data.logradouro || '').trim();
+      const bairro = (data.bairro || '').trim();
+      const cepFmt = `${cepDigits.slice(0, 5)}-${cepDigits.slice(5)}`;
+      addressLine = [logradouro, bairro].filter(Boolean).join(', ') || `CEP ${cepFmt}`;
+      city = (data.localidade || '').trim();
+      state = (data.uf || '').trim();
+      if (!city || !state) {
+        alert('Não foi possível obter cidade/UF deste CEP.');
+        return;
+      }
+      setFormData((prev) => ({
+        ...prev,
+        address: addressLine,
+        city,
+        state,
+      }));
+      ok = true;
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') return;
+      console.error('CEP lookup error:', err);
+      alert('Erro ao consultar o CEP. Tente novamente.');
+    } finally {
+      if (!ok) setGeocodingAddress(false);
+    }
+    if (ok) await runForwardGeocode(addressLine, city, state);
   };
 
   const handleLocationFieldChange = (field: 'address' | 'city' | 'state', value: string) => {
-    setFormData(prev => {
+    setFormData((prev) => {
       const next = { ...prev, [field]: value };
-      scheduleForwardGeocode(next.address, next.city, next.state);
+      if (geocodeDebounceRef.current) clearTimeout(geocodeDebounceRef.current);
+      const delay =
+        field === 'address' && parseBrazilianCepDigits(value) ? 600 : 1000;
+      geocodeDebounceRef.current = setTimeout(() => {
+        if (field === 'address') {
+          const cep = parseBrazilianCepDigits(value);
+          if (cep) void runCepLookup(cep);
+          else void runForwardGeocode(next.address, next.city, next.state);
+        } else {
+          void runForwardGeocode(next.address, next.city, next.state);
+        }
+      }, delay);
       return next;
     });
   };
@@ -1079,7 +1158,10 @@ const ListVehiclePage: React.FC = () => {
                   type="text"
                   placeholder="ABC-1234"
                   value={formData.licensePlate}
-                  onChange={(e) => handleInputChange('licensePlate', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange('licensePlate', e.target.value.toUpperCase())
+                  }
+                  style={{ textTransform: 'uppercase' }}
                 />
               </FormGroup>
               <FormGroup>
@@ -1167,7 +1249,7 @@ const ListVehiclePage: React.FC = () => {
               <div style={{ flex: 1, minWidth: '200px' }}>
                 <Input
                   type="text"
-                  placeholder="Digite o endereço para buscar..."
+                  placeholder="Endereço ou CEP (ex: Rua X, 123 ou 97010-000)"
                   value={formData.address}
                   onChange={(e) => handleLocationFieldChange('address', e.target.value)}
                 />
@@ -1189,7 +1271,7 @@ const ListVehiclePage: React.FC = () => {
                 <Label>Endereço *</Label>
                 <Input
                   type="text"
-                  placeholder="Rua das Flores, 123"
+                  placeholder="Rua e número, ou só o CEP"
                   value={formData.address}
                   onChange={(e) => handleLocationFieldChange('address', e.target.value)}
                 />
@@ -1229,7 +1311,9 @@ const ListVehiclePage: React.FC = () => {
               }}>
                 <strong><Location size={16} /> Local selecionado:</strong><br />
                 {geocodingAddress && (
-                  <span style={{ display: 'block', marginBottom: '0.35rem' }}>Buscando coordenadas do endereço…</span>
+                  <span style={{ display: 'block', marginBottom: '0.35rem' }}>
+                    Buscando endereço ou CEP no mapa…
+                  </span>
                 )}
                 {formData.latitude != null && formData.longitude != null && (
                   <span>
@@ -1442,8 +1526,12 @@ const ListVehiclePage: React.FC = () => {
         {steps.map((step) => (
           <Step
             key={step.number}
+            type="button"
             active={currentStep === step.number}
             completed={currentStep > step.number}
+            onClick={() => setCurrentStep(step.number)}
+            aria-current={currentStep === step.number ? 'step' : undefined}
+            aria-label={`Etapa ${step.number}: ${step.title}`}
           >
             <StepNumber completed={currentStep > step.number}>
               {currentStep > step.number ? '✓' : step.number}

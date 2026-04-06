@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Favorite, FavoriteBorder } from '@mui/icons-material';
+import { Favorite, FavoriteBorder, Close, ChevronLeft, ChevronRight } from '@mui/icons-material';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -10,6 +10,8 @@ import { errorToDisplay } from '../utils/errorUtils';
 import { Electric, Car, LocationOn, Star, CheckCircle, Phone, Map, Lock, Shield, Usb, Bluetooth, AirConditioning, Edit } from '../components/IconSystem';
 import AuthModal from '../components/AuthModal';
 import { isFavorite, toggleFavorite } from '../utils/favorites';
+
+const GALLERY_MAX_PREVIEW_THUMBS = 5;
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -173,10 +175,12 @@ const PhotoThumbnails = styled.div`
   display: flex;
   padding: 1rem;
   gap: 0.5rem;
-  overflow-x: auto;
+  flex-wrap: nowrap;
 `;
 
 const Thumbnail = styled.div<{ active?: boolean }>`
+  position: relative;
+  flex-shrink: 0;
   width: 80px;
   height: 60px;
   background: linear-gradient(135deg, #667eea, #764ba2);
@@ -185,10 +189,151 @@ const Thumbnail = styled.div<{ active?: boolean }>`
   border: 2px solid ${props => props.active ? '#667eea' : 'transparent'};
   opacity: ${props => props.active ? 1 : 0.7};
   transition: all 0.3s;
+  overflow: hidden;
 
   &:hover {
     opacity: 1;
     transform: scale(1.05);
+  }
+`;
+
+const ThumbnailMoreOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 0.95rem;
+  pointer-events: none;
+`;
+
+const PhotoLightboxRoot = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.92);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem 1rem;
+  box-sizing: border-box;
+`;
+
+const PhotoLightboxToolbar = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  color: white;
+  font-size: 0.95rem;
+`;
+
+const PhotoLightboxClose = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.22);
+  }
+`;
+
+const PhotoLightboxStage = styled.div`
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 200px;
+`;
+
+const PhotoLightboxImg = styled.img`
+  max-width: 100%;
+  max-height: min(78vh, 900px);
+  object-fit: contain;
+  border-radius: 8px;
+`;
+
+const PhotoLightboxNav = styled.button<{ $side: 'left' | 'right' }>`
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  ${props => props.$side === 'left' ? 'left: 0.25rem;' : 'right: 0.25rem;'}
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.22);
+  }
+
+  &:disabled {
+    opacity: 0.25;
+    cursor: default;
+  }
+
+  @media (max-width: 600px) {
+    width: 40px;
+    height: 40px;
+    ${props => props.$side === 'left' ? 'left: 0;' : 'right: 0;'}
+  }
+`;
+
+const PhotoLightboxThumbs = styled.div`
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.75rem 0 0;
+  max-width: 100%;
+  overflow-x: auto;
+  flex-shrink: 0;
+`;
+
+const PhotoLightboxThumb = styled.button<{ $active?: boolean }>`
+  flex-shrink: 0;
+  width: 56px;
+  height: 42px;
+  padding: 0;
+  border-radius: 6px;
+  border: 2px solid ${props => props.$active ? '#fff' : 'transparent'};
+  cursor: pointer;
+  overflow: hidden;
+  opacity: ${props => props.$active ? 1 : 0.65};
+  transition: opacity 0.2s, border-color 0.2s;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  &:hover {
+    opacity: 1;
   }
 `;
 
@@ -624,6 +769,8 @@ const VehicleDetailPage: React.FC = () => {
   const [loadingReviews, setLoadingReviews] = useState(false);
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [photoLightboxOpen, setPhotoLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
   const isLoggedIn = !!localStorage.getItem('token');
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const isOwner = !!vehicle && (vehicle.ownerId === user?.id || vehicle.owner?.id === user?.id);
@@ -683,6 +830,54 @@ const VehicleDetailPage: React.FC = () => {
       endTime
     });
   }, [startDate, endDate, startTime, endTime]);
+
+  useEffect(() => {
+    if (!vehicle) return;
+    const n = Array.isArray(vehicle.photos) ? vehicle.photos.length : 0;
+    setSelectedPhoto((i) => {
+      if (n === 0) return 0;
+      return i < n ? i : n - 1;
+    });
+  }, [vehicle?.id, vehicle?.photos?.length]);
+
+  useEffect(() => {
+    if (!photoLightboxOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [photoLightboxOpen]);
+
+  useEffect(() => {
+    if (!photoLightboxOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      const list = Array.isArray(vehicle?.photos) ? vehicle!.photos : [];
+      const n = list.length;
+      if (n === 0) return;
+      if (e.key === 'Escape') {
+        setPhotoLightboxOpen(false);
+        return;
+      }
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        setLightboxIndex((i) => Math.max(0, i - 1));
+      }
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        setLightboxIndex((i) => Math.min(n - 1, i + 1));
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [photoLightboxOpen, vehicle?.photos]);
+
+  useEffect(() => {
+    if (!photoLightboxOpen) return;
+    const n = Array.isArray(vehicle?.photos) ? vehicle.photos.length : 0;
+    if (n === 0) return;
+    setSelectedPhoto(lightboxIndex);
+  }, [lightboxIndex, photoLightboxOpen, vehicle?.photos]);
 
   const loadVehicle = async (vehicleId: string) => {
     try {
@@ -772,6 +967,19 @@ const VehicleDetailPage: React.FC = () => {
   const handleMonthlyFlow = () => {
     if (!id) return;
     navigate(`/mensalista/checkout?vehicleId=${encodeURIComponent(id)}`);
+  };
+
+  const openPhotoLightbox = (index: number) => {
+    const list = Array.isArray(vehicle?.photos) ? vehicle.photos : [];
+    if (list.length === 0) return;
+    const i = Math.min(Math.max(0, index), list.length - 1);
+    setLightboxIndex(i);
+    setSelectedPhoto(i);
+    setPhotoLightboxOpen(true);
+  };
+
+  const closePhotoLightbox = () => {
+    setPhotoLightboxOpen(false);
   };
 
   const getVehicleImageSrc = (index: number): string | null => {
@@ -887,6 +1095,14 @@ const VehicleDetailPage: React.FC = () => {
   const vehicleLng = vehicle?.longitude != null ? Number(vehicle.longitude) : NaN;
   const showMap = Number.isFinite(vehicleLat) && Number.isFinite(vehicleLng);
 
+  const photoList = Array.isArray(vehicle.photos) ? vehicle.photos : [];
+  const totalPhotos = photoList.length;
+  const hasMorePreviewPhotos = totalPhotos > GALLERY_MAX_PREVIEW_THUMBS;
+  const previewThumbCount = totalPhotos === 0 ? 1 : Math.min(GALLERY_MAX_PREVIEW_THUMBS, totalPhotos);
+  const previewThumbIndices =
+    totalPhotos === 0 ? [0] : Array.from({ length: previewThumbCount }, (_, i) => i);
+  const morePhotoCount = Math.max(0, totalPhotos - GALLERY_MAX_PREVIEW_THUMBS);
+
   return (
     <Container>
       {/* Header */}
@@ -925,21 +1141,143 @@ const VehicleDetailPage: React.FC = () => {
         <LeftColumn>
           {/* Photo Gallery */}
           <PhotoGallery>
-            <MainPhoto>
+            <MainPhoto
+              role={totalPhotos > 0 ? 'button' : undefined}
+              tabIndex={totalPhotos > 0 ? 0 : undefined}
+              onClick={() => totalPhotos > 0 && openPhotoLightbox(selectedPhoto)}
+              onKeyDown={(e) => {
+                if (totalPhotos > 0 && (e.key === 'Enter' || e.key === ' ')) {
+                  e.preventDefault();
+                  openPhotoLightbox(selectedPhoto);
+                }
+              }}
+              aria-label={totalPhotos > 0 ? 'Abrir galeria de fotos' : undefined}
+            >
               {renderVehicleImage(selectedPhoto, 'main')}
             </MainPhoto>
             <PhotoThumbnails>
-              {[0, 1, 2, 3, 4].map((index) => (
-                <Thumbnail
-                  key={index}
-                  active={selectedPhoto === index}
-                  onClick={() => setSelectedPhoto(index)}
-                >
-                  {renderVehicleImage(index, 'thumb')}
-                </Thumbnail>
-              ))}
+              {previewThumbIndices.map((thumbIndex) => {
+                const isMoreTile =
+                  hasMorePreviewPhotos && thumbIndex === GALLERY_MAX_PREVIEW_THUMBS - 1;
+                const thumbActive =
+                  selectedPhoto === thumbIndex ||
+                  (isMoreTile && selectedPhoto >= GALLERY_MAX_PREVIEW_THUMBS - 1);
+                return (
+                  <Thumbnail
+                    key={thumbIndex}
+                    active={thumbActive}
+                    onClick={() => {
+                      if (isMoreTile) {
+                        openPhotoLightbox(GALLERY_MAX_PREVIEW_THUMBS);
+                      } else {
+                        setSelectedPhoto(thumbIndex);
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        if (isMoreTile) openPhotoLightbox(GALLERY_MAX_PREVIEW_THUMBS);
+                        else setSelectedPhoto(thumbIndex);
+                      }
+                    }}
+                    aria-label={
+                      isMoreTile
+                        ? `Ver mais ${morePhotoCount} foto${morePhotoCount === 1 ? '' : 's'}`
+                        : `Foto ${thumbIndex + 1}`
+                    }
+                  >
+                    {renderVehicleImage(thumbIndex, 'thumb')}
+                    {isMoreTile && (
+                      <ThumbnailMoreOverlay aria-hidden>+{morePhotoCount}</ThumbnailMoreOverlay>
+                    )}
+                  </Thumbnail>
+                );
+              })}
             </PhotoThumbnails>
           </PhotoGallery>
+
+          {photoLightboxOpen && totalPhotos > 0 && (
+            <PhotoLightboxRoot
+              role="dialog"
+              aria-modal="true"
+              aria-label="Galeria de fotos do veículo"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) closePhotoLightbox();
+              }}
+            >
+              <PhotoLightboxToolbar>
+                <span>
+                  {lightboxIndex + 1} / {totalPhotos}
+                </span>
+                <PhotoLightboxClose type="button" onClick={closePhotoLightbox} aria-label="Fechar galeria">
+                  <Close />
+                </PhotoLightboxClose>
+              </PhotoLightboxToolbar>
+              <PhotoLightboxStage>
+                <PhotoLightboxNav
+                  type="button"
+                  $side="left"
+                  aria-label="Foto anterior"
+                  disabled={lightboxIndex <= 0}
+                  onClick={() => setLightboxIndex((i) => Math.max(0, i - 1))}
+                >
+                  <ChevronLeft fontSize="large" />
+                </PhotoLightboxNav>
+                {getVehicleImageSrc(lightboxIndex) ? (
+                  <PhotoLightboxImg
+                    src={getVehicleImageSrc(lightboxIndex)!}
+                    alt={`Foto ${lightboxIndex + 1} de ${totalPhotos}`}
+                  />
+                ) : (
+                  <div style={{ color: 'white', fontSize: '3rem' }}>
+                    {vehicle?.fuelType === 'eletrico' ? <Electric size={64} /> : <Car size={64} />}
+                  </div>
+                )}
+                <PhotoLightboxNav
+                  type="button"
+                  $side="right"
+                  aria-label="Próxima foto"
+                  disabled={lightboxIndex >= totalPhotos - 1}
+                  onClick={() => setLightboxIndex((i) => Math.min(totalPhotos - 1, i + 1))}
+                >
+                  <ChevronRight fontSize="large" />
+                </PhotoLightboxNav>
+              </PhotoLightboxStage>
+              <PhotoLightboxThumbs>
+                {photoList.map((src: string, i: number) => (
+                  <PhotoLightboxThumb
+                    key={i}
+                    type="button"
+                    $active={lightboxIndex === i}
+                    onClick={() => {
+                      setLightboxIndex(i);
+                      setSelectedPhoto(i);
+                    }}
+                    aria-label={`Ir para foto ${i + 1}`}
+                  >
+                    {typeof src === 'string' && src ? (
+                      <img src={src} alt="" />
+                    ) : (
+                      <div
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Car size={18} color="#fff" />
+                      </div>
+                    )}
+                  </PhotoLightboxThumb>
+                ))}
+              </PhotoLightboxThumbs>
+            </PhotoLightboxRoot>
+          )}
 
           {/* Vehicle Information */}
           <VehicleInfoSection>

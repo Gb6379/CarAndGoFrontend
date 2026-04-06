@@ -173,7 +173,12 @@ const VehicleRegistrationForm: React.FC = () => {
     const { name, value, type } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
+      [name]:
+        type === 'checkbox'
+          ? (e.target as HTMLInputElement).checked
+          : name === 'licensePlate'
+            ? value.toUpperCase()
+            : value,
     }));
   };
 
@@ -289,6 +294,7 @@ const VehicleRegistrationForm: React.FC = () => {
                 onChange={handleChange}
                 required
                 placeholder="ABC-1234"
+                style={{ textTransform: 'uppercase' }}
               />
             </div>
           </FormRow>
