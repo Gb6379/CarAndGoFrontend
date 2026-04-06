@@ -574,9 +574,12 @@ const ListVehiclePage: React.FC = () => {
   const [mapCenter, setMapCenter] = useState<[number, number]>([-23.5505, -46.6333]); // São Paulo default
   const [selectedLocation, setSelectedLocation] = useState<[number, number] | null>(null);
   const [gettingLocation, setGettingLocation] = useState(false);
+  const [geocodingAddress, setGeocodingAddress] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const geocodeDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const geocodeAbortRef = useRef<AbortController | null>(null);
   const [formData, setFormData] = useState({
     // Basic Information
     make: '',
@@ -696,6 +699,13 @@ const ListVehiclePage: React.FC = () => {
       setSelectedLocation([formData.latitude, formData.longitude]);
     }
   }, [formData.latitude, formData.longitude]);
+
+  useEffect(() => {
+    return () => {
+      if (geocodeDebounceRef.current) clearTimeout(geocodeDebounceRef.current);
+      geocodeAbortRef.current?.abort();
+    };
+  }, []);
 
   const steps = [
     { number: 1, title: 'Informações Básicas' },
@@ -845,54 +855,74 @@ const ListVehiclePage: React.FC = () => {
     }));
   };
 
-  // Geocode address to coordinates
-  const geocodeAddress = async (address: string) => {
+  // Forward geocode: texto do formulário -> coordenadas (Nominatim / OSM)
+  const buildGeocodeQuery = (address: string, city: string, state: string) => {
+    const parts = [address.trim(), city.trim(), state.trim(), 'Brasil'].filter(Boolean);
+    return parts.join(', ');
+  };
+
+  const runForwardGeocode = async (address: string, city: string, state: string) => {
+    const q = buildGeocodeQuery(address, city, state);
+    const addrTrim = address.trim();
+    const cityTrim = city.trim();
+    const stateTrim = state.trim();
+    if (q.length < 8) return;
+    if (addrTrim.length < 4 && !(cityTrim && stateTrim)) return;
+
+    geocodeAbortRef.current?.abort();
+    const aborter = new AbortController();
+    geocodeAbortRef.current = aborter;
+
+    setGeocodingAddress(true);
     try {
-      // Using OpenStreetMap Nominatim API (free)
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`
-      );
+      const url =
+        `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&countrycodes=br&q=${encodeURIComponent(q)}`;
+      const response = await fetch(url, {
+        signal: aborter.signal,
+        headers: { 'Accept-Language': 'pt-BR,pt;q=0.9' },
+      });
+      if (!response.ok) throw new Error('Geocode failed');
       const data = await response.json();
-      
-      if (data && data.length > 0) {
-        const { lat, lon, display_name } = data[0];
-        const coordinates = [parseFloat(lat), parseFloat(lon)] as [number, number];
-        setMapCenter(coordinates);
-        setSelectedLocation(coordinates);
-        setFormData(prev => ({
-          ...prev,
-          latitude: parseFloat(lat),
-          longitude: parseFloat(lon)
-        }));
-        
-        // Parse address components
-        const addressParts = display_name.split(', ');
-        if (addressParts.length >= 2) {
-          setFormData(prev => ({
-            ...prev,
-            city: addressParts[addressParts.length - 3] || '',
-            state: addressParts[addressParts.length - 2] || ''
-          }));
-        }
-      } else {
-        alert('Endereço não encontrado. Tente um endereço diferente ou selecione no mapa.');
-      }
-    } catch (error) {
-      console.error('Geocoding error:', error);
-      alert('Erro ao encontrar endereço. Selecione a localização no mapa.');
+      if (!Array.isArray(data) || data.length === 0) return;
+
+      const item = data[0];
+      const lat = parseFloat(item.lat);
+      const lon = parseFloat(item.lon);
+      if (Number.isNaN(lat) || Number.isNaN(lon)) return;
+
+      const addr = item.address || {};
+      const cityName = addr.city || addr.town || addr.village || addr.municipality || '';
+      const stateName = (addr.state || '').trim();
+      const stateCode = stateNameToCode[stateName] || stateName;
+
+      setFormData(prev => ({
+        ...prev,
+        latitude: lat,
+        longitude: lon,
+        city: prev.city.trim() ? prev.city : cityName || prev.city,
+        state: prev.state ? prev.state : stateCode || prev.state,
+      }));
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') return;
+      console.error('Geocoding error:', err);
+    } finally {
+      setGeocodingAddress(false);
     }
   };
 
-  // Handle address input change with debounced geocoding
-  const handleAddressChange = (value: string) => {
-    setFormData(prev => ({ ...prev, address: value }));
-    
-    // Debounce geocoding
-    if (value.length > 5) {
-      setTimeout(() => {
-        geocodeAddress(value);
-      }, 1000);
-    }
+  const scheduleForwardGeocode = (address: string, city: string, state: string) => {
+    if (geocodeDebounceRef.current) clearTimeout(geocodeDebounceRef.current);
+    geocodeDebounceRef.current = setTimeout(() => {
+      void runForwardGeocode(address, city, state);
+    }, 1000);
+  };
+
+  const handleLocationFieldChange = (field: 'address' | 'city' | 'state', value: string) => {
+    setFormData(prev => {
+      const next = { ...prev, [field]: value };
+      scheduleForwardGeocode(next.address, next.city, next.state);
+      return next;
+    });
   };
 
   const handleNext = () => {
@@ -1139,7 +1169,7 @@ const ListVehiclePage: React.FC = () => {
                   type="text"
                   placeholder="Digite o endereço para buscar..."
                   value={formData.address}
-                  onChange={(e) => handleAddressChange(e.target.value)}
+                  onChange={(e) => handleLocationFieldChange('address', e.target.value)}
                 />
               </div>
             </div>
@@ -1161,7 +1191,7 @@ const ListVehiclePage: React.FC = () => {
                   type="text"
                   placeholder="Rua das Flores, 123"
                   value={formData.address}
-                  onChange={(e) => handleInputChange('address', e.target.value)}
+                  onChange={(e) => handleLocationFieldChange('address', e.target.value)}
                 />
               </FormGroup>
               <FormGroup>
@@ -1170,14 +1200,14 @@ const ListVehiclePage: React.FC = () => {
                   type="text"
                   placeholder="São Paulo"
                   value={formData.city}
-                  onChange={(e) => handleInputChange('city', e.target.value)}
+                  onChange={(e) => handleLocationFieldChange('city', e.target.value)}
                 />
               </FormGroup>
               <FormGroup>
                 <Label>State *</Label>
                 <Select
                   value={formData.state}
-                  onChange={(e) => handleInputChange('state', e.target.value)}
+                  onChange={(e) => handleLocationFieldChange('state', e.target.value)}
                 >
                   <option value="">Select state</option>
                   {states.map(state => (
@@ -1188,7 +1218,7 @@ const ListVehiclePage: React.FC = () => {
             </FormGrid>
 
             {/* Location Info */}
-            {formData.latitude && formData.longitude && (
+            {(formData.latitude && formData.longitude) || geocodingAddress ? (
               <div style={{ 
                 marginTop: '1rem', 
                 padding: '1rem', 
@@ -1197,10 +1227,17 @@ const ListVehiclePage: React.FC = () => {
                 fontSize: '0.9rem',
                 color: '#666'
               }}>
-                <strong><Location size={16} /> Selected Location:</strong><br />
-                Coordinates: {formData.latitude.toFixed(6)}, {formData.longitude.toFixed(6)}
+                <strong><Location size={16} /> Local selecionado:</strong><br />
+                {geocodingAddress && (
+                  <span style={{ display: 'block', marginBottom: '0.35rem' }}>Buscando coordenadas do endereço…</span>
+                )}
+                {formData.latitude != null && formData.longitude != null && (
+                  <span>
+                    Coordenadas: {formData.latitude.toFixed(6)}, {formData.longitude.toFixed(6)}
+                  </span>
+                )}
               </div>
-            )}
+            ) : null}
           </FormSection>
         );
 

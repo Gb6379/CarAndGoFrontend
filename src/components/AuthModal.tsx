@@ -5,6 +5,7 @@ import { Close, User, Lock, Email, Phone, Home } from '../components/IconSystem'
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { authService } from '../services/authService';
 import { validateCpfCnpj } from '../utils/cpfValidation';
+import { getErrorMessage, errorToDisplay } from '../utils/errorUtils';
 
 interface IBGECity {
   id: number;
@@ -281,9 +282,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
     }
   }, [initialMode, isOpen]);
 
-  // Login form state
+  // Login form state (email ou CPF)
   const [loginData, setLoginData] = useState({
-    email: '',
+    emailOrCpf: '',
     password: ''
   });
 
@@ -338,7 +339,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
 
     try {
       // Call real API
-      const response = await authService.login(loginData.email, loginData.password);
+      const response = await authService.login(loginData.emailOrCpf, loginData.password);
       
       // Store token (backend returns access_token)
       localStorage.setItem('token', response.access_token);
@@ -349,7 +350,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
         navigate(redirectOnSuccess);
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Falha no login. Tente novamente.');
+      setError(getErrorMessage(err, 'Falha no login. Tente novamente.'));
     } finally {
       setLoading(false);
     }
@@ -386,7 +387,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
         navigate(redirectOnSuccess);
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Falha no cadastro. Tente novamente.');
+      setError(getErrorMessage(err, 'Falha no cadastro. Tente novamente.'));
     } finally {
       setLoading(false);
     }
@@ -431,21 +432,22 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
           </TabButton>
         </TabsContainer>
 
-        {error && <ErrorMessage>{error}</ErrorMessage>}
+        {error && <ErrorMessage>{errorToDisplay(error)}</ErrorMessage>}
 
         {mode === 'login' ? (
           <Form onSubmit={handleLogin}>
             <InputGroup>
-              <InputLabel>E-mail</InputLabel>
+              <InputLabel>E-mail ou CPF</InputLabel>
               <InputContainer>
                 <InputIcon>
                   <Email size={18} />
                 </InputIcon>
                 <Input
-                  type="email"
-                  placeholder="seu@email.com"
-                  value={loginData.email}
-                  onChange={(e) => setLoginData(prev => ({ ...prev, email: e.target.value }))}
+                  type="text"
+                  placeholder="seu@email.com ou CPF"
+                  value={loginData.emailOrCpf}
+                  onChange={(e) => setLoginData(prev => ({ ...prev, emailOrCpf: e.target.value }))}
+                  autoComplete="username"
                   required
                 />
               </InputContainer>

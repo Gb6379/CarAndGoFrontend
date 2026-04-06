@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { bookingService, paymentService } from '../services/authService';
 import { Car, CreditCard, Calendar, Check, ArrowLeft } from '../components/IconSystem';
+import { getErrorMessage, errorToDisplay } from '../utils/errorUtils';
 
 const Container = styled.div`
   max-width: 900px;
@@ -394,7 +395,7 @@ const PaymentPage: React.FC = () => {
         navigate(`/booking/${bookingId}/details`);
       }, 1500);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Erro ao processar pagamento. Tente novamente.');
+      setError(getErrorMessage(err, 'Erro ao processar pagamento. Tente novamente.'));
     } finally {
       setPaying(false);
     }
@@ -435,7 +436,7 @@ const PaymentPage: React.FC = () => {
     return (
       <Container>
         <BackButton onClick={() => navigate(-1)}><ArrowLeft size={20} /> Voltar</BackButton>
-        <ErrorMessage>{error || 'Dados da reserva não encontrados. Preencha a reserva novamente.'}</ErrorMessage>
+        <ErrorMessage>{errorToDisplay(error) || 'Dados da reserva não encontrados. Preencha a reserva novamente.'}</ErrorMessage>
       </Container>
     );
   }
@@ -451,7 +452,7 @@ const PaymentPage: React.FC = () => {
         Pagamento
       </PageTitle>
 
-      {error && <ErrorMessage>{error}</ErrorMessage>}
+      {error && <ErrorMessage>{errorToDisplay(error)}</ErrorMessage>}
       {success && <SuccessMessage><Check size={20} /> {success}</SuccessMessage>}
 
       <Grid>
@@ -523,15 +524,18 @@ const PaymentPage: React.FC = () => {
               <PixBox>
                 <p style={{ marginBottom: '1rem', fontWeight: 600, color: '#0f766e' }}>Pague via PIX</p>
                 <PixQrPlaceholder>QR Code PIX<br />(simulado)</PixQrPlaceholder>
-                <p style={{ fontSize: '0.9rem', color: '#666' }}>Ou copie o código abaixo e cole no app do seu banco:</p>
+                <p style={{ fontSize: '0.9rem', color: '#666' }}>
+                  Com PagSeguro configurado, ao continuar voce sera redirecionado para o checkout PIX real.
+                  Em ambiente de desenvolvimento, este bloco pode operar em modo simulado.
+                </p>
                 <PixCode>00020126...{(bookingForDisplay?.id || 'pending').slice(-8)}...{total.toFixed(2)}...</PixCode>
                 <CopyButton onClick={copyPixCode}>Copiar código PIX</CopyButton>
               </PixBox>
               <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '1rem' }}>
-                Após pagar pelo PIX, clique no botão abaixo para confirmar o pagamento.
+                Clique no botao abaixo para continuar o pagamento via PIX.
               </p>
               <PayButton className="pix" onClick={handlePay} disabled={paying}>
-                {paying ? 'Confirmando...' : <> Já paguei via PIX </>}
+                {paying ? 'Processando...' : <> Continuar com PIX </>}
               </PayButton>
             </>
           )}

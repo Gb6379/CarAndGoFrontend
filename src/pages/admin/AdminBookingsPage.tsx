@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { adminService } from '../../services/authService';
+import { getErrorMessage, errorToDisplay } from '../../utils/errorUtils';
 
 const Title = styled.h1`
   font-size: 1.75rem;
@@ -92,7 +93,7 @@ const AdminBookingsPage: React.FC = () => {
     setLoading(true);
     adminService.getBookings()
       .then((data: BookingRow[]) => setBookings(Array.isArray(data) ? data : []))
-      .catch((err: any) => setError(err.response?.data?.message || 'Erro ao carregar reservas'))
+      .catch((err: any) => setError(getErrorMessage(err, 'Erro ao carregar reservas')))
       .finally(() => setLoading(false));
   };
 
@@ -143,7 +144,7 @@ const AdminBookingsPage: React.FC = () => {
   return (
     <>
       <Title>Reservas{filterLabel ? ` — ${filterLabel}` : ''}</Title>
-      {error && <ErrorMsg>{error}</ErrorMsg>}
+      {error && <ErrorMsg>{errorToDisplay(error)}</ErrorMsg>}
       {loading ? (
         <p>Carregando...</p>
       ) : (

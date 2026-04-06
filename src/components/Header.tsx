@@ -445,6 +445,7 @@ const Header: React.FC = () => {
   // Get user data to check userType and profile photo
   const userData = JSON.parse(localStorage.getItem('user') || '{}');
   const userType = userData.userType;
+  const isLocatario = userType === 'lessee' || userType === 'rent';
 
   const loadHeaderPhoto = () => {
     const u = JSON.parse(localStorage.getItem('user') || '{}');
@@ -572,6 +573,9 @@ const Header: React.FC = () => {
         {(userType === 'lessor' || userType === 'both' || !isLoggedIn) && (
           <MobileMenuLink to="/list-vehicle" onClick={closeMobileMenu}><AddIcon fontSize="small" /> Anunciar Seu Carro</MobileMenuLink>
         )}
+        {isLocatario && (
+          <MobileMenuLink to="/mensalista" onClick={closeMobileMenu}><CarIcon fontSize="small" /> Ser Mensalista</MobileMenuLink>
+        )}
         <MobileMenuLink to="/how-it-works" onClick={closeMobileMenu}><InfoIcon fontSize="small" /> Como Funciona</MobileMenuLink>
         <MobileMenuLink to="/help" onClick={closeMobileMenu}><HelpIcon fontSize="small" /> Ajuda</MobileMenuLink>
         {isLoggedIn ? (
@@ -619,6 +623,9 @@ const Header: React.FC = () => {
           {(userType === 'lessor' || userType === 'both' || !isLoggedIn) && (
             <NavLink to="/list-vehicle">Anunciar Seu Carro</NavLink>
           )}
+          {isLocatario && (
+            <NavLink to="/mensalista">Ser Mensalista</NavLink>
+          )}
           
           <NavLink to="/how-it-works">Como Funciona</NavLink>
           <NavLink to="/help">Ajuda</NavLink>
@@ -663,6 +670,15 @@ const Header: React.FC = () => {
                 <FlightTakeoff size={20} />
                 Viagens
               </DropdownItem>
+              {isLocatario && (
+                <DropdownItem 
+                  to="/mensalista"
+                  onClick={() => setIsUserMenuOpen(false)}
+                >
+                  <CarIcon fontSize="small" />
+                  Ser Mensalista
+                </DropdownItem>
+              )}
               <DropdownItem 
                 to="/inbox"
                 onClick={() => setIsUserMenuOpen(false)}

@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import BookingInterface from '../components/BookingInterface';
 import { vehicleService } from '../services/authService';
 import { Car } from '../components/IconSystem';
+import { errorToDisplay } from '../utils/errorUtils';
 
 const Container = styled.div`
   max-width: 1200px;
@@ -187,7 +188,7 @@ const BookingPage: React.FC = () => {
       <Container>
         <ErrorContainer>
           <Car size={48} color="#c62828" />
-          <ErrorMessage>{error}</ErrorMessage>
+          <ErrorMessage>{errorToDisplay(error)}</ErrorMessage>
           <BackButton onClick={() => navigate('/vehicles')}>
             Ver Veículos Disponíveis
           </BackButton>

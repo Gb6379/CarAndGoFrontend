@@ -5,6 +5,7 @@ import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { authService } from '../services/authService';
 import { Car } from '../components/IconSystem';
 import { validateCpfCnpj } from '../utils/cpfValidation';
+import { getErrorMessage, errorToDisplay } from '../utils/errorUtils';
 
 const RegisterContainer = styled.div`
   min-height: 100vh;
@@ -193,7 +194,7 @@ const RegisterPage: React.FC = () => {
       localStorage.setItem('user', JSON.stringify(response.user));
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Falha no cadastro');
+      setError(getErrorMessage(err, 'Falha no cadastro'));
     } finally {
       setLoading(false);
     }
@@ -204,7 +205,7 @@ const RegisterPage: React.FC = () => {
       <RegisterCard>
         <Title><Car size={24} /> Cadastrar</Title>
         
-        {error && <ErrorMessage>{error}</ErrorMessage>}
+        {error && <ErrorMessage>{errorToDisplay(error)}</ErrorMessage>}
         
         <Form onSubmit={handleSubmit}>
           <Input

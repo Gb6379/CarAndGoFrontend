@@ -40,8 +40,9 @@ api.interceptors.response.use(
 );
 
 export const authService = {
-  async login(email: string, password: string) {
-    const response = await api.post('/auth/login', { email, password });
+  /** Login com e-mail ou CPF (locador e locatário). */
+  async login(emailOrCpf: string, password: string) {
+    const response = await api.post('/auth/login', { emailOrCpf: (emailOrCpf || '').trim(), password });
     return response.data;
   },
 

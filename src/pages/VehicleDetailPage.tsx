@@ -6,7 +6,8 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { vehicleService, favoriteService, reviewService } from '../services/authService';
-import { Electric, Car, LocationOn, Star, CheckCircle, Phone, Map, Lock, Shield, Usb, Bluetooth, AirConditioning } from '../components/IconSystem';
+import { errorToDisplay } from '../utils/errorUtils';
+import { Electric, Car, LocationOn, Star, CheckCircle, Phone, Map, Lock, Shield, Usb, Bluetooth, AirConditioning, Edit } from '../components/IconSystem';
 import AuthModal from '../components/AuthModal';
 import { isFavorite, toggleFavorite } from '../utils/favorites';
 
@@ -83,6 +84,28 @@ const FavoriteButton = styled.button`
 
   svg {
     font-size: 26px;
+  }
+`;
+
+const EditAnnouncementButton = styled.button`
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  border: none;
+  background: #667eea;
+  color: white;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+
+  &:hover {
+    background: #5a6fd8;
+    transform: translateY(-1px);
   }
 `;
 
@@ -367,6 +390,25 @@ const BookingButton = styled.button`
   }
 `;
 
+const MonthlyButton = styled.button`
+  width: 100%;
+  background: #eef2ff;
+  color: #3647a6;
+  border: 1px solid #c9d5ff;
+  padding: 0.9rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 0.75rem;
+
+  &:hover {
+    background: #e2e9ff;
+    transform: translateY(-1px);
+  }
+`;
+
 // Host Section
 const HostSection = styled.div`
   background: white;
@@ -583,6 +625,9 @@ const VehicleDetailPage: React.FC = () => {
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
   const [submittingReview, setSubmittingReview] = useState(false);
   const isLoggedIn = !!localStorage.getItem('token');
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isOwner = !!vehicle && (vehicle.ownerId === user?.id || vehicle.owner?.id === user?.id);
+  const isLocatario = user?.userType === 'lessee' || user?.userType === 'rent';
 
   // Parse URL parameters for dates
   const searchParams = new URLSearchParams(location.search);
@@ -724,11 +769,35 @@ const VehicleDetailPage: React.FC = () => {
     navigate(`/booking?${params.toString()}`);
   };
 
-  const getVehicleImage = (index: number) => {
-    if (vehicle?.photos && vehicle.photos[index]) {
+  const handleMonthlyFlow = () => {
+    if (!id) return;
+    navigate(`/mensalista/checkout?vehicleId=${encodeURIComponent(id)}`);
+  };
+
+  const getVehicleImageSrc = (index: number): string | null => {
+    if (vehicle?.photos && vehicle.photos[index] && typeof vehicle.photos[index] === 'string') {
       return vehicle.photos[index];
     }
-    return vehicle?.fuelType === 'eletrico' ? <Electric size={20} /> : <Car size={20} />;
+    return null;
+  };
+
+  const renderVehicleImage = (index: number, size?: 'main' | 'thumb') => {
+    const src = getVehicleImageSrc(index);
+    if (src) {
+      return (
+        <img
+          src={src}
+          alt={`Foto do veículo ${index + 1}`}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            display: 'block',
+          }}
+        />
+      );
+    }
+    return vehicle?.fuelType === 'eletrico' ? <Electric size={size === 'main' ? 64 : 20} /> : <Car size={size === 'main' ? 64 : 20} />;
   };
 
   const calculateTotalPrice = () => {
@@ -794,7 +863,7 @@ const VehicleDetailPage: React.FC = () => {
       <Container>
         <div style={{ textAlign: 'center', padding: '4rem' }}>
           <h2>Veículo Não Encontrado</h2>
-          <p>{error || 'O veículo que você está procurando não existe.'}</p>
+          <p>{errorToDisplay(error) || 'O veículo que você está procurando não existe.'}</p>
           <button 
             onClick={() => navigate('/vehicles')}
             style={{
@@ -832,9 +901,16 @@ const VehicleDetailPage: React.FC = () => {
         
         <TitleRow>
           <VehicleTitle>{vehicle.make} {vehicle.model} {vehicle.year}</VehicleTitle>
-          <FavoriteButton onClick={handleToggleFavorite} type="button" aria-label={isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}>
-            {isFav ? <Favorite /> : <FavoriteBorder />}
-          </FavoriteButton>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            {isOwner && (
+              <EditAnnouncementButton type="button" onClick={() => navigate(`/list-vehicle/edit/${vehicle.id}`)}>
+                <Edit size={18} /> Editar anúncio
+              </EditAnnouncementButton>
+            )}
+            <FavoriteButton onClick={handleToggleFavorite} type="button" aria-label={isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}>
+              {isFav ? <Favorite /> : <FavoriteBorder />}
+            </FavoriteButton>
+          </div>
         </TitleRow>
 
         <VehicleSubtitle>
@@ -850,7 +926,7 @@ const VehicleDetailPage: React.FC = () => {
           {/* Photo Gallery */}
           <PhotoGallery>
             <MainPhoto>
-              {getVehicleImage(selectedPhoto)}
+              {renderVehicleImage(selectedPhoto, 'main')}
             </MainPhoto>
             <PhotoThumbnails>
               {[0, 1, 2, 3, 4].map((index) => (
@@ -859,7 +935,7 @@ const VehicleDetailPage: React.FC = () => {
                   active={selectedPhoto === index}
                   onClick={() => setSelectedPhoto(index)}
                 >
-                  {getVehicleImage(index)}
+                  {renderVehicleImage(index, 'thumb')}
                 </Thumbnail>
               ))}
             </PhotoThumbnails>
@@ -993,7 +1069,7 @@ const VehicleDetailPage: React.FC = () => {
               </ReviewItem>
               ))
             )}
-            {isLoggedIn && (
+            {isLoggedIn && !isOwner && (
               <ReviewForm onSubmit={handleSubmitReview}>
                 <ReviewFormTitle>Escreva sua avaliação</ReviewFormTitle>
                 <StarRatingInput>
@@ -1048,32 +1124,52 @@ const VehicleDetailPage: React.FC = () => {
         </LeftColumn>
 
         <RightColumn>
-          {/* Booking Section */}
+          {/* Booking Section - oculta reserva para o dono do veículo */}
           <BookingSection>
             <PriceDisplay>
               <DailyPrice>R$ {vehicle.dailyRate}</DailyPrice>
               <PriceUnit>por dia</PriceUnit>
             </PriceDisplay>
 
-            {selectedDates.startDate && selectedDates.endDate && (
-              <TotalPrice>
-                <TotalLabel>Total para sua viagem</TotalLabel>
-                <TotalAmount>R$ {calculateTotalPrice()}</TotalAmount>
-              </TotalPrice>
+            {isOwner ? (
+              <div style={{ 
+                background: '#f0f4ff', 
+                padding: '1rem', 
+                borderRadius: '8px', 
+                textAlign: 'center', 
+                color: '#555',
+                fontSize: '0.95rem'
+              }}>
+                Este é seu anúncio. Use o botão &quot;Editar anúncio&quot; acima para alterar informações e fotos.
+              </div>
+            ) : (
+              <>
+                {selectedDates.startDate && selectedDates.endDate && (
+                  <TotalPrice>
+                    <TotalLabel>Total para sua viagem</TotalLabel>
+                    <TotalAmount>R$ {calculateTotalPrice()}</TotalAmount>
+                  </TotalPrice>
+                )}
+
+                <BookingButton onClick={handleBooking}>
+                  Continuar para Reservar
+                </BookingButton>
+                {isLocatario && (
+                  <MonthlyButton onClick={handleMonthlyFlow}>
+                    Ser mensalista com este carro
+                  </MonthlyButton>
+                )}
+
+                <div style={{ 
+                  textAlign: 'center', 
+                  marginTop: '1rem', 
+                  fontSize: '0.9rem', 
+                  color: '#666' 
+                }}>
+                  Cancelamento gratuito disponível
+                </div>
+              </>
             )}
-
-            <BookingButton onClick={handleBooking}>
-              Continuar para Reservar
-            </BookingButton>
-
-            <div style={{ 
-              textAlign: 'center', 
-              marginTop: '1rem', 
-              fontSize: '0.9rem', 
-              color: '#666' 
-            }}>
-              Cancelamento gratuito disponível
-            </div>
           </BookingSection>
 
           {/* Host Section */}

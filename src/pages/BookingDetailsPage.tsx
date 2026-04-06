@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useParams, useNavigate } from 'react-router-dom';
 import { bookingService } from '../services/authService';
+import { errorToDisplay } from '../utils/errorUtils';
 import { Car, Calendar, Location, Schedule, User, CreditCard, Check, Close, ArrowLeft } from '../components/IconSystem';
 
 const Container = styled.div`
@@ -550,7 +551,7 @@ const BookingDetailsPage: React.FC = () => {
         <BackButton onClick={() => navigate(-1)}>
           <ArrowLeft size={20} /> Voltar
         </BackButton>
-        <ErrorContainer>{error || 'Reserva não encontrada.'}</ErrorContainer>
+        <ErrorContainer>{errorToDisplay(error) || 'Reserva não encontrada.'}</ErrorContainer>
       </Container>
     );
   }

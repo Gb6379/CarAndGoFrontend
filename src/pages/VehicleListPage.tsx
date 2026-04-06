@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Favorite, FavoriteBorder } from '@mui/icons-material';
 import { vehicleService, favoriteService } from '../services/authService';
+import { errorToDisplay } from '../utils/errorUtils';
 import { getFavorites, toggleFavorite } from '../utils/favorites';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
@@ -298,6 +299,13 @@ const CarImage = styled.div`
   font-size: 4rem;
   color: white;
   position: relative;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
 `;
 
 const CarBadge = styled.div<{ type: string }>`
@@ -407,6 +415,24 @@ const SaveAmount = styled.div`
   border-radius: 20px;
   font-size: 0.9rem;
   font-weight: 600;
+`;
+
+const MonthlyButton = styled.button`
+  margin-top: 0.85rem;
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid #c9d5ff;
+  background: #eef2ff;
+  color: #3647a6;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+
+  &:hover {
+    background: #e2e9ff;
+    transform: translateY(-1px);
+  }
 `;
 
 const MapSection = styled.div`
@@ -580,6 +606,8 @@ const VehicleListPage: React.FC = () => {
   const [sortBy, setSortBy] = useState('price');
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const isLoggedIn = !!localStorage.getItem('token');
+  const userData = JSON.parse(localStorage.getItem('user') || '{}');
+  const isLocatario = userData?.userType === 'lessee' || userData?.userType === 'rent';
 
   useEffect(() => {
     const load = async () => {
@@ -657,6 +685,7 @@ const VehicleListPage: React.FC = () => {
             
             setUserLocation({ lat: latitude, lng: longitude, address });
             setCurrentSearchLocation(address);
+            setLocationInput(address);
             
             // Reload vehicles with new location (passar address para não depender do state)
             loadVehicles(address);
@@ -665,6 +694,7 @@ const VehicleListPage: React.FC = () => {
             const fallbackAddress = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
             setUserLocation({ lat: latitude, lng: longitude, address: fallbackAddress });
             setCurrentSearchLocation(fallbackAddress);
+            setLocationInput(fallbackAddress);
             loadVehicles(fallbackAddress);
           }
           
@@ -856,6 +886,12 @@ const VehicleListPage: React.FC = () => {
     navigate(`/vehicle/${carId}${queryString ? `?${queryString}` : ''}`);
   };
 
+  const handleMonthlyFlow = (carId: string) => {
+    const params = new URLSearchParams();
+    params.set('vehicleId', String(carId));
+    navigate(`/mensalista/checkout?${params.toString()}`);
+  };
+
   const handleFilterChange = (filterName: string, value: any) => {
     setFilters(prev => ({
       ...prev,
@@ -891,9 +927,28 @@ const VehicleListPage: React.FC = () => {
     return `${vehicle.city}, ${vehicle.state}`;
   };
 
+  const normalizePhotoSrc = (raw: unknown) => {
+    if (typeof raw !== 'string') return null;
+    const s = raw.trim();
+    if (!s) return null;
+    if (s.startsWith('data:')) return s;
+    if (s.startsWith('http://') || s.startsWith('https://')) return s;
+
+    // Base64 sem prefixo (tentativa de inferir o mime)
+    const head = s.slice(0, 12);
+    const mime =
+      head.startsWith('iVBOR') ? 'image/png'
+      : head.startsWith('/9j/') ? 'image/jpeg'
+      : head.startsWith('R0lGOD') ? 'image/gif'
+      : head.startsWith('UklGR') ? 'image/webp'
+      : 'image/jpeg';
+    return `data:${mime};base64,${s}`;
+  };
+
   const getVehicleImage = (vehicle: any) => {
-    if (vehicle.photos && vehicle.photos.length > 0) {
-      return vehicle.photos[0];
+    const src = normalizePhotoSrc(vehicle?.photos?.[0]);
+    if (src) {
+      return <img src={src} alt={getVehicleTitle(vehicle)} loading="lazy" />;
     }
     return vehicle.fuelType === 'eletrico' ? <Electric size={48} /> : <Car size={48} />;
   };
@@ -1183,7 +1238,7 @@ const VehicleListPage: React.FC = () => {
               borderRadius: '8px', 
               marginBottom: '1rem' 
             }}>
-              {error}
+              {errorToDisplay(error)}
             </div>
           )}
 
@@ -1237,6 +1292,17 @@ const VehicleListPage: React.FC = () => {
                       </div>
                     )}
                   </PriceSection>
+                  {isLocatario && (
+                    <MonthlyButton
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMonthlyFlow(vehicle.id);
+                      }}
+                    >
+                      Ser mensalista com este carro
+                    </MonthlyButton>
+                  )}
                 </CarInfo>
               </CarCard>
             );

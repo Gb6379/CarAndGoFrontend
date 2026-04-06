@@ -15,6 +15,8 @@ const Sidebar = styled.aside`
   color: white;
   padding: 1.5rem 0;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
   @media (max-width: 768px) {
     width: 72px;
     padding: 1rem 0;
@@ -38,6 +40,7 @@ const Nav = styled.nav`
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  flex: 1;
 `;
 
 const NavItem = styled(NavLink)`

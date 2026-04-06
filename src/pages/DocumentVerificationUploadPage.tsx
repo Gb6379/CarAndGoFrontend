@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { Lock, Photo, CheckCircle, ArrowRight, ArrowLeft } from '../components/IconSystem';
 import { authService } from '../services/authService';
+import { errorToDisplay } from '../utils/errorUtils';
 
 const CAC_LINK = 'https://servicos.pf.gov.br/epol-sinic-publico/';
 
@@ -358,7 +359,7 @@ const DocumentVerificationUploadPage: React.FC = () => {
         </StepRow>
       </Steps>
 
-      {error && <ErrorMessage>{error}</ErrorMessage>}
+      {error && <ErrorMessage>{errorToDisplay(error)}</ErrorMessage>}
 
       {step === 1 && (
         <>

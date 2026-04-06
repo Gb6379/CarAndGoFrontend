@@ -5,6 +5,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { bookingService } from '../services/authService';
 import { Car, Calendar, Map, Money, Lock } from './IconSystem';
+import { getErrorMessage, errorToDisplay } from '../utils/errorUtils';
 
 const Container = styled.div`
   max-width: 1000px;
@@ -348,8 +349,8 @@ const BookingInterface: React.FC<BookingInterfaceProps> = ({
     } catch (err: any) {
       console.error('Erro ao verificar disponibilidade:', err);
       // Handle error response from API
-      const errorMessage = err.response?.data?.message;
-      if (typeof errorMessage === 'string') {
+      const errorMessage = getErrorMessage(err, '');
+      if (errorMessage) {
         setError(errorMessage);
       } else if (err.response?.status === 404) {
         // Endpoint might not exist yet, ignore
@@ -508,7 +509,7 @@ const BookingInterface: React.FC<BookingInterfaceProps> = ({
     <Container>
       <Title><Car size={24} /> Reservar Este Veículo</Title>
       
-      {error && <ErrorMessage>{error}</ErrorMessage>}
+      {error && <ErrorMessage>{errorToDisplay(error)}</ErrorMessage>}
       {success && <SuccessMessage>{success}</SuccessMessage>}
 
       <BookingGrid>

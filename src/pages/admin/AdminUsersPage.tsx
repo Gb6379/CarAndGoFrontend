@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { adminService } from '../../services/authService';
+import { getErrorMessage, errorToDisplay } from '../../utils/errorUtils';
 
 const Title = styled.h1`
   font-size: 1.75rem;
@@ -168,7 +169,7 @@ const AdminUsersPage: React.FC = () => {
     setLoading(true);
     adminService.getUsers(userType || undefined)
       .then((data: UserRow[]) => setUsers(Array.isArray(data) ? data : []))
-      .catch((err: any) => setError(err.response?.data?.message || 'Erro ao carregar usuários'))
+      .catch((err: any) => setError(getErrorMessage(err, 'Erro ao carregar usuários')))
       .finally(() => setLoading(false));
   };
 
@@ -216,7 +217,7 @@ const AdminUsersPage: React.FC = () => {
         <FilterBtn $active={filter === 'both'} onClick={() => setFilter('both')}>Ambos</FilterBtn>
       </Filters>
 
-      {error && <ErrorMsg>{error}</ErrorMsg>}
+      {error && <ErrorMsg>{errorToDisplay(error)}</ErrorMsg>}
       {loading ? (
         <p>Carregando...</p>
       ) : (

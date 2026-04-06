@@ -58,21 +58,27 @@ const CarCard = styled.div`
   overflow: hidden;
   box-shadow: 0 5px 15px rgba(0,0,0,0.1);
   transition: transform 0.3s;
+  cursor: pointer;
 
   &:hover {
     transform: translateY(-5px);
   }
 `;
 
-const CarImage = styled.div`
+const CarImage = styled.div<{ $photoUrl?: string }>`
   height: 200px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: ${props => props.$photoUrl
+    ? `url(${props.$photoUrl})`
+    : 'linear-gradient(135deg, #667eea, #764ba2)'};
+  background-size: cover;
+  background-position: center;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 4rem;
   color: white;
   position: relative;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 `;
 
 const CarStatus = styled.div<{ status: string }>`
@@ -258,6 +264,7 @@ const MyCarsPage: React.FC = () => {
             totalBookings: stats.count,
             totalEarnings: stats.earnings,
             location: [v.city, v.state].filter(Boolean).join(', ') || '—',
+            photos: Array.isArray(v.photos) ? v.photos : [],
           };
         });
         setCars(mapped);
@@ -292,7 +299,12 @@ const MyCarsPage: React.FC = () => {
     }
   };
 
-  const handleViewBookings = (carId: string) => {
+  const handleViewBookings = (e: React.MouseEvent, carId: string) => {
+    e.stopPropagation();
+    navigate(`/vehicle/${carId}`);
+  };
+
+  const handleViewAd = (carId: string) => {
     navigate(`/vehicle/${carId}`);
   };
 
@@ -329,12 +341,12 @@ const MyCarsPage: React.FC = () => {
       ) : (
         <CarsGrid>
           {cars.map((car) => (
-            <CarCard key={car.id}>
-              <CarImage>
+            <CarCard key={car.id} onClick={() => handleViewAd(car.id)} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && handleViewAd(car.id)}>
+              <CarImage $photoUrl={car.photos?.[0]}>
                 <CarStatus status={car.status}>
                   {getStatusLabel(car.status)}
                 </CarStatus>
-                <Car size={24} />
+                {!car.photos?.length && <Car size={24} />}
               </CarImage>
               
               <CarInfo>
@@ -362,19 +374,19 @@ const MyCarsPage: React.FC = () => {
                 <CarActions>
                   <ActionButton 
                     variant="secondary"
-                    onClick={() => handleViewBookings(car.id)}
+                    onClick={(e) => handleViewBookings(e, car.id)}
                   >
                     Reservas
                   </ActionButton>
                   <ActionButton 
                     variant="primary"
-                    onClick={() => handleEditCar(car.id)}
+                    onClick={(e) => { e.stopPropagation(); handleEditCar(car.id); }}
                   >
                     Editar
                   </ActionButton>
                   <ActionButton 
                     variant="danger"
-                    onClick={() => handleDeleteCar(car.id)}
+                    onClick={(e) => { e.stopPropagation(); handleDeleteCar(car.id); }}
                   >
                     Excluir
                   </ActionButton>

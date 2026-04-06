@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { vehicleService } from '../services/authService';
 import { Car, Location, Settings, Edit as EditIcon, Money } from '../components/IconSystem';
+import { getErrorMessage, errorToDisplay } from '../utils/errorUtils';
 
 const Container = styled.div`
   max-width: 800px;
@@ -228,7 +229,7 @@ const VehicleRegistrationForm: React.FC = () => {
         usbCharger: false,
       });
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to register vehicle');
+      setError(getErrorMessage(err, 'Failed to register vehicle'));
     } finally {
       setLoading(false);
     }
@@ -238,7 +239,7 @@ const VehicleRegistrationForm: React.FC = () => {
     <Container>
       <Title><Car size={24} /> Register Your Vehicle</Title>
       
-      {error && <ErrorMessage>{error}</ErrorMessage>}
+      {error && <ErrorMessage>{errorToDisplay(error)}</ErrorMessage>}
       {success && <SuccessMessage>{success}</SuccessMessage>}
 
       <Form onSubmit={handleSubmit}>

@@ -23,6 +23,8 @@ import BecomeHostPage from './pages/BecomeHostPage';
 import BankDetailsPage from './pages/BankDetailsPage';
 import VerificationPage from './pages/VerificationPage';
 import DocumentVerificationUploadPage from './pages/DocumentVerificationUploadPage';
+import MensalistaPage from './pages/MensalistaPage';
+import MensalistaLandingPage from './pages/MensalistaLandingPage';
 import AdminLayout from './components/AdminLayout';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AdminUsersPage from './pages/admin/AdminUsersPage';
@@ -75,7 +77,7 @@ function App() {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const isAdminUser = user?.userType === 'admin';
 
-  // Admin só vê o painel admin: redireciona qualquer rota comum para /admin
+  // Admins only see the admin panel: redirect any non-admin route to /admin
   if (isAdminUser && !isAdminPath) {
     return <Navigate to="/admin" replace />;
   }
@@ -99,6 +101,16 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/how-it-works" element={<HowItWorksPage />} />
           <Route path="/become-host" element={<BecomeHostPage />} />
+          <Route path="/mensalista" element={
+            <RouteGuard allowedUserTypes={['rent', 'lessee']} redirectTo="/">
+              <MensalistaLandingPage />
+            </RouteGuard>
+          } />
+          <Route path="/mensalista/checkout" element={
+            <RouteGuard allowedUserTypes={['rent', 'lessee']} redirectTo="/">
+              <MensalistaPage />
+            </RouteGuard>
+          } />
           
           {/* Favorites - requires authentication */}
           <Route path="/favorites" element={

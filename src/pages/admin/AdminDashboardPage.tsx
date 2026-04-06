@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { adminService } from '../../services/authService';
+import { getErrorMessage, errorToDisplay } from '../../utils/errorUtils';
 import { People, Calendar, TrendingUp, Money, Timer, CheckCircle, Error as ErrorIcon } from '../../components/IconSystem';
 
 const Title = styled.h1`
@@ -67,7 +68,7 @@ const AdminDashboardPage: React.FC = () => {
   useEffect(() => {
     adminService.getDashboard()
       .then(setData)
-      .catch((err: any) => setError(err.response?.data?.message || 'Erro ao carregar indicadores'))
+      .catch((err: any) => setError(getErrorMessage(err, 'Erro ao carregar indicadores')))
       .finally(() => setLoading(false));
   }, []);
 
@@ -82,7 +83,7 @@ const AdminDashboardPage: React.FC = () => {
   };
 
   if (loading) return <Title>Carregando indicadores...</Title>;
-  if (error) return <Title style={{ color: '#c00' }}>{error}</Title>;
+  if (error) return <Title style={{ color: '#c00' }}>{errorToDisplay(error)}</Title>;
   if (!data) return null;
 
   const { bookings = {} as any, users = {} as any } = data;
