@@ -36,7 +36,7 @@ const Spinner = styled.div`
   width: 40px;
   height: 40px;
   border: 3px solid #e5e7eb;
-  border-top-color: #667eea;
+  border-top-color: #F6885C;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin: 0 auto 1rem;
@@ -50,7 +50,7 @@ const BackButton = styled.button`
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
   color: white;
   border: none;
   border-radius: 10px;

@@ -54,7 +54,7 @@ const NavItem = styled(NavLink)`
   &.active {
     background: rgba(102, 126, 234, 0.3);
     color: white;
-    border-left: 3px solid #667eea;
+    border-left: 3px solid #F6885C;
   }
   &:hover:not(.active) {
     background: rgba(255,255,255,0.08);

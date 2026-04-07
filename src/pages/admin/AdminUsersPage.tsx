@@ -21,12 +21,12 @@ const FilterBtn = styled.button<{ $active?: boolean }>`
   padding: 0.5rem 1rem;
   border-radius: 8px;
   border: 1px solid #ddd;
-  background: ${p => p.$active ? '#667eea' : 'white'};
+  background: ${p => p.$active ? '#F6885C' : 'white'};
   color: ${p => p.$active ? 'white' : '#333'};
   cursor: pointer;
   font-size: 0.9rem;
   &:hover {
-    background: ${p => p.$active ? '#5a6fd8' : '#f5f5f5'};
+    background: ${p => p.$active ? '#ED733A' : '#f5f5f5'};
   }
 `;
 
@@ -77,13 +77,13 @@ const Select = styled.select`
 const DocBtn = styled.button`
   padding: 0.4rem 0.75rem;
   border-radius: 6px;
-  border: 1px solid #667eea;
-  background: #667eea;
+  border: 1px solid #F6885C;
+  background: #F6885C;
   color: white;
   font-size: 0.85rem;
   cursor: pointer;
   &:hover {
-    background: #5a6fd8;
+    background: #ED733A;
   }
 `;
 

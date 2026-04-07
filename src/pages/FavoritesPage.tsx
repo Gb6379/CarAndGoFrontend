@@ -53,7 +53,7 @@ const CarIllustration = styled.div`
 
   svg {
     font-size: 120px;
-    color: #8B5CF6;
+    color: #ea580c;
     opacity: 0.8;
   }
 
@@ -62,7 +62,7 @@ const CarIllustration = styled.div`
     position: absolute;
     width: 180px;
     height: 180px;
-    border: 2px dashed #8B5CF6;
+    border: 2px dashed #ea580c;
     border-radius: 50%;
     opacity: 0.3;
   }
@@ -136,7 +136,7 @@ const FindFavoritesButton = styled.button`
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: #8B5CF6;
+    border-color: #ea580c;
     background: #fafafa;
   }
 
@@ -185,7 +185,7 @@ const VehicleImage = styled.div`
   align-items: center;
   justify-content: center;
   font-size: 3rem;
-  color: #8B5CF6;
+  color: #ea580c;
   position: relative;
   overflow: hidden;
 
@@ -335,7 +335,7 @@ const FavoritesPage: React.FC = () => {
                 <VehicleTitle>{vehicle.make} {vehicle.model} {vehicle.year}</VehicleTitle>
                 <VehicleRatingRow>
                   <VehicleRating>
-                    <Star size={16} color="#8B5CF6" />
+                    <Star size={16} color="#ea580c" />
                     {vehicle.rating?.toFixed(2) || '4.9'}
                   </VehicleRating>
                   <VehicleTrips>({vehicle.totalBookings || 0} viagens)</VehicleTrips>

@@ -12,7 +12,7 @@ const PageContainer = styled.div`
 `;
 
 const Hero = styled.section`
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #F6885C, #D95128);
   color: #fff;
   border-radius: 14px;
   padding: 2rem;
@@ -76,7 +76,7 @@ const Input = styled.input`
 
   &:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #F6885C;
     box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.12);
   }
 `;
@@ -91,7 +91,7 @@ const Select = styled.select`
 
   &:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #F6885C;
     box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.12);
   }
 `;
@@ -104,8 +104,8 @@ const Info = styled.p`
 
 const ResultBox = styled.div`
   margin-top: 1rem;
-  background: #f7f9ff;
-  border: 1px solid #dce4ff;
+  background: #fffaf5;
+  border: 1px solid #ffdcc8;
   border-radius: 10px;
   padding: 1rem;
 `;
@@ -119,12 +119,12 @@ const ResultValue = styled.div`
   margin-top: 0.2rem;
   font-size: 1.6rem;
   font-weight: 700;
-  color: #2a3470;
+  color: #7c2d12;
 `;
 
 const Breakdown = styled.div`
   margin-top: 0.6rem;
-  color: #4b5684;
+  color: #9a3412;
   font-size: 0.93rem;
   line-height: 1.5;
 `;
@@ -152,12 +152,12 @@ const ActionButton = styled.button`
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  background: #667eea;
+  background: #F6885C;
   color: #fff;
   transition: background 0.2s, transform 0.2s;
 
   &:hover:not(:disabled) {
-    background: #5a6fd8;
+    background: #ED733A;
     transform: translateY(-1px);
   }
 
@@ -170,18 +170,18 @@ const ActionButton = styled.button`
 const SecondaryActionButton = styled.button`
   width: 100%;
   margin-top: 0.6rem;
-  border: 1px solid #ccd6ff;
+  border: 1px solid #fec89a;
   border-radius: 10px;
   padding: 0.85rem 1.1rem;
   font-size: 0.98rem;
   font-weight: 700;
   cursor: pointer;
-  background: #eef2ff;
-  color: #3647a6;
+  background: #fff4ed;
+  color: #9a3412;
   transition: background 0.2s;
 
   &:hover {
-    background: #e2e9ff;
+    background: #ffedd5;
   }
 `;
 

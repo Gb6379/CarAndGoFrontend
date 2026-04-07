@@ -10,7 +10,7 @@ const Container = styled.div`
 `;
 
 const Hero = styled.section`
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #F6885C, #D95128);
   color: #fff;
   border-radius: 16px;
   padding: 2.25rem;
@@ -41,7 +41,7 @@ const Steps = styled.div`
 
 const StepCard = styled.div`
   background: #fff;
-  border: 1px solid #e8ecf5;
+  border: 1px solid #ffe8dc;
   border-radius: 12px;
   padding: 1rem;
   color: #222;
@@ -76,11 +76,11 @@ const PrimaryButton = styled.button`
   font-weight: 700;
   cursor: pointer;
   background: #fff;
-  color: #3445a8;
+  color: #9a3412;
   transition: transform 0.2s, background 0.2s;
 
   &:hover {
-    background: #f2f5ff;
+    background: #fff4ed;
     transform: translateY(-1px);
   }
 `;

@@ -27,14 +27,14 @@ const Tab = styled.button<{ active: boolean }>`
   padding: 1rem 2rem;
   border: none;
   background: none;
-  color: ${props => props.active ? '#667eea' : '#666'};
-  border-bottom: 2px solid ${props => props.active ? '#667eea' : 'transparent'};
+  color: ${props => props.active ? '#F6885C' : '#666'};
+  border-bottom: 2px solid ${props => props.active ? '#F6885C' : 'transparent'};
   cursor: pointer;
   font-weight: 600;
   transition: all 0.3s;
 
   &:hover {
-    color: #667eea;
+    color: #F6885C;
   }
 `;
 
@@ -101,7 +101,7 @@ const CarInfo = styled.div`
 const CarImage = styled.div`
   width: 100px;
   height: 70px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #F6885C, #D95128);
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -185,9 +185,9 @@ const ActionButton = styled.button<{ variant?: 'primary' | 'secondary' | 'danger
     switch(props.variant) {
       case 'primary':
         return `
-          background: #667eea;
+          background: #F6885C;
           color: white;
-          &:hover { background: #5a6fd8; }
+          &:hover { background: #ED733A; }
         `;
       case 'danger':
         return `

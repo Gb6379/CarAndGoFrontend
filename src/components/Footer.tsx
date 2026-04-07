@@ -56,7 +56,7 @@ const FooterSection = styled.div`
     transition: color 0.3s ease;
     
     &:hover {
-      color: #667eea;
+      color: #F6885C;
     }
   }
 `;
@@ -95,7 +95,7 @@ const SocialLink = styled.a`
   transition: all 0.3s ease;
   
   &:hover {
-    background: #667eea;
+    background: #F6885C;
     transform: translateY(-2px);
   }
 `;
@@ -135,7 +135,7 @@ const LegalLinks = styled.div`
     font-size: 0.9rem;
     
     &:hover {
-      color: #667eea;
+      color: #F6885C;
     }
   }
 `;

@@ -564,8 +564,8 @@ const TabsContainer = styled.div`
 
 const Tab = styled.button<{ active: boolean }>`
   padding: 1rem 2.5rem;
-  border: 2px solid ${props => props.active ? '#667eea' : '#e0e0e0'};
-  background: ${props => props.active ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'white'};
+  border: 2px solid ${props => props.active ? '#F6885C' : '#e0e0e0'};
+  background: ${props => props.active ? 'linear-gradient(135deg, #F6885C 0%, #D95128 100%)' : 'white'};
   color: ${props => props.active ? 'white' : '#666'};
   border-radius: 12px;
   cursor: pointer;
@@ -575,8 +575,8 @@ const Tab = styled.button<{ active: boolean }>`
   box-shadow: ${props => props.active ? '0 4px 12px rgba(102, 126, 234, 0.3)' : '0 1px 3px rgba(0,0,0,0.05)'};
 
   &:hover {
-    border-color: #667eea;
-    background: ${props => props.active ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#f5f5f5'};
+    border-color: #F6885C;
+    background: ${props => props.active ? 'linear-gradient(135deg, #F6885C 0%, #D95128 100%)' : '#f5f5f5'};
     transform: translateY(-2px);
     box-shadow: ${props => props.active ? '0 6px 16px rgba(102, 126, 234, 0.35)' : '0 4px 12px rgba(0,0,0,0.08)'};
   }
@@ -613,7 +613,7 @@ const StepCard = styled.div`
 const StepNumber = styled.div`
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #F6885C, #D95128);
   color: white;
   border-radius: 50%;
   display: flex;
@@ -665,7 +665,7 @@ const SectionTitleWithArrow = styled.h2`
   transition: color 0.2s ease;
 
   &:hover {
-    color: #8B5CF6;
+    color: #ea580c;
   }
 `;
 
@@ -733,7 +733,7 @@ const CarImage = styled.div`
   align-items: center;
   justify-content: center;
   font-size: 3rem;
-  color: #8B5CF6;
+  color: #ea580c;
   position: relative;
   overflow: hidden;
 
@@ -804,8 +804,8 @@ const CarPrice = styled.div`
 
 const ViewAllButton = styled.button`
   background: transparent;
-  border: 2px solid #667eea;
-  color: #667eea;
+  border: 2px solid #F6885C;
+  color: #F6885C;
   padding: 1.125rem 2.5rem;
   border-radius: 12px;
   cursor: pointer;
@@ -816,7 +816,7 @@ const ViewAllButton = styled.button`
   margin: 4rem auto 0;
 
   &:hover {
-    background: #667eea;
+    background: #F6885C;
     color: white;
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(102, 126, 234, 0.25);
@@ -865,7 +865,7 @@ const TrustDescription = styled.p`
 // CTA Section
 const CTASection = styled.section`
   padding: 6rem 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
   color: white;
   text-align: center;
 `;
@@ -931,7 +931,7 @@ const CarsGridSection = styled.section`
 
 const CTAButton = styled.button`
   background: white;
-  color: #667eea;
+  color: #F6885C;
   border: none;
   padding: 1.25rem 3rem;
   font-size: 1.2rem;
@@ -946,7 +946,7 @@ const CTAButton = styled.button`
     background: #f8f9fa;
     transform: translateY(-3px);
     box-shadow: 0 12px 30px rgba(0,0,0,0.25);
-    color: #5568d3;
+    color: #c2410c;
   }
 
   &:active {
@@ -961,7 +961,7 @@ const CTAButton = styled.button`
 
 // Lessor home – painel administrativo
 const LessorHero = styled.section`
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
   color: white;
   padding: 3rem 2rem;
   text-align: center;
@@ -1006,13 +1006,13 @@ const LessorStatIcon = styled.div`
   margin-bottom: 0.5rem;
   display: flex;
   justify-content: center;
-  color: #667eea;
+  color: #F6885C;
 `;
 
 const LessorStatNumber = styled.div`
   font-size: 1.75rem;
   font-weight: 700;
-  color: #667eea;
+  color: #F6885C;
   margin-bottom: 0.25rem;
 `;
 
@@ -1045,7 +1045,7 @@ const LessorActionCard = styled.button`
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 
   &:hover {
-    border-color: #667eea;
+    border-color: #F6885C;
     box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
     transform: translateY(-2px);
   }
@@ -1055,7 +1055,7 @@ const LessorActionIcon = styled.div`
   width: 48px;
   height: 48px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
   color: white;
   display: flex;
   align-items: center;
@@ -1116,7 +1116,7 @@ const LessorVehicleCardMeta = styled.div`
 
 const LessorVehicleCardPrice = styled.div`
   font-weight: 700;
-  color: #667eea;
+  color: #F6885C;
   font-size: 1rem;
   margin-bottom: 1rem;
 `;
@@ -1134,9 +1134,9 @@ const LessorCardBtn = styled.button<{ $primary?: boolean }>`
   font-weight: 500;
   cursor: pointer;
   border: 1px solid #ddd;
-  background: ${p => p.$primary ? '#667eea' : 'white'};
+  background: ${p => p.$primary ? '#F6885C' : 'white'};
   color: ${p => p.$primary ? 'white' : '#333'};
-  &:hover { background: ${p => p.$primary ? '#5a6fd8' : '#f8f9fa'}; }
+  &:hover { background: ${p => p.$primary ? '#ED733A' : '#f8f9fa'}; }
 `;
 
 const LessorBookingCard = styled.div`
@@ -1155,7 +1155,7 @@ const LessorBookingCard = styled.div`
 `;
 
 const LessorBookingCardLink = styled.span`
-  color: #667eea;
+  color: #F6885C;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -1222,7 +1222,7 @@ const LessorModalAddress = styled.div`
   border-radius: 8px;
   padding: 1rem 1.25rem;
   margin-bottom: 1rem;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #F6885C;
 `;
 
 const LessorModalAddressLine = styled.p`
@@ -1259,7 +1259,7 @@ const LessorProfileLabel = styled.span`
 const LessorProfileValue = styled.span`
   font-size: 1rem;
   color: #333;
-  a { color: #667eea; text-decoration: none; &:hover { text-decoration: underline; } }
+  a { color: #F6885C; text-decoration: none; &:hover { text-decoration: underline; } }
 `;
 
 const LessorHomeView: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
@@ -1328,7 +1328,7 @@ const LessorHomeView: React.FC<{ navigate: (path: string) => void }> = ({ naviga
 
   const getStatusColor = (status: string) => {
     const colorMap: { [key: string]: string } = {
-      'pending': '#f59e0b', 'confirmed': '#10b981', 'awaiting_return': '#8b5cf6', 'active': '#3b82f6',
+      'pending': '#f59e0b', 'confirmed': '#10b981', 'awaiting_return': '#ea580c', 'active': '#F6885C',
       'completed': '#6b7280', 'cancelled': '#ef4444', 'rejected': '#ef4444', 'expired': '#9ca3af'
     };
     return colorMap[status?.toLowerCase()] || '#6b7280';
@@ -2071,7 +2071,7 @@ const HomePage: React.FC = () => {
               type="button"
               onClick={() => navigate('/vehicles')}
               style={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                background: 'linear-gradient(135deg, #F6885C 0%, #D95128 100%)',
                 color: 'white',
                 border: 'none',
                 padding: '0.75rem 1.5rem',
@@ -2090,7 +2090,7 @@ const HomePage: React.FC = () => {
               type="button"
               onClick={() => navigate('/vehicles')}
               style={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                background: 'linear-gradient(135deg, #F6885C 0%, #D95128 100%)',
                 color: 'white',
                 border: 'none',
                 padding: '0.75rem 1.5rem',
@@ -2119,7 +2119,7 @@ const HomePage: React.FC = () => {
                   <CarTitle>{car.title}</CarTitle>
                   <CarRatingRow>
                     <CarRating>
-                      <Star size={16} color="#8B5CF6" />
+                      <Star size={16} color="#ea580c" />
                       {car.rating}
                     </CarRating>
                     <CarTrips>({car.trips} viagens)</CarTrips>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Favorite, FavoriteBorder } from '@mui/icons-material';
@@ -36,7 +36,7 @@ const carMarkerIcon = L.divIcon({
   html: `<div style="
     width: 36px; height: 36px;
     display: flex; align-items: center; justify-content: center;
-    background: #667eea; border-radius: 50%;
+    background: #F6885C; border-radius: 50%;
     border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   "><svg width="20" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg></div>`,
   iconSize: [36, 36],
@@ -94,7 +94,7 @@ const FilterTitle = styled.h3`
 const ClearFiltersButton = styled.button`
   background: none;
   border: none;
-  color: #667eea;
+  color: #F6885C;
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 500;
@@ -157,7 +157,7 @@ const FilterInput = styled.input`
   
   &:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #F6885C;
   }
 `;
 
@@ -171,7 +171,7 @@ const FilterSelect = styled.select`
   
   &:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #F6885C;
   }
 `;
 
@@ -191,8 +191,8 @@ const QuickFilterButtons = styled.div`
 
 const QuickFilterButton = styled.button<{ active?: boolean }>`
   padding: 0.5rem 1rem;
-  border: 2px solid ${props => props.active ? '#667eea' : '#e9ecef'};
-  background: ${props => props.active ? '#667eea' : 'white'};
+  border: 2px solid ${props => props.active ? '#F6885C' : '#e9ecef'};
+  background: ${props => props.active ? '#F6885C' : 'white'};
   color: ${props => props.active ? 'white' : '#666'};
   border-radius: 20px;
   cursor: pointer;
@@ -200,8 +200,8 @@ const QuickFilterButton = styled.button<{ active?: boolean }>`
   transition: all 0.3s;
 
   &:hover {
-    border-color: #667eea;
-    background: ${props => props.active ? '#5a6fd8' : '#f8f9fa'};
+    border-color: #F6885C;
+    background: ${props => props.active ? '#ED733A' : '#f8f9fa'};
   }
 `;
 
@@ -225,7 +225,7 @@ const FilterCheckbox = styled.label`
   
   &:hover {
     span {
-      color: #667eea;
+      color: #F6885C;
     }
   }
 `;
@@ -272,6 +272,19 @@ const SortSelect = styled.select`
   color: #333;
 `;
 
+const ListRefreshNotice = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  color: #555;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+`;
+
 const CarsGrid = styled.div`
   display: grid;
   gap: 1.5rem;
@@ -292,7 +305,7 @@ const CarCard = styled.div`
 
 const CarImage = styled.div`
   height: 200px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #F6885C, #D95128);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -320,8 +333,8 @@ const CarBadge = styled.div<{ type: string }>`
     switch(props.type) {
       case 'electric': return '#4CAF50';
       case 'premium': return '#FF9800';
-      case 'economy': return '#2196F3';
-      default: return '#667eea';
+      case 'economy': return '#F6885C';
+      default: return '#F6885C';
     }
   }};
   color: white;
@@ -336,7 +349,7 @@ const FavoriteIconButton = styled.button`
   border-radius: 50%;
   border: none;
   background: rgba(255,255,255,0.95);
-  color: #8B5CF6;
+  color: #ea580c;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -348,7 +361,7 @@ const FavoriteIconButton = styled.button`
   &:hover {
     background: white;
     transform: scale(1.08);
-    color: #7c3aed;
+    color: #c2410c;
   }
 
   svg {
@@ -422,15 +435,15 @@ const MonthlyButton = styled.button`
   width: 100%;
   padding: 0.65rem 0.9rem;
   border-radius: 8px;
-  border: 1px solid #c9d5ff;
-  background: #eef2ff;
-  color: #3647a6;
+  border: 1px solid #fdba74;
+  background: #fff4ed;
+  color: #9a3412;
   font-weight: 700;
   cursor: pointer;
   transition: background 0.2s, transform 0.2s;
 
   &:hover {
-    background: #e2e9ff;
+    background: #ffedd5;
     transform: translateY(-1px);
   }
 `;
@@ -506,7 +519,7 @@ const LocationInput = styled.input`
   
   &:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #F6885C;
   }
 `;
 
@@ -516,7 +529,7 @@ const SuggestionsDropdown = styled.div`
   left: 0;
   right: 0;
   background: white;
-  border: 2px solid #667eea;
+  border: 2px solid #F6885C;
   border-top: none;
   border-radius: 0 0 8px 8px;
   max-height: 300px;
@@ -555,7 +568,7 @@ const SuggestionDetails = styled.div`
 const SuggestionType = styled.span`
   display: inline-block;
   padding: 0.125rem 0.5rem;
-  background: #667eea;
+  background: #F6885C;
   color: white;
   border-radius: 12px;
   font-size: 0.75rem;
@@ -564,7 +577,7 @@ const SuggestionType = styled.span`
 
 const SearchButton = styled.button<{ searching?: boolean }>`
   padding: 0.75rem 1.5rem;
-  background: ${props => props.searching ? '#ccc' : '#667eea'};
+  background: ${props => props.searching ? '#ccc' : '#F6885C'};
   color: white;
   border: none;
   border-radius: 8px;
@@ -575,7 +588,7 @@ const SearchButton = styled.button<{ searching?: boolean }>`
   transition: all 0.3s;
 
   &:hover {
-    background: ${props => props.searching ? '#ccc' : '#5a6fd8'};
+    background: ${props => props.searching ? '#ccc' : '#ED733A'};
   }
 `;
 
@@ -585,6 +598,18 @@ const VehicleListPage: React.FC = () => {
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const defaultListFilters = {
+    vehicleType: 'all' as string,
+    makeModel: 'all',
+    year: 'all',
+    seats: 'all',
+    electric: false,
+    minPrice: '',
+    maxPrice: '',
+    transmissionManual: false,
+    transmissionAutomatic: false,
+  };
+
   const [filters, setFilters] = useState<{
     [key: string]: string | boolean;
     vehicleType: string;
@@ -594,16 +619,11 @@ const VehicleListPage: React.FC = () => {
     electric: boolean;
     minPrice: string;
     maxPrice: string;
-  }>({
-    vehicleType: 'all',
-    makeModel: 'all',
-    year: 'all',
-    seats: 'all',
-    electric: false,
-    minPrice: '',
-    maxPrice: ''
-  });
+    transmissionManual: boolean;
+    transmissionAutomatic: boolean;
+  }>(defaultListFilters);
   const [sortBy, setSortBy] = useState('price');
+  const [listRefreshing, setListRefreshing] = useState(false);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const isLoggedIn = !!localStorage.getItem('token');
   const userData = JSON.parse(localStorage.getItem('user') || '{}');
@@ -644,6 +664,10 @@ const VehicleListPage: React.FC = () => {
   const fromDate = searchParams.get('from') || '';
   const untilDate = searchParams.get('until') || '';
   const age = searchParams.get('age') || '25';
+
+  const isFirstFilterEffect = useRef(true);
+  const ignoreNextFilterEffect = useRef(false);
+  const silentRequestsInFlight = useRef(0);
 
   // Ao mudar a URL, atualizar estado e buscar com a localização da URL (evitar 1ª busca com state vazio)
   useEffect(() => {
@@ -809,30 +833,55 @@ const VehicleListPage: React.FC = () => {
     }
   };
 
-  const loadVehicles = async (locationOverride?: string) => {
+  const loadVehicles = async (
+    locationOverride?: string,
+    filtersOverride?: typeof filters,
+    opts?: { silent?: boolean },
+  ) => {
     const locationToUse = locationOverride !== undefined && locationOverride !== null ? locationOverride : currentSearchLocation;
+    const filtersToUse = filtersOverride ?? filters;
+    const silent = opts?.silent === true;
+    if (silent) {
+      silentRequestsInFlight.current += 1;
+      setListRefreshing(true);
+    }
     try {
-      setLoading(true);
+      if (!silent) {
+        setLoading(true);
+      }
       setError(null);
       
       console.log('Loading vehicles with filters:', {
         location: locationToUse,
         fromDate,
         untilDate,
-        filters,
+        filters: filtersToUse,
         sortBy,
         userLocation
       });
       
       // Prepare search filters (usar local da URL na primeira carga para evitar busca com state vazio)
-      const searchFilters = {
+      const searchFilters: Record<string, unknown> = {
         location: locationToUse,
         city: locationToUse, // Also try city parameter
         fromDate,
         untilDate,
-        ...filters,
+        ...filtersToUse,
         sortBy
       };
+
+      const minP = String(filtersToUse.minPrice ?? '').trim();
+      const maxP = String(filtersToUse.maxPrice ?? '').trim();
+      if (minP !== undefined && minP !== '' && !Number.isNaN(Number(minP))) {
+        searchFilters.minPrice = Number(minP);
+      } else {
+        delete searchFilters.minPrice;
+      }
+      if (maxP !== undefined && maxP !== '' && !Number.isNaN(Number(maxP))) {
+        searchFilters.maxPrice = Number(maxP);
+      } else {
+        delete searchFilters.maxPrice;
+      }
 
       // Add user coordinates if available
       if (userLocation) {
@@ -872,9 +921,33 @@ const VehicleListPage: React.FC = () => {
       setError('Falha ao carregar veículos. Tente novamente.');
       setVehicles([]);
     } finally {
-      setLoading(false);
+      if (silent) {
+        silentRequestsInFlight.current -= 1;
+        if (silentRequestsInFlight.current <= 0) {
+          silentRequestsInFlight.current = 0;
+          setListRefreshing(false);
+        }
+      } else {
+        setLoading(false);
+      }
     }
   };
+
+  /** Recarrega a lista quando filtros ou ordenação mudam (debounce para digitação de preço). */
+  useEffect(() => {
+    if (isFirstFilterEffect.current) {
+      isFirstFilterEffect.current = false;
+      return;
+    }
+    if (ignoreNextFilterEffect.current) {
+      ignoreNextFilterEffect.current = false;
+      return;
+    }
+    const id = window.setTimeout(() => {
+      loadVehicles(undefined, undefined, { silent: true });
+    }, 400);
+    return () => window.clearTimeout(id);
+  }, [filters, sortBy]);
 
   const handleCarClick = (carId: string) => {
     // Pass search dates to vehicle detail page
@@ -907,16 +980,10 @@ const VehicleListPage: React.FC = () => {
   };
 
   const clearAllFilters = () => {
-    setFilters({
-      vehicleType: 'all',
-      makeModel: 'all',
-      year: 'all',
-      seats: 'all',
-      electric: false,
-      minPrice: '',
-      maxPrice: ''
-    });
-    loadVehicles();
+    const cleared = { ...defaultListFilters };
+    ignoreNextFilterEffect.current = true;
+    setFilters(cleared);
+    loadVehicles(undefined, cleared);
   };
 
   const getVehicleTitle = (vehicle: any) => {
@@ -1146,16 +1213,40 @@ const VehicleListPage: React.FC = () => {
                 </YearPriceGrid>
                 <div style={{ marginTop: '0.75rem', marginBottom: '0.5rem', color: '#666', fontSize: '0.85rem' }}>Ou escolha uma faixa de diária</div>
                 <QuickFilterButtons>
-                  <QuickFilterButton onClick={() => { handleFilterChange('minPrice', ''); handleFilterChange('maxPrice', '100'); }}>
+                  <QuickFilterButton
+                    type="button"
+                    active={filters.minPrice === '' && filters.maxPrice === '100'}
+                    onClick={() =>
+                      setFilters((prev) => ({ ...prev, minPrice: '', maxPrice: '100' }))
+                    }
+                  >
                     Até R$ 100/dia
                   </QuickFilterButton>
-                  <QuickFilterButton onClick={() => { handleFilterChange('minPrice', ''); handleFilterChange('maxPrice', '200'); }}>
+                  <QuickFilterButton
+                    type="button"
+                    active={filters.minPrice === '' && filters.maxPrice === '200'}
+                    onClick={() =>
+                      setFilters((prev) => ({ ...prev, minPrice: '', maxPrice: '200' }))
+                    }
+                  >
                     Até R$ 200/dia
                   </QuickFilterButton>
-                  <QuickFilterButton onClick={() => { handleFilterChange('minPrice', ''); handleFilterChange('maxPrice', '300'); }}>
+                  <QuickFilterButton
+                    type="button"
+                    active={filters.minPrice === '' && filters.maxPrice === '300'}
+                    onClick={() =>
+                      setFilters((prev) => ({ ...prev, minPrice: '', maxPrice: '300' }))
+                    }
+                  >
                     Até R$ 300/dia
                   </QuickFilterButton>
-                  <QuickFilterButton onClick={() => { handleFilterChange('minPrice', ''); handleFilterChange('maxPrice', '500'); }}>
+                  <QuickFilterButton
+                    type="button"
+                    active={filters.minPrice === '' && filters.maxPrice === '500'}
+                    onClick={() =>
+                      setFilters((prev) => ({ ...prev, minPrice: '', maxPrice: '500' }))
+                    }
+                  >
                     Até R$ 500/dia
                   </QuickFilterButton>
                 </QuickFilterButtons>
@@ -1172,11 +1263,23 @@ const VehicleListPage: React.FC = () => {
             <FilterSectionContent isOpen={openSections.transmission}>
               <FilterGroup>
                 <FilterCheckbox>
-                  <input type="checkbox" />
+                  <input
+                    type="checkbox"
+                    checked={filters.transmissionManual}
+                    onChange={() =>
+                      handleFilterChange('transmissionManual', !filters.transmissionManual)
+                    }
+                  />
                   <span>Manual</span>
                 </FilterCheckbox>
                 <FilterCheckbox>
-                  <input type="checkbox" />
+                  <input
+                    type="checkbox"
+                    checked={filters.transmissionAutomatic}
+                    onChange={() =>
+                      handleFilterChange('transmissionAutomatic', !filters.transmissionAutomatic)
+                    }
+                  />
                   <span>Automático</span>
                 </FilterCheckbox>
               </FilterGroup>
@@ -1228,6 +1331,13 @@ const VehicleListPage: React.FC = () => {
               <option value="distance">Distância (próximo para longe)</option>
             </SortSelect>
           </CarsHeader>
+
+          {listRefreshing && (
+            <ListRefreshNotice role="status" aria-live="polite">
+              <Loading size={16} />
+              Atualizando resultados…
+            </ListRefreshNotice>
+          )}
 
           {error && (
             <div style={{ 
@@ -1353,7 +1463,7 @@ const VehicleListPage: React.FC = () => {
                             <button
                               onClick={() => handleCarClick(vehicle.id)}
                               style={{
-                                background: '#667eea',
+                                background: '#F6885C',
                                 color: 'white',
                                 border: 'none',
                                 padding: '0.5rem 1rem',

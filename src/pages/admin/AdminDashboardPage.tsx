@@ -23,7 +23,7 @@ const StatCard = styled.div<{ $color?: string; $clickable?: boolean }>`
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-  border-left: 4px solid ${p => p.$color || '#667eea'};
+  border-left: 4px solid ${p => p.$color || '#F6885C'};
   ${p => p.$clickable && `
     cursor: pointer;
     transition: transform 0.15s, box-shadow 0.15s;
@@ -95,7 +95,7 @@ const AdminDashboardPage: React.FC = () => {
       <Section>
         <SectionTitle>Usuários</SectionTitle>
         <StatsGrid>
-          <StatCard $color="#667eea" $clickable onClick={() => goToUsers()} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && goToUsers()}>
+          <StatCard $color="#F6885C" $clickable onClick={() => goToUsers()} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && goToUsers()}>
             <StatLabel><People size={14} /> Total de usuários</StatLabel>
             <StatValue>{users.totalUsers ?? 0}</StatValue>
           </StatCard>
@@ -103,7 +103,7 @@ const AdminDashboardPage: React.FC = () => {
             <StatLabel>Locadores</StatLabel>
             <StatValue>{users.lessors ?? 0}</StatValue>
           </StatCard>
-          <StatCard $color="#3b82f6" $clickable onClick={() => goToUsers('lessee')} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && goToUsers('lessee')}>
+          <StatCard $color="#F6885C" $clickable onClick={() => goToUsers('lessee')} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && goToUsers('lessee')}>
             <StatLabel>Locatários</StatLabel>
             <StatValue>{users.lessees ?? 0}</StatValue>
           </StatCard>
@@ -121,7 +121,7 @@ const AdminDashboardPage: React.FC = () => {
             <StatLabel><Timer size={14} /> Pendentes</StatLabel>
             <StatValue>{bookings.pendingBookings ?? 0}</StatValue>
           </StatCard>
-          <StatCard $color="#3b82f6" $clickable onClick={() => goToBookings('active')} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && goToBookings('active')}>
+          <StatCard $color="#F6885C" $clickable onClick={() => goToBookings('active')} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && goToBookings('active')}>
             <StatLabel><TrendingUp size={14} /> Ativas</StatLabel>
             <StatValue>{bookings.activeBookings ?? 0}</StatValue>
           </StatCard>
@@ -133,7 +133,7 @@ const AdminDashboardPage: React.FC = () => {
             <StatLabel><ErrorIcon size={14} /> Canceladas</StatLabel>
             <StatValue>{bookings.cancelledBookings ?? 0}</StatValue>
           </StatCard>
-          <StatCard $color="#8b5cf6" $clickable onClick={() => goToBookings()} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && goToBookings()}>
+          <StatCard $color="#ea580c" $clickable onClick={() => goToBookings()} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && goToBookings()}>
             <StatLabel><Money size={14} /> Receita (R$)</StatLabel>
             <StatValue>{Number(bookings.totalRevenue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</StatValue>
           </StatCard>

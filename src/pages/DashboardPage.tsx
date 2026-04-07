@@ -40,14 +40,14 @@ const TabContainer = styled.div`
 const Tab = styled.button<{ active: boolean }>`
   padding: 1rem 2rem;
   border: none;
-  background: ${props => props.active ? '#667eea' : 'transparent'};
+  background: ${props => props.active ? '#F6885C' : 'transparent'};
   color: ${props => props.active ? 'white' : '#666'};
   border-radius: 8px 8px 0 0;
   cursor: pointer;
   transition: all 0.3s;
   
   &:hover {
-    background: ${props => props.active ? '#5a6fd8' : '#f0f0f0'};
+    background: ${props => props.active ? '#ED733A' : '#f0f0f0'};
   }
 `;
 
@@ -66,7 +66,7 @@ const StatsGrid = styled.div`
 `;
 
 const StatCard = styled.div`
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
   color: white;
   padding: 1.5rem;
   border-radius: 10px;
@@ -103,7 +103,7 @@ const FavoriteCard = styled.div`
 
 const FavoriteCardImage = styled.div`
   height: 140px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -130,7 +130,7 @@ const FavoriteCardMeta = styled.div`
 
 const FavoriteCardPrice = styled.div`
   font-weight: 700;
-  color: #667eea;
+  color: #F6885C;
   font-size: 1rem;
 `;
 
@@ -192,7 +192,7 @@ const ModalAddress = styled.div`
   border-radius: 8px;
   padding: 1rem 1.25rem;
   margin-bottom: 1rem;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #F6885C;
 `;
 
 const ModalAddressLine = styled.p`
@@ -225,7 +225,7 @@ const BookingCardActions = styled.div`
 `;
 
 const BookingCardLink = styled.span`
-  color: #667eea;
+  color: #F6885C;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -264,7 +264,7 @@ const MyVehicleCardMeta = styled.div`
 
 const MyVehicleCardPrice = styled.div`
   font-weight: 700;
-  color: #667eea;
+  color: #F6885C;
   font-size: 1rem;
   margin-bottom: 1rem;
 `;
@@ -282,10 +282,10 @@ const MyVehicleCardBtn = styled.button<{ $primary?: boolean }>`
   font-weight: 500;
   cursor: pointer;
   border: 1px solid #ddd;
-  background: ${p => p.$primary ? '#667eea' : 'white'};
+  background: ${p => p.$primary ? '#F6885C' : 'white'};
   color: ${p => p.$primary ? 'white' : '#333'};
   &:hover {
-    background: ${p => p.$primary ? '#5a6fd8' : '#f8f9fa'};
+    background: ${p => p.$primary ? '#ED733A' : '#f8f9fa'};
   }
 `;
 
@@ -308,7 +308,7 @@ const LesseeProfileLabel = styled.span`
 const LesseeProfileValue = styled.span`
   font-size: 1rem;
   color: #333;
-  a { color: #667eea; text-decoration: none; &:hover { text-decoration: underline; } }
+  a { color: #F6885C; text-decoration: none; &:hover { text-decoration: underline; } }
 `;
 
 const DashboardPage: React.FC = () => {
@@ -529,9 +529,9 @@ const DashboardPage: React.FC = () => {
             {/* Show different stats based on user type */}
             {user?.userType === 'both' ? (
               <>
-                <h3 style={{ marginTop: '1.5rem', marginBottom: '1rem', color: '#667eea' }}>Como Locatário</h3>
+                <h3 style={{ marginTop: '1.5rem', marginBottom: '1rem', color: '#F6885C' }}>Como Locatário</h3>
                 {renderLesseeStats()}
-                <h3 style={{ marginTop: '2rem', marginBottom: '1rem', color: '#764ba2' }}>Como Locador</h3>
+                <h3 style={{ marginTop: '2rem', marginBottom: '1rem', color: '#D95128' }}>Como Locador</h3>
                 {renderLessorStats()}
               </>
             ) : isLessor ? (
@@ -610,8 +610,8 @@ const DashboardPage: React.FC = () => {
           const colorMap: { [key: string]: string } = {
             'pending': '#f59e0b',
             'confirmed': '#10b981',
-            'awaiting_return': '#8b5cf6',
-            'active': '#3b82f6',
+            'awaiting_return': '#ea580c',
+            'active': '#F6885C',
             'completed': '#6b7280',
             'cancelled': '#ef4444',
             'rejected': '#ef4444',
@@ -799,7 +799,7 @@ const DashboardPage: React.FC = () => {
                   style={{
                     marginTop: '1rem',
                     padding: '0.75rem 1.5rem',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    background: 'linear-gradient(135deg, #F6885C 0%, #D95128 100%)',
                     color: 'white',
                     border: 'none',
                     borderRadius: '8px',

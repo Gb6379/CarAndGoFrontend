@@ -52,7 +52,7 @@ const StatusBadge = styled.span<{ status: string }>`
   background: ${props => {
     switch(props.status?.toLowerCase()) {
       case 'confirmed': return '#dcfce7';
-      case 'active': return '#dbeafe';
+      case 'active': return '#ffedd5';
       case 'awaiting_return': return '#ede9fe';
       case 'completed': return '#d1fae5';
       case 'pending': return '#fef3c7';
@@ -65,7 +65,7 @@ const StatusBadge = styled.span<{ status: string }>`
     switch(props.status?.toLowerCase()) {
       case 'confirmed': return '#166534';
       case 'active': return '#1e40af';
-      case 'awaiting_return': return '#7c3aed';
+      case 'awaiting_return': return '#c2410c';
       case 'completed': return '#065f46';
       case 'pending': return '#92400e';
       case 'cancelled': return '#991b1b';
@@ -115,7 +115,7 @@ const CardTitle = styled.h2`
   gap: 0.5rem;
 
   svg {
-    color: #8B5CF6;
+    color: #ea580c;
   }
 `;
 
@@ -131,7 +131,7 @@ const VehicleCard = styled(Card)`
 const VehicleImage = styled.div`
   width: 180px;
   height: 120px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -172,7 +172,7 @@ const VehicleDetail = styled.p`
 const VehiclePrice = styled.p`
   font-size: 1.1rem;
   font-weight: 600;
-  color: #8B5CF6;
+  color: #ea580c;
   margin-top: 0.75rem;
 `;
 
@@ -223,7 +223,7 @@ const TotalLabel = styled.span`
 const TotalValue = styled.span`
   font-size: 1.25rem;
   font-weight: 700;
-  color: #8B5CF6;
+  color: #ea580c;
 `;
 
 const ActionButton = styled.button<{ variant?: 'primary' | 'danger' | 'success' | 'secondary' }>`
@@ -271,7 +271,7 @@ const ActionButton = styled.button<{ variant?: 'primary' | 'danger' | 'success' 
         `;
       default:
         return `
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
           border: none;
           color: white;
           &:hover {
@@ -303,7 +303,7 @@ const OwnerAvatar = styled.div`
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -382,7 +382,7 @@ const TimelineDot = styled.div<{ active?: boolean; completed?: boolean }>`
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: ${props => props.completed ? '#10b981' : props.active ? '#8B5CF6' : '#e5e7eb'};
+  background: ${props => props.completed ? '#10b981' : props.active ? '#ea580c' : '#e5e7eb'};
   color: white;
   font-size: 12px;
 

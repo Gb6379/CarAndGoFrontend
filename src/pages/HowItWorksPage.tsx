@@ -38,7 +38,7 @@ const HeroSubtitle = styled.p`
 `;
 
 const CTAButton = styled.button`
-  background: #667eea;
+  background: #F6885C;
   color: white;
   border: none;
   padding: 1.2rem 2.5rem;
@@ -50,7 +50,7 @@ const CTAButton = styled.button`
   margin: 0 1rem;
 
   &:hover {
-    background: #5a6fd8;
+    background: #ED733A;
     transform: translateY(-2px);
   }
 `;
@@ -98,15 +98,15 @@ const Tab = styled.button<{ active: boolean }>`
   padding: 1rem 2rem;
   border: none;
   background: none;
-  color: ${props => props.active ? '#667eea' : '#666'};
-  border-bottom: 3px solid ${props => props.active ? '#667eea' : 'transparent'};
+  color: ${props => props.active ? '#F6885C' : '#666'};
+  border-bottom: 3px solid ${props => props.active ? '#F6885C' : 'transparent'};
   cursor: pointer;
   font-weight: 600;
   font-size: 1.1rem;
   transition: all 0.3s;
 
   &:hover {
-    color: #667eea;
+    color: #F6885C;
   }
 `;
 
@@ -135,7 +135,7 @@ const StepCard = styled.div`
 const StepNumber = styled.div`
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #F6885C, #D95128);
   color: white;
   border-radius: 50%;
   display: flex;
@@ -162,7 +162,7 @@ const StepDescription = styled.p`
 const StepImage = styled.div`
   width: 100%;
   height: 150px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #F6885C, #D95128);
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -218,7 +218,7 @@ const ComparisonTable = styled.div`
 `;
 
 const TableHeader = styled.div`
-  background: #667eea;
+  background: #F6885C;
   color: white;
   padding: 2rem;
   text-align: center;
@@ -295,7 +295,7 @@ const FeatureItem = styled.li`
 
   &::before {
     content: '✓';
-    color: #667eea;
+    color: #F6885C;
     font-weight: bold;
   }
 `;

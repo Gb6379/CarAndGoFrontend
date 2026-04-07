@@ -68,7 +68,7 @@ const Step = styled.button<{ active?: boolean; completed?: boolean }>`
   text-align: left;
   background: ${props => {
     if (props.completed) return '#4CAF50';
-    if (props.active) return '#667eea';
+    if (props.active) return '#F6885C';
     return '#f8f9fa';
   }};
   color: ${props => {
@@ -78,7 +78,7 @@ const Step = styled.button<{ active?: boolean; completed?: boolean }>`
   transition: all 0.3s;
 
   &:focus-visible {
-    outline: 2px solid #667eea;
+    outline: 2px solid #F6885C;
     outline-offset: 2px;
   }
 
@@ -146,7 +146,7 @@ const Input = styled.input`
 
   &:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #F6885C;
   }
 
   &::placeholder {
@@ -164,7 +164,7 @@ const Select = styled.select`
 
   &:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #F6885C;
   }
 `;
 
@@ -179,7 +179,7 @@ const TextArea = styled.textarea`
 
   &:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #F6885C;
   }
 
   &::placeholder {
@@ -221,14 +221,14 @@ const PhotoUploadSection = styled.div`
   transition: all 0.3s;
 
   &:hover {
-    border-color: #667eea;
-    background: #f0f2ff;
+    border-color: #F6885C;
+    background: #fff4ed;
   }
 `;
 
 const UploadIcon = styled.div`
   font-size: 3rem;
-  color: #667eea;
+  color: #F6885C;
   margin-bottom: 1rem;
 `;
 
@@ -238,7 +238,7 @@ const UploadText = styled.div`
 `;
 
 const UploadButton = styled.button`
-  background: #667eea;
+  background: #F6885C;
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -248,7 +248,7 @@ const UploadButton = styled.button`
   transition: all 0.3s;
 
   &:hover {
-    background: #5a6fd8;
+    background: #ED733A;
   }
 `;
 
@@ -312,7 +312,7 @@ const PhotoAngleGuide = styled.div`
   justify-content: center;
   gap: 1.5rem;
   padding: 1.25rem;
-  background: linear-gradient(135deg, #f0f2ff 0%, #e8ebfa 100%);
+  background: linear-gradient(135deg, #fff4ed 0%, #ffe4d5 100%);
   border-radius: 12px;
   margin-bottom: 1.5rem;
   border: 1px solid rgba(102, 126, 234, 0.2);
@@ -499,20 +499,20 @@ const Button = styled.button<{ variant?: 'primary' | 'secondary' }>`
 
   ${props => props.variant === 'secondary' ? `
     background: white;
-    color: #667eea;
-    border: 2px solid #667eea;
+    color: #F6885C;
+    border: 2px solid #F6885C;
     
     &:hover {
-      background: #667eea;
+      background: #F6885C;
       color: white;
     }
   ` : `
-    background: #667eea;
+    background: #F6885C;
     color: white;
     border: none;
     
     &:hover {
-      background: #5a6fd8;
+      background: #ED733A;
       transform: translateY(-2px);
     }
   `}
@@ -535,7 +535,7 @@ const ProgressBar = styled.div`
 
 const ProgressFill = styled.div<{ width: number }>`
   height: 100%;
-  background: #667eea;
+  background: #F6885C;
   width: ${props => props.width}%;
   transition: width 0.3s;
 `;

@@ -24,7 +24,7 @@ import {
 
 // Hero Section
 const HeroSection = styled.section`
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
   color: white;
   padding: 6rem 2rem 4rem;
   text-align: center;
@@ -122,7 +122,7 @@ const StatLabel = styled.div`
 
 const CTAButton = styled.button`
   background: white;
-  color: #667eea;
+  color: #F6885C;
   border: none;
   padding: 1.2rem 3rem;
   font-size: 1.2rem;
@@ -198,14 +198,14 @@ const BenefitCard = styled.div`
   &:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    border-color: #667eea;
+    border-color: #F6885C;
   }
 `;
 
 const BenefitIcon = styled.div`
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #F6885C, #D95128);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -264,7 +264,7 @@ const StepCard = styled.div`
 const StepNumber = styled.div`
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #F6885C, #D95128);
   color: white;
   border-radius: 50%;
   display: flex;
@@ -277,7 +277,7 @@ const StepNumber = styled.div`
 
 const StepIcon = styled.div`
   font-size: 2rem;
-  color: #667eea;
+  color: #F6885C;
   margin-bottom: 1rem;
 `;
 
@@ -345,7 +345,7 @@ const Input = styled.input`
 
   &:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #F6885C;
   }
 `;
 
@@ -354,7 +354,7 @@ const ResultBox = styled.div`
   padding: 2rem;
   border-radius: 12px;
   text-align: center;
-  border: 2px solid #667eea;
+  border: 2px solid #F6885C;
 `;
 
 const ResultLabel = styled.div`
@@ -366,7 +366,7 @@ const ResultLabel = styled.div`
 const ResultAmount = styled.div`
   font-size: 2.5rem;
   font-weight: 700;
-  color: #667eea;
+  color: #F6885C;
   margin-bottom: 0.5rem;
 `;
 
@@ -410,7 +410,7 @@ const TestimonialHeader = styled.div`
 const Avatar = styled.div`
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #F6885C, #D95128);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -452,7 +452,7 @@ const TestimonialEarnings = styled.div`
   margin-top: 1rem;
   padding-top: 1rem;
   border-top: 1px solid #e9ecef;
-  color: #667eea;
+  color: #F6885C;
   font-weight: 600;
 `;
 
@@ -482,7 +482,7 @@ const ProtectionCard = styled.div`
 const ProtectionIcon = styled.div`
   width: 80px;
   height: 80px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #F6885C, #D95128);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -543,7 +543,7 @@ const RequirementItem = styled.div`
 const RequirementIcon = styled.div`
   width: 40px;
   height: 40px;
-  background: #667eea;
+  background: #F6885C;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -573,7 +573,7 @@ const RequirementDescription = styled.p`
 // Final CTA Section
 const FinalCTASection = styled.section`
   padding: 6rem 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
   color: white;
   text-align: center;
 `;

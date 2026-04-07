@@ -99,12 +99,12 @@ const TabButton = styled.button<{ active: boolean }>`
   background: none;
   cursor: pointer;
   font-weight: 600;
-  color: ${props => props.active ? '#FF5A5F' : '#666'};
-  border-bottom: 2px solid ${props => props.active ? '#FF5A5F' : 'transparent'};
+  color: ${props => props.active ? '#F6885C' : '#666'};
+  border-bottom: 2px solid ${props => props.active ? '#F6885C' : 'transparent'};
   transition: all 0.2s;
 
   &:hover {
-    color: #FF5A5F;
+    color: #F6885C;
   }
 `;
 
@@ -154,7 +154,7 @@ const Input = styled.input`
 
   &:focus {
     outline: none;
-    border-color: #FF5A5F;
+    border-color: #F6885C;
   }
 
   &::placeholder {
@@ -202,12 +202,12 @@ const Select = styled.select`
 
   &:focus {
     outline: none;
-    border-color: #FF5A5F;
+    border-color: #F6885C;
   }
 `;
 
 const SubmitButton = styled.button`
-  background: #FF5A5F;
+  background: #F6885C;
   color: white;
   border: none;
   padding: 1rem;
@@ -219,7 +219,7 @@ const SubmitButton = styled.button`
   margin-top: 1rem;
 
   &:hover {
-    background: #FF4449;
+    background: #ED733A;
     transform: translateY(-1px);
   }
 
@@ -240,13 +240,13 @@ const SwitchModeText = styled.p`
 const SwitchModeLink = styled.button`
   background: none;
   border: none;
-  color: #FF5A5F;
+  color: #F6885C;
   cursor: pointer;
   font-weight: 600;
   text-decoration: underline;
 
   &:hover {
-    color: #FF4449;
+    color: #ED733A;
   }
 `;
 

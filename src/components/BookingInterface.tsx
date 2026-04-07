@@ -41,7 +41,7 @@ const VehicleCard = styled.div`
 
 const VehicleImage = styled.div`
   height: 200px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -67,7 +67,7 @@ const VehicleDetails = styled.p`
 const Price = styled.div`
   font-size: 1.5rem;
   font-weight: bold;
-  color: #667eea;
+  color: #F6885C;
   margin-top: 1rem;
 `;
 
@@ -103,7 +103,7 @@ const Input = styled.input`
   
   &:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #F6885C;
   }
 `;
 
@@ -121,7 +121,7 @@ const DatePickerWrapper = styled.div`
     box-sizing: border-box;
     &:focus {
       outline: none;
-      border-color: #667eea;
+      border-color: #F6885C;
     }
   }
 `;
@@ -142,7 +142,7 @@ const Select = styled.select`
   
   &:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #F6885C;
   }
 `;
 
@@ -159,7 +159,7 @@ const Checkbox = styled.input`
 `;
 
 const Button = styled.button`
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
   color: white;
   border: none;
   padding: 1rem 2rem;

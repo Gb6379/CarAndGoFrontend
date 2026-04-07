@@ -39,7 +39,7 @@ const Breadcrumb = styled.div`
   font-size: 0.9rem;
 
   a {
-    color: #667eea;
+    color: #F6885C;
     text-decoration: none;
     
     &:hover {
@@ -70,7 +70,7 @@ const FavoriteButton = styled.button`
   border-radius: 50%;
   border: 1px solid rgba(0,0,0,0.1);
   background: white;
-  color: #8B5CF6;
+  color: #ea580c;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -81,7 +81,7 @@ const FavoriteButton = styled.button`
   &:hover {
     background: #f8f9fa;
     transform: scale(1.05);
-    color: #7c3aed;
+    color: #c2410c;
   }
 
   svg {
@@ -97,7 +97,7 @@ const EditAnnouncementButton = styled.button`
   padding: 0.75rem 1.25rem;
   border-radius: 8px;
   border: none;
-  background: #667eea;
+  background: #F6885C;
   color: white;
   font-weight: 600;
   font-size: 0.95rem;
@@ -106,7 +106,7 @@ const EditAnnouncementButton = styled.button`
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 
   &:hover {
-    background: #5a6fd8;
+    background: #ED733A;
     transform: translateY(-1px);
   }
 `;
@@ -161,7 +161,7 @@ const PhotoGallery = styled.div`
 
 const MainPhoto = styled.div`
   height: 400px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #F6885C, #D95128);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -183,10 +183,10 @@ const Thumbnail = styled.div<{ active?: boolean }>`
   flex-shrink: 0;
   width: 80px;
   height: 60px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #F6885C, #D95128);
   border-radius: 8px;
   cursor: pointer;
-  border: 2px solid ${props => props.active ? '#667eea' : 'transparent'};
+  border: 2px solid ${props => props.active ? '#F6885C' : 'transparent'};
   opacity: ${props => props.active ? 1 : 0.7};
   transition: all 0.3s;
   overflow: hidden;
@@ -399,7 +399,7 @@ const MapAddressBlock = styled.div`
   border-radius: 8px;
   padding: 1rem 1.25rem;
   margin-bottom: 1rem;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #F6885C;
 `;
 
 const MapAddressLine = styled.p`
@@ -512,7 +512,7 @@ const TotalAmount = styled.div`
 
 const BookingButton = styled.button`
   width: 100%;
-  background: #667eea;
+  background: #F6885C;
   color: white;
   border: none;
   padding: 1rem 2rem;
@@ -524,7 +524,7 @@ const BookingButton = styled.button`
   margin-top: 1rem;
 
   &:hover {
-    background: #5a6fd8;
+    background: #ED733A;
     transform: translateY(-2px);
   }
 
@@ -537,9 +537,9 @@ const BookingButton = styled.button`
 
 const MonthlyButton = styled.button`
   width: 100%;
-  background: #eef2ff;
-  color: #3647a6;
-  border: 1px solid #c9d5ff;
+  background: #fff4ed;
+  color: #9a3412;
+  border: 1px solid #fdba74;
   padding: 0.9rem 1.2rem;
   font-size: 1rem;
   font-weight: 700;
@@ -549,7 +549,7 @@ const MonthlyButton = styled.button`
   margin-top: 0.75rem;
 
   &:hover {
-    background: #e2e9ff;
+    background: #ffedd5;
     transform: translateY(-1px);
   }
 `;
@@ -572,7 +572,7 @@ const HostInfo = styled.div`
 const HostAvatar = styled.div`
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #F6885C, #D95128);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -689,12 +689,12 @@ const ReviewTextarea = styled.textarea`
   margin-bottom: 0.75rem;
   &:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #F6885C;
   }
 `;
 
 const SubmitReviewButton = styled.button`
-  background: #667eea;
+  background: #F6885C;
   color: white;
   border: none;
   padding: 0.6rem 1.25rem;
@@ -702,7 +702,7 @@ const SubmitReviewButton = styled.button`
   font-weight: 600;
   cursor: pointer;
   &:hover {
-    background: #5a6fd8;
+    background: #ED733A;
   }
   &:disabled {
     background: #ccc;
@@ -1075,7 +1075,7 @@ const VehicleDetailPage: React.FC = () => {
           <button 
             onClick={() => navigate('/vehicles')}
             style={{
-              background: '#667eea',
+              background: '#F6885C',
               color: 'white',
               border: 'none',
               padding: '1rem 2rem',
@@ -1264,7 +1264,7 @@ const VehicleDetailPage: React.FC = () => {
                         style={{
                           width: '100%',
                           height: '100%',
-                          background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                          background: 'linear-gradient(135deg, #F6885C, #D95128)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -1471,7 +1471,7 @@ const VehicleDetailPage: React.FC = () => {
 
             {isOwner ? (
               <div style={{ 
-                background: '#f0f4ff', 
+                background: '#fff4ed', 
                 padding: '1rem', 
                 borderRadius: '8px', 
                 textAlign: 'center', 

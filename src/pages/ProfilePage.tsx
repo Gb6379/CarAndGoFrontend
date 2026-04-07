@@ -51,7 +51,7 @@ const ProfileImage = styled.div`
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #F6885C, #D95128);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -95,7 +95,7 @@ const UserEmail = styled.p`
 
 const UserType = styled.div`
   display: inline-block;
-  background: #667eea;
+  background: #F6885C;
   color: white;
   padding: 0.5rem 1rem;
   border-radius: 20px;
@@ -120,7 +120,7 @@ const StatCard = styled.div`
 const StatNumber = styled.div`
   font-size: 1.5rem;
   font-weight: bold;
-  color: #667eea;
+  color: #F6885C;
   margin-bottom: 0.5rem;
 `;
 
@@ -157,7 +157,7 @@ const Input = styled.input`
 
   &:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #F6885C;
   }
 `;
 
@@ -172,12 +172,12 @@ const Select = styled.select`
 
   &:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #F6885C;
   }
 `;
 
 const Button = styled.button`
-  background: #667eea;
+  background: #F6885C;
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -188,7 +188,7 @@ const Button = styled.button`
   transition: background 0.3s;
 
   &:hover {
-    background: #5a6fd8;
+    background: #ED733A;
   }
 `;
 

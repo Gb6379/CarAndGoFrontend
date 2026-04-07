@@ -79,14 +79,14 @@ const Tab = styled.button<{ active: boolean }>`
   background: none;
   font-size: 1rem;
   font-weight: 600;
-  color: ${p => p.active ? '#667eea' : '#666'};
-  border-bottom: 2px solid ${p => p.active ? '#667eea' : 'transparent'};
+  color: ${p => p.active ? '#F6885C' : '#666'};
+  border-bottom: 2px solid ${p => p.active ? '#F6885C' : 'transparent'};
   margin-bottom: -2px;
   cursor: pointer;
   transition: all 0.2s;
 
   &:hover {
-    color: #667eea;
+    color: #F6885C;
   }
 `;
 
@@ -110,7 +110,7 @@ const FormGroup = styled.div`
 
     &:focus {
       outline: none;
-      border-color: #667eea;
+      border-color: #F6885C;
       box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
     }
   }
@@ -147,7 +147,7 @@ const PayButton = styled.button`
   }
 
   &.primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
     color: white;
 
     &:hover:not(:disabled) {
@@ -195,7 +195,7 @@ const SummaryTotal = styled(SummaryRow)`
   border-top: 2px solid #e5e7eb;
   font-size: 1.1rem;
   font-weight: 700;
-  color: #667eea;
+  color: #F6885C;
 `;
 
 const VehicleLine = styled.div`

@@ -57,7 +57,7 @@ const PortInfo = styled.div`
   position: fixed;
   top: 10px;
   right: 10px;
-  background-color: #667eea;
+  background-color: #F6885C;
   color: white;
   padding: 8px 12px;
   border-radius: 20px;

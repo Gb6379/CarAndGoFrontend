@@ -12,7 +12,7 @@ const RegisterContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
   padding: 2rem;
 `;
 
@@ -47,7 +47,7 @@ const Input = styled.input`
   
   &:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #F6885C;
   }
 `;
 
@@ -60,12 +60,12 @@ const Select = styled.select`
   
   &:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #F6885C;
   }
 `;
 
 const Button = styled.button`
-  background: #667eea;
+  background: #F6885C;
   color: white;
   border: none;
   padding: 1rem;
@@ -75,7 +75,7 @@ const Button = styled.button`
   transition: background-color 0.3s;
   
   &:hover {
-    background: #5a6fd8;
+    background: #ED733A;
   }
   
   &:disabled {
@@ -90,7 +90,7 @@ const LinkText = styled.p`
   color: #666;
   
   a {
-    color: #667eea;
+    color: #F6885C;
     text-decoration: none;
     
     &:hover {

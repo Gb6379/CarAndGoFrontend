@@ -58,7 +58,7 @@ const Logo = styled(Link)`
   gap: 0.5rem;
   
   &:hover {
-    color: #667eea;
+    color: #F6885C;
   }
 
   @media (max-width: 768px) {
@@ -106,7 +106,7 @@ const NavLink = styled(Link)`
   transition: all 0.3s ease;
   
   &:hover {
-    color: #667eea;
+    color: #F6885C;
     background: rgba(102, 126, 234, 0.1);
   }
 `;
@@ -135,13 +135,13 @@ const LoginButton = styled.button`
   -webkit-tap-highlight-color: transparent;
 
   &:hover {
-    color: #667eea;
+    color: #F6885C;
     background: rgba(102, 126, 234, 0.1);
   }
 `;
 
 const SignUpButton = styled.button`
-  background: #667eea;
+  background: #F6885C;
   color: white;
   text-decoration: none;
   font-weight: 600;
@@ -154,7 +154,7 @@ const SignUpButton = styled.button`
   -webkit-tap-highlight-color: transparent;
 
   &:hover {
-    background: #5a6fd8;
+    background: #ED733A;
     transform: translateY(-1px);
   }
 
@@ -250,9 +250,9 @@ const DropdownItem = styled(Link)`
 
   &.favorite {
     svg {
-      color: #8B5CF6;
+      color: #ea580c;
     }
-    color: #8B5CF6;
+    color: #ea580c;
   }
 `;
 

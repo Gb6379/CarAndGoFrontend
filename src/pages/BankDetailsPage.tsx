@@ -53,7 +53,7 @@ const Input = styled.input`
 
   &:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #F6885C;
   }
 `;
 
@@ -67,12 +67,12 @@ const Select = styled.select`
 
   &:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #F6885C;
   }
 `;
 
 const SaveButton = styled.button`
-  background: #667eea;
+  background: #F6885C;
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -83,7 +83,7 @@ const SaveButton = styled.button`
   margin-top: 0.5rem;
 
   &:hover {
-    background: #5a6fd8;
+    background: #ED733A;
   }
 
   &:disabled {

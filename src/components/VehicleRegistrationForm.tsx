@@ -33,7 +33,7 @@ const FormSection = styled.div`
 
 const SectionTitle = styled.h3`
   font-size: 1.2rem;
-  color: #667eea;
+  color: #F6885C;
   margin-bottom: 1rem;
   display: flex;
   align-items: center;
@@ -55,7 +55,7 @@ const Input = styled.input`
   
   &:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #F6885C;
   }
 `;
 
@@ -68,7 +68,7 @@ const Select = styled.select`
   
   &:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #F6885C;
   }
 `;
 
@@ -83,7 +83,7 @@ const TextArea = styled.textarea`
   
   &:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #F6885C;
   }
 `;
 
@@ -100,7 +100,7 @@ const Checkbox = styled.input`
 `;
 
 const Button = styled.button`
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
   color: white;
   border: none;
   padding: 1rem 2rem;

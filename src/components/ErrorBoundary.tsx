@@ -53,7 +53,7 @@ class ErrorBoundary extends Component<Props, State> {
             style={{
               padding: '0.75rem 1.5rem',
               fontSize: '1rem',
-              backgroundColor: '#667eea',
+              backgroundColor: '#F6885C',
               color: 'white',
               border: 'none',
               borderRadius: '8px',
@@ -64,7 +64,7 @@ class ErrorBoundary extends Component<Props, State> {
           </button>
           {process.env.NODE_ENV === 'development' && this.state.error && (
             <details style={{ marginTop: '2rem', maxWidth: '800px', width: '100%' }}>
-              <summary style={{ cursor: 'pointer', color: '#667eea' }}>
+              <summary style={{ cursor: 'pointer', color: '#F6885C' }}>
                 Detalhes do Erro (Desenvolvimento)
               </summary>
               <pre style={{

@@ -86,7 +86,7 @@ const TripIllustration = styled.div`
 
   svg {
     font-size: 120px;
-    color: #8B5CF6;
+    color: #ea580c;
     opacity: 0.8;
   }
 
@@ -95,7 +95,7 @@ const TripIllustration = styled.div`
     position: absolute;
     width: 180px;
     height: 180px;
-    border: 2px dashed #8B5CF6;
+    border: 2px dashed #ea580c;
     border-radius: 50%;
     opacity: 0.3;
   }
@@ -169,7 +169,7 @@ const FindTripsButton = styled.button`
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: #8B5CF6;
+    border-color: #ea580c;
     background: #fafafa;
   }
 
@@ -214,7 +214,7 @@ const TripImage = styled.div`
   align-items: center;
   justify-content: center;
   font-size: 3rem;
-  color: #8B5CF6;
+  color: #ea580c;
   position: relative;
   overflow: hidden;
 
@@ -266,7 +266,7 @@ const TripStatus = styled.span<{ status: string }>`
     switch(props.status?.toLowerCase()) {
       case 'confirmed': return '#155724';
       case 'active': return '#0c5460';
-      case 'awaiting_return': return '#7c3aed';
+      case 'awaiting_return': return '#c2410c';
       case 'completed': return '#155724';
       case 'pending': return '#856404';
       case 'cancelled': return '#721c24';
@@ -319,8 +319,8 @@ const TripAction = styled.button`
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: #8B5CF6;
-    color: #8B5CF6;
+    border-color: #ea580c;
+    color: #ea580c;
   }
 `;
 

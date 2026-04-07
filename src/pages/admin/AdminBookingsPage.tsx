@@ -41,7 +41,7 @@ const Badge = styled.span<{ $status?: string }>`
   padding: 0.25rem 0.6rem;
   border-radius: 20px;
   font-size: 0.8rem;
-  background: ${p => p.$status === 'pending' ? '#fef3c7' : p.$status === 'confirmed' || p.$status === 'active' ? '#dbeafe' : p.$status === 'completed' ? '#d1fae5' : p.$status === 'cancelled' || p.$status === 'rejected' ? '#fee2e2' : '#e5e7eb'};
+  background: ${p => p.$status === 'pending' ? '#fef3c7' : p.$status === 'confirmed' || p.$status === 'active' ? '#ffedd5' : p.$status === 'completed' ? '#d1fae5' : p.$status === 'cancelled' || p.$status === 'rejected' ? '#fee2e2' : '#e5e7eb'};
   color: ${p => p.$status === 'pending' ? '#92400e' : p.$status === 'confirmed' || p.$status === 'active' ? '#1e40af' : p.$status === 'completed' ? '#065f46' : p.$status === 'cancelled' || p.$status === 'rejected' ? '#991b1b' : '#374151'};
 `;
 
@@ -52,7 +52,7 @@ const Btn = styled.button<{ $variant?: 'primary' | 'danger' }>`
   font-size: 0.85rem;
   cursor: pointer;
   margin-right: 0.5rem;
-  background: ${p => p.$variant === 'danger' ? '#ef4444' : '#667eea'};
+  background: ${p => p.$variant === 'danger' ? '#ef4444' : '#F6885C'};
   color: white;
   &:hover:not(:disabled) {
     opacity: 0.9;

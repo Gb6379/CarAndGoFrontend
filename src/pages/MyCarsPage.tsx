@@ -31,7 +31,7 @@ const Title = styled.h1`
 `;
 
 const AddCarButton = styled.button`
-  background: #667eea;
+  background: #F6885C;
   color: white;
   border: none;
   padding: 1rem 2rem;
@@ -42,7 +42,7 @@ const AddCarButton = styled.button`
   transition: background 0.3s;
 
   &:hover {
-    background: #5a6fd8;
+    background: #ED733A;
   }
 `;
 
@@ -69,7 +69,7 @@ const CarImage = styled.div<{ $photoUrl?: string }>`
   height: 200px;
   background: ${props => props.$photoUrl
     ? `url(${props.$photoUrl})`
-    : 'linear-gradient(135deg, #667eea, #764ba2)'};
+    : 'linear-gradient(135deg, #F6885C, #D95128)'};
   background-size: cover;
   background-position: center;
   display: flex;
@@ -127,7 +127,7 @@ const CarDetails = styled.div`
 const CarPrice = styled.div`
   font-size: 1.5rem;
   font-weight: bold;
-  color: #667eea;
+  color: #F6885C;
 `;
 
 const CarRating = styled.div`
@@ -181,9 +181,9 @@ const ActionButton = styled.button<{ variant?: 'primary' | 'secondary' | 'danger
     switch(props.variant) {
       case 'primary':
         return `
-          background: #667eea;
+          background: #F6885C;
           color: white;
-          &:hover { background: #5a6fd8; }
+          &:hover { background: #ED733A; }
         `;
       case 'danger':
         return `

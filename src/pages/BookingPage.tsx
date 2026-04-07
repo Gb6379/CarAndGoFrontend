@@ -25,7 +25,7 @@ const Spinner = styled.div`
   width: 50px;
   height: 50px;
   border: 4px solid #f3f3f3;
-  border-top: 4px solid #667eea;
+  border-top: 4px solid #F6885C;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 
@@ -54,7 +54,7 @@ const ErrorMessage = styled.div`
 `;
 
 const BackButton = styled.button`
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -88,7 +88,7 @@ const LoginMessage = styled.div`
 `;
 
 const LoginButton = styled.button`
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
   color: white;
   border: none;
   padding: 1rem 2rem;
@@ -167,7 +167,7 @@ const BookingPage: React.FC = () => {
     return (
       <Container>
         <LoginPrompt>
-          <Car size={48} color="#667eea" />
+          <Car size={48} color="#F6885C" />
           <h2>Faça login para continuar</h2>
           <LoginMessage>
             Para fazer uma reserva, você precisa estar logado na sua conta.
