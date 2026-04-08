@@ -4,22 +4,31 @@ import { useNavigate } from 'react-router-dom';
 import { useSearchParams } from 'react-router-dom';
 import { vehicleService } from '../services/authService';
 import { Calendar, Car, CheckCircle, Money } from '../components/IconSystem';
+import modernTheme from '../styles/modernTheme';
+import {
+  darkPanelCss,
+  errorNoticeCss,
+  formFieldCss,
+  glassPanelCss,
+  pageShellCss,
+  primaryButtonCss,
+  secondaryButtonCss,
+  titleCss,
+} from '../styles/modernPrimitives';
 
 const PageContainer = styled.div`
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 2rem;
+  ${pageShellCss}
 `;
 
 const Hero = styled.section`
-  background: linear-gradient(135deg, #F6885C, #D95128);
-  color: #fff;
-  border-radius: 14px;
+  ${darkPanelCss}
   padding: 2rem;
   margin-bottom: 1.5rem;
 `;
 
 const HeroTitle = styled.h1`
+  ${titleCss}
+  color: white;
   margin: 0 0 0.5rem;
   font-size: 2rem;
   font-weight: 700;
@@ -41,17 +50,14 @@ const Grid = styled.div`
 `;
 
 const Card = styled.section`
-  background: #fff;
-  border: 1px solid #e9ecef;
-  border-radius: 12px;
+  ${glassPanelCss}
   padding: 1.25rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 `;
 
 const CardTitle = styled.h2`
   margin: 0 0 0.75rem;
   font-size: 1.2rem;
-  color: #222;
+  color: ${modernTheme.colors.ink};
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -63,55 +69,35 @@ const SwitchRow = styled.label`
   gap: 0.75rem;
   cursor: pointer;
   font-weight: 600;
-  color: #333;
+  color: ${modernTheme.colors.inkSoft};
 `;
 
 const Input = styled.input`
-  width: 100%;
-  padding: 0.75rem;
-  border-radius: 8px;
-  border: 1px solid #d5dbe1;
-  font-size: 1rem;
+  ${formFieldCss}
   margin-top: 0.5rem;
-
-  &:focus {
-    outline: none;
-    border-color: #F6885C;
-    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.12);
-  }
 `;
 
 const Select = styled.select`
-  width: 100%;
-  padding: 0.75rem;
-  border-radius: 8px;
-  border: 1px solid #d5dbe1;
-  font-size: 1rem;
+  ${formFieldCss}
   margin-top: 0.5rem;
-
-  &:focus {
-    outline: none;
-    border-color: #F6885C;
-    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.12);
-  }
 `;
 
 const Info = styled.p`
   margin: 0.25rem 0 0;
-  color: #556;
+  color: ${modernTheme.colors.muted};
   font-size: 0.95rem;
 `;
 
 const ResultBox = styled.div`
   margin-top: 1rem;
-  background: #fffaf5;
-  border: 1px solid #ffdcc8;
-  border-radius: 10px;
+  background: rgba(255, 244, 237, 0.82);
+  border: 1px solid rgba(246, 136, 92, 0.18);
+  border-radius: 16px;
   padding: 1rem;
 `;
 
 const ResultLabel = styled.div`
-  color: #556;
+  color: ${modernTheme.colors.muted};
   font-size: 0.95rem;
 `;
 
@@ -119,70 +105,47 @@ const ResultValue = styled.div`
   margin-top: 0.2rem;
   font-size: 1.6rem;
   font-weight: 700;
-  color: #7c2d12;
+  color: ${modernTheme.colors.brandStrong};
 `;
 
 const Breakdown = styled.div`
   margin-top: 0.6rem;
-  color: #9a3412;
+  color: ${modernTheme.colors.brandStrong};
   font-size: 0.93rem;
   line-height: 1.5;
 `;
 
 const InlineMuted = styled.span`
-  color: #667;
+  color: ${modernTheme.colors.muted};
   font-size: 0.9rem;
 `;
 
 const ErrorBox = styled.div`
+  ${errorNoticeCss}
   margin-top: 1rem;
-  padding: 0.75rem;
-  border-radius: 8px;
-  border: 1px solid #ffd2d2;
-  background: #fff5f5;
-  color: #8f2b2b;
 `;
 
 const ActionButton = styled.button`
+  ${primaryButtonCss}
   width: 100%;
   margin-top: 1rem;
   border: none;
-  border-radius: 10px;
   padding: 0.9rem 1.1rem;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  background: #F6885C;
   color: #fff;
-  transition: background 0.2s, transform 0.2s;
-
-  &:hover:not(:disabled) {
-    background: #ED733A;
-    transform: translateY(-1px);
-  }
-
-  &:disabled {
-    background: #c6cde8;
-    cursor: not-allowed;
-  }
 `;
 
 const SecondaryActionButton = styled.button`
+  ${secondaryButtonCss}
   width: 100%;
   margin-top: 0.6rem;
-  border: 1px solid #fec89a;
-  border-radius: 10px;
   padding: 0.85rem 1.1rem;
   font-size: 0.98rem;
   font-weight: 700;
   cursor: pointer;
-  background: #fff4ed;
   color: #9a3412;
-  transition: background 0.2s;
-
-  &:hover {
-    background: #ffedd5;
-  }
 `;
 
 const MensalistaPage: React.FC = () => {

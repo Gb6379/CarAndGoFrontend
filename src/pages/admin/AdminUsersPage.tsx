@@ -3,10 +3,12 @@ import { useSearchParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { adminService } from '../../services/authService';
 import { getErrorMessage, errorToDisplay } from '../../utils/errorUtils';
+import modernTheme from '../../styles/modernTheme';
+import { glassPanelCss, secondaryButtonCss, titleCss } from '../../styles/modernPrimitives';
 
 const Title = styled.h1`
+  ${titleCss}
   font-size: 1.75rem;
-  color: #1a1d29;
   margin-bottom: 1rem;
 `;
 
@@ -19,21 +21,21 @@ const Filters = styled.div`
 
 const FilterBtn = styled.button<{ $active?: boolean }>`
   padding: 0.5rem 1rem;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  background: ${p => p.$active ? '#F6885C' : 'white'};
-  color: ${p => p.$active ? 'white' : '#333'};
+  border-radius: ${modernTheme.radii.pill};
+  border: 1px solid ${p => p.$active ? 'transparent' : 'rgba(15, 23, 42, 0.08)'};
+  background: ${p => p.$active ? modernTheme.gradients.brand : 'rgba(255,255,255,0.72)'};
+  color: ${p => p.$active ? 'white' : modernTheme.colors.inkSoft};
   cursor: pointer;
   font-size: 0.9rem;
+  box-shadow: ${p => p.$active ? modernTheme.shadows.glow : 'none'};
   &:hover {
-    background: ${p => p.$active ? '#ED733A' : '#f5f5f5'};
+    background: ${p => p.$active ? modernTheme.gradients.brand : 'white'};
   }
 `;
 
 const TableWrap = styled.div`
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  ${glassPanelCss}
+  border-radius: 20px;
   overflow: auto;
 `;
 
@@ -47,12 +49,21 @@ const Table = styled.table`
     border-bottom: 1px solid #eee;
   }
   th {
-    background: #f8f9fa;
+    background: rgba(255,255,255,0.72);
     font-weight: 600;
-    color: #333;
+    color: ${modernTheme.colors.ink};
   }
   tr:hover td {
-    background: #fafafa;
+    background: rgba(255,255,255,0.58);
+  }
+
+  @media (max-width: 768px) {
+    min-width: 520px;
+
+    th, td {
+      padding: 0.75rem;
+      font-size: 0.9rem;
+    }
   }
 `;
 
@@ -67,30 +78,28 @@ const Badge = styled.span<{ $status?: string }>`
 
 const Select = styled.select`
   padding: 0.35rem 0.6rem;
-  border-radius: 6px;
-  border: 1px solid #ddd;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
   font-size: 0.85rem;
-  background: white;
+  background: rgba(255,255,255,0.78);
   cursor: pointer;
 `;
 
 const DocBtn = styled.button`
   padding: 0.4rem 0.75rem;
-  border-radius: 6px;
-  border: 1px solid #F6885C;
-  background: #F6885C;
+  border-radius: ${modernTheme.radii.pill};
+  border: 1px solid transparent;
+  background: ${modernTheme.gradients.brand};
   color: white;
   font-size: 0.85rem;
   cursor: pointer;
-  &:hover {
-    background: #ED733A;
-  }
+  box-shadow: ${modernTheme.shadows.glow};
 `;
 
 const ModalOverlay = styled.div`
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(7, 17, 31, 0.58);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -99,18 +108,17 @@ const ModalOverlay = styled.div`
 `;
 
 const ModalBox = styled.div`
-  background: white;
-  border-radius: 12px;
+  ${glassPanelCss}
+  border-radius: 24px;
   padding: 1.5rem 2rem;
   max-width: 420px;
   width: 100%;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
 `;
 
 const ModalTitle = styled.h3`
   margin: 0 0 1rem;
   font-size: 1.25rem;
-  color: #1a1d29;
+  color: ${modernTheme.colors.ink};
 `;
 
 const ModalDocRow = styled.div`
@@ -123,15 +131,13 @@ const ModalDocRow = styled.div`
 `;
 
 const ModalClose = styled.button`
+  ${secondaryButtonCss}
   margin-top: 1.25rem;
   width: 100%;
   padding: 0.6rem;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  background: #f5f5f5;
   cursor: pointer;
   font-size: 0.95rem;
-  &:hover { background: #eee; }
+  color: ${modernTheme.colors.inkSoft};
 `;
 
 const ErrorMsg = styled.p`

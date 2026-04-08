@@ -3,18 +3,24 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { CheckCircle, Error as ErrorIcon, Schedule } from './IconSystem';
 import { authService } from '../services/authService';
+import modernTheme from '../styles/modernTheme';
+import {
+  errorNoticeCss,
+  glassPanelCss,
+  primaryButtonCss,
+  successNoticeCss,
+  titleCss,
+} from '../styles/modernPrimitives';
 
 const Container = styled.div`
-  background: white;
+  ${glassPanelCss}
   padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
   margin: 2rem 0;
 `;
 
 const Title = styled.h3`
+  ${titleCss}
   font-size: 1.5rem;
-  color: #333;
   margin-bottom: 1rem;
   display: flex;
   align-items: center;
@@ -22,48 +28,34 @@ const Title = styled.h3`
 `;
 
 const Description = styled.p`
-  color: #666;
+  color: ${modernTheme.colors.muted};
   margin-bottom: 1.5rem;
   line-height: 1.6;
 `;
 
 const Button = styled.button`
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  ${primaryButtonCss}
   color: white;
   border: none;
   padding: 1rem 2rem;
-  border-radius: 8px;
   font-size: 1rem;
   cursor: pointer;
   transition: all 0.3s;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-  }
 `;
 
 const StatusContainer = styled.div<{ status: 'idle' | 'loading' | 'success' | 'error' }>`
+  ${props => props.status === 'success' ? successNoticeCss : props.status === 'error' ? errorNoticeCss : glassPanelCss}
   padding: 1rem;
-  border-radius: 8px;
   margin-top: 1rem;
-  background: ${props => {
-    switch (props.status) {
-      case 'loading': return '#e3f2fd';
-      case 'success': return '#e8f5e8';
-      case 'error': return '#ffebee';
-      default: return '#f5f5f5';
-    }
-  }};
   color: ${props => {
     switch (props.status) {
-      case 'loading': return '#1976d2';
-      case 'success': return '#2e7d32';
-      case 'error': return '#c62828';
-      default: return '#666';
+      case 'loading': return modernTheme.colors.inkSoft;
+      case 'success': return '#047857';
+      case 'error': return '#b91c1c';
+      default: return modernTheme.colors.muted;
     }
   }};
 `;
@@ -71,16 +63,15 @@ const StatusContainer = styled.div<{ status: 'idle' | 'loading' | 'success' | 'e
 const VerifiedCard = styled.div`
   text-align: center;
   padding: 2.5rem 2rem;
-  background: linear-gradient(180deg, #e8f5e9 0%, #c8e6c9 100%);
-  border: 2px solid #2e7d32;
-  border-radius: 12px;
+  ${successNoticeCss}
+  border-radius: 24px;
   margin-bottom: 1.5rem;
 `;
 
 const VerifiedTitle = styled.div`
   font-size: 1.5rem;
   font-weight: 700;
-  color: #1b5e20;
+  color: #065f46;
   margin-bottom: 0.5rem;
   display: flex;
   align-items: center;
@@ -89,7 +80,7 @@ const VerifiedTitle = styled.div`
 `;
 
 const VerifiedText = styled.p`
-  color: #2e7d32;
+  color: #047857;
   margin: 0;
   font-size: 1.05rem;
 `;
@@ -154,7 +145,7 @@ const GovBrIntegration: React.FC = () => {
       <Container>
         <VerifiedCard>
           <VerifiedTitle>
-            <CheckCircle size={32} strokeWidth={2.5} />
+            <CheckCircle size={32} />
             Conta verificada
           </VerifiedTitle>
           <VerifiedText>Seu CPF e antecedentes foram validados. Você já pode anunciar veículos.</VerifiedText>

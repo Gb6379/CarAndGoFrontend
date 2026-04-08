@@ -4,22 +4,23 @@ import { useNavigate } from 'react-router-dom';
 import { Car, Star, Location, Search } from '../components/IconSystem';
 import { vehicleService, favoriteService } from '../services/authService';
 import { getFavorites } from '../utils/favorites';
+import modernTheme from '../styles/modernTheme';
+import {
+  glassPanelCss,
+  pageShellCss,
+  secondaryButtonCss,
+  titleCss,
+} from '../styles/modernPrimitives';
 
 const Container = styled.div`
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 2rem;
+  ${pageShellCss}
   min-height: calc(100vh - 200px);
-
-  @media (max-width: 768px) {
-    padding: 1.5rem 1rem;
-  }
 `;
 
 const PageTitle = styled.h1`
+  ${titleCss}
   font-size: 2rem;
   font-weight: 700;
-  color: #1a1a1a;
   margin-bottom: 2rem;
 
   @media (max-width: 768px) {
@@ -126,19 +127,12 @@ const FindFavoritesButton = styled.button`
   align-items: center;
   gap: 0.5rem;
   padding: 0.875rem 1.75rem;
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  color: #1a1a1a;
+  ${secondaryButtonCss}
+  color: ${modernTheme.colors.inkSoft};
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-
-  &:hover {
-    border-color: #ea580c;
-    background: #fafafa;
-  }
 
   svg {
     font-size: 18px;
@@ -162,30 +156,26 @@ const VehiclesGrid = styled.div`
 `;
 
 const VehicleCard = styled.div`
-  background: white;
-  border-radius: 12px;
+  ${glassPanelCss}
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   transition: all 0.3s ease;
   cursor: pointer;
-  border: 1px solid rgba(0,0,0,0.08);
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-    border-color: rgba(0,0,0,0.12);
+    box-shadow: 0 24px 52px rgba(15, 23, 42, 0.14);
   }
 `;
 
 const VehicleImage = styled.div`
   width: 100%;
   height: 200px;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: linear-gradient(135deg, rgba(246, 136, 92, 0.14) 0%, rgba(139, 92, 246, 0.16) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 3rem;
-  color: #ea580c;
+  color: ${modernTheme.colors.brandStrong};
   position: relative;
   overflow: hidden;
 
@@ -203,7 +193,7 @@ const VehicleTitle = styled.h3`
   font-size: 1.1rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
-  color: #1a1a1a;
+  color: ${modernTheme.colors.ink};
   line-height: 1.3;
 `;
 
@@ -218,13 +208,13 @@ const VehicleRating = styled.div`
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  color: #1a1a1a;
+  color: ${modernTheme.colors.ink};
   font-size: 0.95rem;
   font-weight: 600;
 `;
 
 const VehicleTrips = styled.span`
-  color: #666;
+  color: ${modernTheme.colors.muted};
   font-size: 0.85rem;
   font-weight: 400;
 `;
@@ -239,7 +229,7 @@ const VehiclePriceRow = styled.div`
 const VehiclePrice = styled.div`
   font-size: 1.25rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: ${modernTheme.colors.ink};
   text-decoration: underline;
   text-decoration-thickness: 2px;
   text-underline-offset: 3px;
@@ -249,7 +239,7 @@ const VehicleLocation = styled.div`
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  color: #666;
+  color: ${modernTheme.colors.muted};
   font-size: 0.85rem;
   margin-top: 0.5rem;
 `;

@@ -5,11 +5,17 @@ import BookingInterface from '../components/BookingInterface';
 import { vehicleService } from '../services/authService';
 import { Car } from '../components/IconSystem';
 import { errorToDisplay } from '../utils/errorUtils';
+import modernTheme from '../styles/modernTheme';
+import {
+  errorNoticeCss,
+  pageShellCss,
+  primaryButtonCss,
+  secondaryButtonCss,
+  titleCss,
+} from '../styles/modernPrimitives';
 
 const Container = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
+  ${pageShellCss}
 `;
 
 const LoadingContainer = styled.div`
@@ -46,27 +52,18 @@ const ErrorContainer = styled.div`
 `;
 
 const ErrorMessage = styled.div`
-  background: #ffebee;
-  color: #c62828;
+  ${errorNoticeCss}
   padding: 1.5rem 2rem;
-  border-radius: 10px;
   max-width: 500px;
 `;
 
 const BackButton = styled.button`
-  background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
-  color: white;
-  border: none;
+  ${secondaryButtonCss}
+  color: ${modernTheme.colors.inkSoft};
   padding: 0.75rem 1.5rem;
-  border-radius: 8px;
   font-size: 1rem;
   cursor: pointer;
   transition: all 0.3s;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-  }
 `;
 
 const LoginPrompt = styled.div`
@@ -80,27 +77,20 @@ const LoginPrompt = styled.div`
 `;
 
 const LoginMessage = styled.div`
-  background: #fff3e0;
-  color: #e65100;
+  ${errorNoticeCss}
+  color: ${modernTheme.colors.inkSoft};
   padding: 1.5rem 2rem;
-  border-radius: 10px;
   max-width: 500px;
 `;
 
 const LoginButton = styled.button`
-  background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
+  ${primaryButtonCss}
   color: white;
   border: none;
   padding: 1rem 2rem;
-  border-radius: 10px;
   font-size: 1.1rem;
   cursor: pointer;
   transition: all 0.3s;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-  }
 `;
 
 const BookingPage: React.FC = () => {

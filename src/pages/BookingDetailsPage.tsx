@@ -4,44 +4,51 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { bookingService } from '../services/authService';
 import { errorToDisplay } from '../utils/errorUtils';
 import { Car, Calendar, Location, Schedule, User, CreditCard, Check, Close, ArrowLeft } from '../components/IconSystem';
+import modernTheme from '../styles/modernTheme';
+import {
+  glassPanelCss,
+  pageShellCss,
+  primaryButtonCss,
+  secondaryButtonCss,
+  titleCss,
+} from '../styles/modernPrimitives';
 
 const Container = styled.div`
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 2rem;
+  ${pageShellCss}
   min-height: calc(100vh - 200px);
-
-  @media (max-width: 768px) {
-    padding: 1rem;
-  }
 `;
 
 const BackButton = styled.button`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: none;
-  border: none;
-  color: #666;
+  ${secondaryButtonCss}
+  color: ${modernTheme.colors.inkSoft};
   font-size: 1rem;
   cursor: pointer;
-  padding: 0.5rem 0;
+  padding: 0.75rem 1rem;
   margin-bottom: 1.5rem;
   transition: color 0.2s;
 
   &:hover {
-    color: #333;
+    color: ${modernTheme.colors.ink};
   }
 `;
 
 const PageTitle = styled.h1`
+  ${titleCss}
   font-size: 1.75rem;
   font-weight: 700;
-  color: #1a1a1a;
   margin-bottom: 1.5rem;
   display: flex;
   align-items: center;
   gap: 0.75rem;
+
+  @media (max-width: 640px) {
+    font-size: 1.5rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
 `;
 
 const StatusBadge = styled.span<{ status: string }>`
@@ -83,6 +90,10 @@ const ContentGrid = styled.div`
   @media (max-width: 900px) {
     grid-template-columns: 1fr;
   }
+
+  @media (max-width: 640px) {
+    gap: 1.25rem;
+  }
 `;
 
 const MainContent = styled.div`
@@ -98,17 +109,18 @@ const Sidebar = styled.div`
 `;
 
 const Card = styled.div`
-  background: white;
-  border-radius: 16px;
+  ${glassPanelCss}
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  border: 1px solid #e5e7eb;
+
+  @media (max-width: 640px) {
+    padding: 1.1rem;
+  }
 `;
 
 const CardTitle = styled.h2`
   font-size: 1.1rem;
   font-weight: 600;
-  color: #1a1a1a;
+  color: ${modernTheme.colors.ink};
   margin-bottom: 1.25rem;
   display: flex;
   align-items: center;
@@ -131,16 +143,16 @@ const VehicleCard = styled(Card)`
 const VehicleImage = styled.div`
   width: 180px;
   height: 120px;
-  background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
-  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(246, 136, 92, 0.18) 0%, rgba(139, 92, 246, 0.2) 100%);
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 
   svg {
-    color: white;
-    opacity: 0.8;
+    color: ${modernTheme.colors.brandStrong};
+    opacity: 1;
   }
 
   @media (max-width: 600px) {
@@ -156,13 +168,13 @@ const VehicleInfo = styled.div`
 const VehicleName = styled.h3`
   font-size: 1.25rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: ${modernTheme.colors.ink};
   margin-bottom: 0.5rem;
 `;
 
 const VehicleDetail = styled.p`
   font-size: 0.9rem;
-  color: #666;
+  color: ${modernTheme.colors.muted};
   margin-bottom: 0.25rem;
   display: flex;
   align-items: center;
@@ -172,7 +184,7 @@ const VehicleDetail = styled.p`
 const VehiclePrice = styled.p`
   font-size: 1.1rem;
   font-weight: 600;
-  color: #ea580c;
+  color: ${modernTheme.colors.brandStrong};
   margin-top: 0.75rem;
 `;
 
@@ -181,7 +193,7 @@ const InfoRow = styled.div`
   justify-content: space-between;
   align-items: flex-start;
   padding: 0.875rem 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
 
   &:last-child {
     border-bottom: none;
@@ -191,11 +203,16 @@ const InfoRow = styled.div`
   &:first-child {
     padding-top: 0;
   }
+
+  @media (max-width: 520px) {
+    flex-direction: column;
+    gap: 0.3rem;
+  }
 `;
 
 const InfoLabel = styled.span`
   font-size: 0.9rem;
-  color: #666;
+  color: ${modernTheme.colors.muted};
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -204,12 +221,12 @@ const InfoLabel = styled.span`
 const InfoValue = styled.span`
   font-size: 0.95rem;
   font-weight: 500;
-  color: #1a1a1a;
+  color: ${modernTheme.colors.ink};
   text-align: right;
 `;
 
 const TotalRow = styled(InfoRow)`
-  border-top: 2px solid #e5e7eb;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
   margin-top: 0.5rem;
   padding-top: 1rem;
 `;
@@ -217,13 +234,13 @@ const TotalRow = styled(InfoRow)`
 const TotalLabel = styled.span`
   font-size: 1rem;
   font-weight: 600;
-  color: #1a1a1a;
+  color: ${modernTheme.colors.ink};
 `;
 
 const TotalValue = styled.span`
   font-size: 1.25rem;
   font-weight: 700;
-  color: #ea580c;
+  color: ${modernTheme.colors.brandStrong};
 `;
 
 const ActionButton = styled.button<{ variant?: 'primary' | 'danger' | 'success' | 'secondary' }>`
@@ -243,8 +260,8 @@ const ActionButton = styled.button<{ variant?: 'primary' | 'danger' | 'success' 
     switch(props.variant) {
       case 'danger':
         return `
-          background: white;
-          border: 2px solid #ef4444;
+          background: rgba(255,255,255,0.76);
+          border: 1px solid #ef4444;
           color: #ef4444;
           &:hover {
             background: #fef2f2;
@@ -261,21 +278,21 @@ const ActionButton = styled.button<{ variant?: 'primary' | 'danger' | 'success' 
         `;
       case 'secondary':
         return `
-          background: white;
-          border: 2px solid #e5e7eb;
-          color: #374151;
+          background: rgba(255,255,255,0.76);
+          border: 1px solid rgba(15,23,42,0.08);
+          color: ${modernTheme.colors.inkSoft};
           &:hover {
-            background: #f9fafb;
-            border-color: #d1d5db;
+            background: white;
           }
         `;
       default:
         return `
-          background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
+          background: ${modernTheme.gradients.brand};
           border: none;
           color: white;
+          box-shadow: ${modernTheme.shadows.glow};
           &:hover {
-            opacity: 0.9;
+            transform: translateY(-1px);
           }
         `;
     }

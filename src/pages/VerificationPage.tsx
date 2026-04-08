@@ -3,16 +3,16 @@ import { useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import GovBrIntegration from '../components/GovBrIntegration';
 import { Lock } from '../components/IconSystem';
+import modernTheme from '../styles/modernTheme';
+import { errorNoticeCss, pageShellCss, subtitleCss, titleCss } from '../styles/modernPrimitives';
 
 const Container = styled.div`
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem;
+  ${pageShellCss}
 `;
 
 const Title = styled.h1`
+  ${titleCss}
   font-size: 1.75rem;
-  color: #333;
   margin-bottom: 0.5rem;
   display: flex;
   align-items: center;
@@ -20,17 +20,12 @@ const Title = styled.h1`
 `;
 
 const Subtitle = styled.p`
-  color: #666;
+  ${subtitleCss}
   margin-bottom: 2rem;
-  line-height: 1.5;
 `;
 
 const Alert = styled.p`
-  padding: 1rem;
-  background: #fff3cd;
-  border: 1px solid #ffc107;
-  border-radius: 8px;
-  color: #856404;
+  ${errorNoticeCss}
   margin-bottom: 1.5rem;
 `;
 

@@ -2,20 +2,32 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { Search, CalendarToday, Car, CreditCard, Key, Edit, Smartphone, AttachMoney, CheckCircle, Star, CameraAlt, Lock, Phone, Shield, User } from '../components/IconSystem';
+import modernTheme from '../styles/modernTheme';
+import {
+  darkPanelCss,
+  formFieldCss,
+  glassPanelCss,
+  pageShellCss,
+  primaryButtonCss,
+  titleCss,
+} from '../styles/modernPrimitives';
 
 const Container = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
+  ${pageShellCss}
 `;
 
 const HeroSection = styled.section`
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-  color: white;
+  ${darkPanelCss}
   padding: 4rem 2rem;
   text-align: center;
-  border-radius: 12px;
+  border-radius: 32px;
   margin-bottom: 4rem;
+
+  @media (max-width: 768px) {
+    padding: 3rem 1.25rem;
+    border-radius: 24px;
+    margin-bottom: 3rem;
+  }
 `;
 
 const HeroTitle = styled.h1`
@@ -35,35 +47,43 @@ const HeroSubtitle = styled.p`
   max-width: 600px;
   margin: 0 auto 2rem;
   line-height: 1.6;
+
+  @media (max-width: 768px) {
+    font-size: 1.05rem;
+    margin-bottom: 1.5rem;
+  }
 `;
 
 const CTAButton = styled.button`
-  background: #F6885C;
+  ${primaryButtonCss}
   color: white;
   border: none;
   padding: 1.2rem 2.5rem;
   font-size: 1.2rem;
   font-weight: 600;
-  border-radius: 50px;
   cursor: pointer;
   transition: all 0.3s;
   margin: 0 1rem;
 
-  &:hover {
-    background: #ED733A;
-    transform: translateY(-2px);
+  @media (max-width: 640px) {
+    width: min(100%, 320px);
+    margin: 0.5rem 0;
   }
 `;
 
 const Section = styled.section`
   margin-bottom: 4rem;
+
+  @media (max-width: 768px) {
+    margin-bottom: 3rem;
+  }
 `;
 
 const SectionTitle = styled.h2`
+  ${titleCss}
   font-size: 2.5rem;
   text-align: center;
   margin-bottom: 1rem;
-  color: #333;
   font-weight: 700;
 
   @media (max-width: 768px) {
@@ -74,11 +94,16 @@ const SectionTitle = styled.h2`
 const SectionSubtitle = styled.p`
   text-align: center;
   font-size: 1.2rem;
-  color: #666;
+  color: ${modernTheme.colors.muted};
   margin-bottom: 3rem;
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+  }
 `;
 
 const TabsContainer = styled.div`
@@ -86,27 +111,37 @@ const TabsContainer = styled.div`
   justify-content: center;
   margin-bottom: 3rem;
   gap: 1rem;
-  border-bottom: 1px solid #ddd;
+  padding: 0.35rem;
+  border-radius: ${modernTheme.radii.pill};
+  background: rgba(15, 23, 42, 0.05);
 
   @media (max-width: 768px) {
     flex-direction: column;
     align-items: center;
+    gap: 0.5rem;
   }
 `;
 
 const Tab = styled.button<{ active: boolean }>`
   padding: 1rem 2rem;
   border: none;
-  background: none;
-  color: ${props => props.active ? '#F6885C' : '#666'};
-  border-bottom: 3px solid ${props => props.active ? '#F6885C' : 'transparent'};
+  background: ${props => props.active ? modernTheme.gradients.brand : 'transparent'};
+  color: ${props => props.active ? 'white' : modernTheme.colors.muted};
+  border-radius: ${modernTheme.radii.pill};
   cursor: pointer;
   font-weight: 600;
   font-size: 1.1rem;
   transition: all 0.3s;
+  box-shadow: ${props => props.active ? modernTheme.shadows.glow : 'none'};
 
   &:hover {
-    color: #F6885C;
+    color: ${props => props.active ? 'white' : modernTheme.colors.brandStrong};
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    max-width: 360px;
+    padding: 0.85rem 1rem;
   }
 `;
 
@@ -119,23 +154,26 @@ const StepsContainer = styled.div`
 `;
 
 const StepCard = styled.div`
-  background: white;
+  ${glassPanelCss}
   padding: 2rem;
-  border-radius: 12px;
+  border-radius: 24px;
   text-align: center;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
   transition: transform 0.3s;
   position: relative;
 
   &:hover {
     transform: translateY(-5px);
   }
+
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+  }
 `;
 
 const StepNumber = styled.div`
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #F6885C, #D95128);
+  background: ${modernTheme.gradients.brand};
   color: white;
   border-radius: 50%;
   display: flex;
@@ -149,12 +187,12 @@ const StepNumber = styled.div`
 const StepTitle = styled.h3`
   font-size: 1.5rem;
   margin-bottom: 1rem;
-  color: #333;
+  color: ${modernTheme.colors.ink};
   font-weight: 600;
 `;
 
 const StepDescription = styled.p`
-  color: #666;
+  color: ${modernTheme.colors.muted};
   line-height: 1.6;
   margin-bottom: 1rem;
 `;
@@ -162,14 +200,18 @@ const StepDescription = styled.p`
 const StepImage = styled.div`
   width: 100%;
   height: 150px;
-  background: linear-gradient(135deg, #F6885C, #D95128);
-  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(246, 136, 92, 0.18) 0%, rgba(139, 92, 246, 0.2) 100%);
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 3rem;
-  color: white;
+  color: ${modernTheme.colors.brandStrong};
   margin-bottom: 1rem;
+
+  @media (max-width: 768px) {
+    height: 120px;
+  }
 `;
 
 const BenefitsGrid = styled.div`
@@ -180,15 +222,18 @@ const BenefitsGrid = styled.div`
 `;
 
 const BenefitCard = styled.div`
-  background: white;
+  ${glassPanelCss}
   padding: 2rem;
-  border-radius: 12px;
+  border-radius: 24px;
   text-align: center;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
   transition: transform 0.3s;
 
   &:hover {
     transform: translateY(-5px);
+  }
+
+  @media (max-width: 768px) {
+    padding: 1.5rem;
   }
 `;
 
@@ -200,25 +245,24 @@ const BenefitIcon = styled.div`
 const BenefitTitle = styled.h3`
   font-size: 1.3rem;
   margin-bottom: 1rem;
-  color: #333;
+  color: ${modernTheme.colors.ink};
   font-weight: 600;
 `;
 
 const BenefitDescription = styled.p`
-  color: #666;
+  color: ${modernTheme.colors.muted};
   line-height: 1.6;
 `;
 
 const ComparisonTable = styled.div`
-  background: white;
-  border-radius: 12px;
+  ${glassPanelCss}
+  border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
   margin: 3rem 0;
 `;
 
 const TableHeader = styled.div`
-  background: #F6885C;
+  background: ${modernTheme.gradients.brand};
   color: white;
   padding: 2rem;
   text-align: center;
@@ -233,7 +277,7 @@ const TableTitle = styled.h3`
 const TableRow = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
 
   &:last-child {
     border-bottom: none;
@@ -242,9 +286,9 @@ const TableRow = styled.div`
 
 const TableCell = styled.div<{ header?: boolean }>`
   padding: 1.5rem;
-  ${props => props.header ? 'font-weight: 600; background: #f8f9fa;' : ''}
+  ${props => props.header ? `font-weight: 600; background: rgba(255,255,255,0.72); color: ${modernTheme.colors.ink};` : `color: ${modernTheme.colors.inkSoft};`}
   text-align: center;
-  border-right: 1px solid #eee;
+  border-right: 1px solid rgba(15, 23, 42, 0.08);
 
   &:last-child {
     border-right: none;
@@ -259,21 +303,24 @@ const FeatureGrid = styled.div`
 `;
 
 const FeatureCard = styled.div`
-  background: white;
+  ${glassPanelCss}
   padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  border-radius: 24px;
+
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+  }
 `;
 
 const FeatureDescription = styled.p`
-  color: #666;
+  color: ${modernTheme.colors.muted};
   line-height: 1.6;
 `;
 
 const FeatureTitle = styled.h3`
   font-size: 1.3rem;
   margin-bottom: 1rem;
-  color: #333;
+  color: ${modernTheme.colors.ink};
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -288,7 +335,7 @@ const FeatureList = styled.ul`
 
 const FeatureItem = styled.li`
   padding: 0.5rem 0;
-  color: #666;
+  color: ${modernTheme.colors.muted};
   display: flex;
   align-items: center;
   gap: 0.5rem;

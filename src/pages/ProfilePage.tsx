@@ -4,6 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import { User } from '../components/IconSystem';
 import { authService, vehicleService, bookingService } from '../services/authService';
 import { validateCpfCnpj } from '../utils/cpfValidation';
+import modernTheme from '../styles/modernTheme';
+import {
+  formFieldCss,
+  glassPanelCss,
+  labelCss,
+  pageShellCss,
+  primaryButtonCss,
+  titleCss,
+} from '../styles/modernPrimitives';
 
 interface IBGECity {
   id: number;
@@ -11,14 +20,12 @@ interface IBGECity {
 }
 
 const Container = styled.div`
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 2rem;
+  ${pageShellCss}
 `;
 
 const Title = styled.h1`
+  ${titleCss}
   font-size: 2.5rem;
-  color: #333;
   margin-bottom: 2rem;
   font-weight: 700;
 `;
@@ -34,10 +41,8 @@ const ProfileGrid = styled.div`
 `;
 
 const ProfileCard = styled.div`
-  background: white;
-  border-radius: 12px;
+  ${glassPanelCss}
   padding: 2rem;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 `;
 
 const ProfileImageWrapper = styled.div`
@@ -51,7 +56,7 @@ const ProfileImage = styled.div`
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #F6885C, #D95128);
+  background: ${modernTheme.gradients.brand};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -84,21 +89,21 @@ const ProfileImageOverlay = styled.div`
 const UserName = styled.h2`
   text-align: center;
   margin-bottom: 0.5rem;
-  color: #333;
+  color: ${modernTheme.colors.ink};
 `;
 
 const UserEmail = styled.p`
   text-align: center;
-  color: #666;
+  color: ${modernTheme.colors.muted};
   margin-bottom: 1.5rem;
 `;
 
 const UserType = styled.div`
   display: inline-block;
-  background: #F6885C;
+  background: ${modernTheme.gradients.brand};
   color: white;
   padding: 0.5rem 1rem;
-  border-radius: 20px;
+  border-radius: ${modernTheme.radii.pill};
   font-size: 0.9rem;
   font-weight: 600;
   margin-bottom: 2rem;
@@ -113,25 +118,26 @@ const StatsGrid = styled.div`
 const StatCard = styled.div`
   text-align: center;
   padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.78);
 `;
 
 const StatNumber = styled.div`
   font-size: 1.5rem;
   font-weight: bold;
-  color: #F6885C;
+  color: ${modernTheme.colors.brandStrong};
   margin-bottom: 0.5rem;
 `;
 
 const StatLabel = styled.div`
   font-size: 0.9rem;
-  color: #666;
+  color: ${modernTheme.colors.muted};
 `;
 
 const SectionTitle = styled.h3`
   font-size: 1.5rem;
-  color: #333;
+  color: ${modernTheme.colors.ink};
   margin-bottom: 1.5rem;
   font-weight: 600;
 `;
@@ -141,71 +147,43 @@ const FormGroup = styled.div`
 `;
 
 const Label = styled.label`
-  display: block;
-  margin-bottom: 0.5rem;
-  color: #333;
-  font-weight: 500;
+  ${labelCss}
 `;
 
 const Input = styled.input`
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.3s;
-
-  &:focus {
-    outline: none;
-    border-color: #F6885C;
-  }
+  ${formFieldCss}
 `;
 
 const Select = styled.select`
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 1rem;
-  background: white;
-  transition: border-color 0.3s;
-
-  &:focus {
-    outline: none;
-    border-color: #F6885C;
-  }
+  ${formFieldCss}
 `;
 
 const Button = styled.button`
-  background: #F6885C;
+  ${primaryButtonCss}
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
-  border-radius: 8px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.3s;
-
-  &:hover {
-    background: #ED733A;
-  }
 `;
 
 const DangerButton = styled.button`
-  background: #e74c3c;
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
-  border-radius: 8px;
+  border-radius: ${modernTheme.radii.pill};
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   margin-top: 1rem;
 
   &:hover {
-    background: #c0392b;
+    transform: translateY(-2px);
+    box-shadow: 0 20px 44px rgba(185, 28, 28, 0.22);
   }
 `;
 

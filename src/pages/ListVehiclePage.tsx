@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import { useNavigate, useParams } from 'react-router-dom';
 import { vehicleService } from '../services/authService';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
@@ -8,6 +8,17 @@ import 'leaflet/dist/leaflet.css';
 import { MyLocation, Location, Camera, Schedule, Map, Usb, Bluetooth, AirConditioning, Photo, Money } from '../components/IconSystem';
 import AuthModal from '../components/AuthModal';
 import { vehicleBrands, getModelsByBrand } from '../data/vehicleBrands';
+import modernTheme from '../styles/modernTheme';
+import {
+  formFieldCss,
+  glassPanelCss,
+  labelCss,
+  pageShellCss,
+  primaryButtonCss,
+  secondaryButtonCss,
+  subtitleCss,
+  titleCss,
+} from '../styles/modernPrimitives';
 
 /** Reconhece CEP brasileiro (com ou sem máscara / prefixo "CEP") sem confundir com endereço com números. */
 function parseBrazilianCepDigits(raw: string): string | null {
@@ -20,27 +31,36 @@ function parseBrazilianCepDigits(raw: string): string | null {
 }
 
 const Container = styled.div`
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem;
+  ${pageShellCss}
 `;
 
 const Header = styled.div`
   text-align: center;
   margin-bottom: 3rem;
+
+  @media (max-width: 768px) {
+    margin-bottom: 2rem;
+  }
 `;
 
 const Title = styled.h1`
+  ${titleCss}
   font-size: 2.5rem;
-  color: #333;
   margin-bottom: 1rem;
   font-weight: 700;
+
+  @media (max-width: 768px) {
+    font-size: 2rem;
+  }
 `;
 
 const Subtitle = styled.p`
   font-size: 1.2rem;
-  color: #666;
-  line-height: 1.6;
+  ${subtitleCss}
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+  }
 `;
 
 const StepsContainer = styled.div`
@@ -60,25 +80,25 @@ const Step = styled.button<{ active?: boolean; completed?: boolean }>`
   align-items: center;
   gap: 0.5rem;
   padding: 1rem 1.5rem;
-  border-radius: 8px;
+  border-radius: ${modernTheme.radii.pill};
   border: none;
   cursor: pointer;
   font: inherit;
   font-weight: 600;
   text-align: left;
   background: ${props => {
-    if (props.completed) return '#4CAF50';
-    if (props.active) return '#F6885C';
-    return '#f8f9fa';
+    if (props.completed) return '#047857';
+    if (props.active) return modernTheme.gradients.brand;
+    return 'rgba(255,255,255,0.72)';
   }};
   color: ${props => {
     if (props.completed || props.active) return 'white';
-    return '#666';
+    return modernTheme.colors.muted;
   }};
   transition: all 0.3s;
 
   &:focus-visible {
-    outline: 2px solid #F6885C;
+    outline: 2px solid ${modernTheme.colors.brandStrong};
     outline-offset: 2px;
   }
 
@@ -92,8 +112,8 @@ const StepNumber = styled.div<{ completed?: boolean }>`
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: ${props => props.completed ? 'white' : 'rgba(255,255,255,0.3)'};
-  color: ${props => props.completed ? '#4CAF50' : 'white'};
+  background: ${props => props.completed ? 'white' : 'rgba(255,255,255,0.24)'};
+  color: ${props => props.completed ? '#047857' : 'white'};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -102,10 +122,12 @@ const StepNumber = styled.div<{ completed?: boolean }>`
 `;
 
 const FormContainer = styled.div`
-  background: white;
-  border-radius: 12px;
+  ${glassPanelCss}
   padding: 2rem;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+
+  @media (max-width: 768px) {
+    padding: 1.25rem;
+  }
 `;
 
 const FormSection = styled.div`
@@ -114,7 +136,7 @@ const FormSection = styled.div`
 
 const SectionTitle = styled.h3`
   font-size: 1.3rem;
-  color: #333;
+  color: ${modernTheme.colors.ink};
   margin-bottom: 1rem;
   font-weight: 600;
 `;
@@ -123,6 +145,11 @@ const FormGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1.5rem;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 `;
 
 const FormGroup = styled.div`
@@ -132,59 +159,22 @@ const FormGroup = styled.div`
 `;
 
 const Label = styled.label`
+  ${labelCss}
   font-size: 0.9rem;
-  color: #333;
-  font-weight: 500;
 `;
 
 const Input = styled.input`
-  padding: 0.75rem;
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.3s;
-
-  &:focus {
-    outline: none;
-    border-color: #F6885C;
-  }
-
-  &::placeholder {
-    color: #999;
-  }
+  ${formFieldCss}
 `;
 
 const Select = styled.select`
-  padding: 0.75rem;
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
-  font-size: 1rem;
-  background: white;
-  transition: border-color 0.3s;
-
-  &:focus {
-    outline: none;
-    border-color: #F6885C;
-  }
+  ${formFieldCss}
 `;
 
 const TextArea = styled.textarea`
-  padding: 0.75rem;
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
-  font-size: 1rem;
+  ${formFieldCss}
   min-height: 100px;
   resize: vertical;
-  transition: border-color 0.3s;
-
-  &:focus {
-    outline: none;
-    border-color: #F6885C;
-  }
-
-  &::placeholder {
-    color: #999;
-  }
 `;
 
 const CheckboxGroup = styled.div`
@@ -199,11 +189,11 @@ const CheckboxItem = styled.label`
   gap: 0.5rem;
   cursor: pointer;
   padding: 0.5rem;
-  border-radius: 6px;
+  border-radius: 12px;
   transition: background-color 0.3s;
 
   &:hover {
-    background: #f8f9fa;
+    background: rgba(255,255,255,0.72);
   }
 `;
 
@@ -213,43 +203,37 @@ const Checkbox = styled.input`
 `;
 
 const PhotoUploadSection = styled.div`
-  border: 2px dashed #ddd;
-  border-radius: 8px;
+  border: 2px dashed rgba(15, 23, 42, 0.14);
+  border-radius: 18px;
   padding: 2rem;
   text-align: center;
-  background: #f8f9fa;
+  background: rgba(255,255,255,0.72);
   transition: all 0.3s;
 
   &:hover {
-    border-color: #F6885C;
-    background: #fff4ed;
+    border-color: ${modernTheme.colors.brandStrong};
+    background: rgba(255,255,255,0.9);
   }
 `;
 
 const UploadIcon = styled.div`
   font-size: 3rem;
-  color: #F6885C;
+  color: ${modernTheme.colors.brandStrong};
   margin-bottom: 1rem;
 `;
 
 const UploadText = styled.div`
-  color: #666;
+  color: ${modernTheme.colors.muted};
   margin-bottom: 1rem;
 `;
 
 const UploadButton = styled.button`
-  background: #F6885C;
+  ${primaryButtonCss}
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
-  border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
-  transition: all 0.3s;
-
-  &:hover {
-    background: #ED733A;
-  }
 `;
 
 const MAX_PHOTOS = 20;
@@ -264,9 +248,9 @@ const PhotoPreviewGrid = styled.div`
 const PhotoPreviewItem = styled.div`
   position: relative;
   aspect-ratio: 1;
-  border-radius: 8px;
+  border-radius: 14px;
   overflow: hidden;
-  background: #eee;
+  background: rgba(15, 23, 42, 0.06);
 `;
 
 const PhotoPreviewImg = styled.img`
@@ -312,10 +296,16 @@ const PhotoAngleGuide = styled.div`
   justify-content: center;
   gap: 1.5rem;
   padding: 1.25rem;
-  background: linear-gradient(135deg, #fff4ed 0%, #ffe4d5 100%);
-  border-radius: 12px;
+  background: rgba(255, 244, 237, 0.84);
+  border-radius: 18px;
   margin-bottom: 1.5rem;
-  border: 1px solid rgba(102, 126, 234, 0.2);
+  border: 1px solid rgba(246, 136, 92, 0.18);
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    text-align: center;
+    padding: 1rem;
+  }
 `;
 
 const CarSvgWrap = styled.div`
@@ -333,8 +323,8 @@ const CarImageWrap = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f5f5f5;
-  border-radius: 8px;
+  background: rgba(255,255,255,0.78);
+  border-radius: 14px;
   overflow: hidden;
 `;
 
@@ -352,13 +342,13 @@ const CarOverlay = styled.div`
 
 const PhotoAngleLabel = styled.div`
   font-weight: 600;
-  color: #333;
+  color: ${modernTheme.colors.ink};
   font-size: 1.05rem;
 `;
 
 const PhotoAngleHint = styled.div`
   font-size: 0.9rem;
-  color: #666;
+  color: ${modernTheme.colors.muted};
   margin-top: 0.25rem;
 `;
 
@@ -485,49 +475,50 @@ const ButtonGroup = styled.div`
 
   @media (max-width: 768px) {
     flex-direction: column;
+    align-items: stretch;
   }
 `;
 
 const Button = styled.button<{ variant?: 'primary' | 'secondary' }>`
   padding: 1rem 2rem;
-  border-radius: 8px;
+  border-radius: ${modernTheme.radii.pill};
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
   min-width: 150px;
+  appearance: none;
+  -webkit-appearance: none;
 
-  ${props => props.variant === 'secondary' ? `
-    background: white;
-    color: #F6885C;
-    border: 2px solid #F6885C;
-    
-    &:hover {
-      background: #F6885C;
-      color: white;
-    }
-  ` : `
-    background: #F6885C;
-    color: white;
-    border: none;
-    
-    &:hover {
-      background: #ED733A;
-      transform: translateY(-2px);
-    }
-  `}
+  ${props => props.variant === 'secondary'
+    ? css`
+        ${secondaryButtonCss}
+        color: ${modernTheme.colors.brandStrong};
+
+        &:hover {
+          color: ${modernTheme.colors.brandStrong};
+        }
+      `
+    : css`
+        ${primaryButtonCss}
+        color: white;
+        border: none;
+      `}
 
   &:disabled {
-    background: #ccc;
     cursor: not-allowed;
     transform: none;
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
   }
 `;
 
 const ProgressBar = styled.div`
   width: 100%;
   height: 4px;
-  background: #e9ecef;
+  background: rgba(15, 23, 42, 0.08);
   border-radius: 2px;
   margin-bottom: 2rem;
   overflow: hidden;

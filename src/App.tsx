@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import RouteGuard from './components/RouteGuard';
+import modernTheme from './styles/modernTheme';
 import HomePage from './pages/HomePage';
 import RegisterPage from './pages/RegisterPage';
 import FavoritesPage from './pages/FavoritesPage';
@@ -33,7 +34,7 @@ import AdminBookingsPage from './pages/admin/AdminBookingsPage';
 const AppContainer = styled.div`
   min-height: 100vh;
   min-height: calc(100vh - env(safe-area-inset-bottom, 0px));
-  background-color: #f8f9fa;
+  background: ${modernTheme.gradients.page};
   overflow-x: hidden;
 `;
 
@@ -57,14 +58,16 @@ const PortInfo = styled.div`
   position: fixed;
   top: 10px;
   right: 10px;
-  background-color: #F6885C;
-  color: white;
+  background: rgba(15, 23, 42, 0.82);
+  color: rgba(255, 255, 255, 0.92);
   padding: 8px 12px;
-  border-radius: 20px;
+  border-radius: 999px;
   font-size: 12px;
   font-weight: bold;
   z-index: 1000;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18);
   @media (max-width: 768px) {
     display: none;
   }

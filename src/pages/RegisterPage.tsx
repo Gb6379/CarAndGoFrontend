@@ -6,30 +6,44 @@ import { authService } from '../services/authService';
 import { Car } from '../components/IconSystem';
 import { validateCpfCnpj } from '../utils/cpfValidation';
 import { getErrorMessage, errorToDisplay } from '../utils/errorUtils';
+import modernTheme from '../styles/modernTheme';
+import {
+  errorNoticeCss,
+  formFieldCss,
+  glassPanelCss,
+  primaryButtonCss,
+  subtitleCss,
+  titleCss,
+} from '../styles/modernPrimitives';
 
 const RegisterContainer = styled.div`
-  min-height: 100vh;
+  min-height: calc(100vh - 160px);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
+  background: transparent;
   padding: 2rem;
 `;
 
 const RegisterCard = styled.div`
-  background: white;
+  ${glassPanelCss}
   padding: 3rem;
-  border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
   width: 100%;
   max-width: 500px;
 `;
 
 const Title = styled.h1`
   text-align: center;
-  color: #333;
+  ${titleCss}
   margin-bottom: 2rem;
   font-size: 2rem;
+`;
+
+const Subtitle = styled.p`
+  ${subtitleCss}
+  text-align: center;
+  margin: -1.25rem auto 2rem;
+  max-width: 360px;
 `;
 
 const Form = styled.form`
@@ -39,58 +53,30 @@ const Form = styled.form`
 `;
 
 const Input = styled.input`
-  padding: 1rem;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.3s;
-  
-  &:focus {
-    outline: none;
-    border-color: #F6885C;
-  }
+  ${formFieldCss}
 `;
 
 const Select = styled.select`
-  padding: 1rem;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.3s;
-  
-  &:focus {
-    outline: none;
-    border-color: #F6885C;
-  }
+  ${formFieldCss}
 `;
 
 const Button = styled.button`
-  background: #F6885C;
+  ${primaryButtonCss}
   color: white;
   border: none;
   padding: 1rem;
-  border-radius: 8px;
   font-size: 1rem;
   cursor: pointer;
-  transition: background-color 0.3s;
-  
-  &:hover {
-    background: #ED733A;
-  }
-  
-  &:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-  }
+  transition: all 0.3s;
 `;
 
 const LinkText = styled.p`
   text-align: center;
   margin-top: 1rem;
-  color: #666;
+  color: ${modernTheme.colors.muted};
   
   a {
-    color: #F6885C;
+    color: ${modernTheme.colors.brandStrong};
     text-decoration: none;
     
     &:hover {
@@ -100,10 +86,8 @@ const LinkText = styled.p`
 `;
 
 const ErrorMessage = styled.div`
-  background: #ffebee;
-  color: #c62828;
-  padding: 0.5rem;
-  border-radius: 5px;
+  ${errorNoticeCss}
+  padding: 0.75rem 0.9rem;
   font-size: 0.9rem;
   margin-bottom: 1rem;
 `;
@@ -135,13 +119,13 @@ const PasswordToggleBtn = styled.button`
   border: none;
   padding: 0.5rem;
   cursor: pointer;
-  color: #666;
+  color: ${modernTheme.colors.muted};
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
+  border-radius: 10px;
   -webkit-tap-highlight-color: transparent;
-  &:hover { color: #333; background: #f0f0f0; }
+  &:hover { color: ${modernTheme.colors.ink}; background: rgba(15, 23, 42, 0.06); }
 `;
 
 const RegisterPage: React.FC = () => {
@@ -204,6 +188,9 @@ const RegisterPage: React.FC = () => {
     <RegisterContainer>
       <RegisterCard>
         <Title><Car size={24} /> Cadastrar</Title>
+        <Subtitle>
+          Crie sua conta para reservar, anunciar e acompanhar tudo em uma interface mais clara e moderna.
+        </Subtitle>
         
         {error && <ErrorMessage>{errorToDisplay(error)}</ErrorMessage>}
         

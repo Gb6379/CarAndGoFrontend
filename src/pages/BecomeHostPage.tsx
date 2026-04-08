@@ -21,15 +21,26 @@ import {
   BarChart,
   Security
 } from '../components/IconSystem';
+import modernTheme from '../styles/modernTheme';
+import {
+  darkPanelCss,
+  formFieldCss,
+  glassPanelCss,
+  pageShellCss,
+  primaryButtonCss,
+  titleCss,
+} from '../styles/modernPrimitives';
 
 // Hero Section
 const HeroSection = styled.section`
-  background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
-  color: white;
+  ${darkPanelCss}
   padding: 6rem 2rem 4rem;
   text-align: center;
   position: relative;
   overflow: hidden;
+  border-radius: 36px;
+  margin: 1rem auto 0;
+  max-width: 1320px;
 
   &::before {
     content: '';
@@ -44,6 +55,8 @@ const HeroSection = styled.section`
 
   @media (max-width: 768px) {
     padding: 4rem 1.5rem 3rem;
+    border-radius: 24px;
+    margin-top: 0.5rem;
   }
 `;
 
@@ -80,6 +93,11 @@ const HeroSubtitle = styled.p`
 
   @media (max-width: 768px) {
     font-size: 1.2rem;
+    margin-bottom: 2rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 1rem;
   }
 `;
 
@@ -121,13 +139,12 @@ const StatLabel = styled.div`
 `;
 
 const CTAButton = styled.button`
-  background: white;
-  color: #F6885C;
+  ${primaryButtonCss}
+  color: white;
   border: none;
   padding: 1.2rem 3rem;
   font-size: 1.2rem;
   font-weight: 600;
-  border-radius: 50px;
   cursor: pointer;
   transition: all 0.3s;
   margin-top: 2rem;
@@ -135,32 +152,36 @@ const CTAButton = styled.button`
   align-items: center;
   gap: 0.5rem;
 
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  }
-
   @media (max-width: 768px) {
     padding: 1rem 2rem;
     font-size: 1rem;
+  }
+
+  @media (max-width: 640px) {
+    width: min(100%, 340px);
+    justify-content: center;
   }
 `;
 
 // Benefits Section
 const BenefitsSection = styled.section`
   padding: 6rem 2rem;
-  background: white;
+  background: transparent;
+
+  @media (max-width: 1024px) {
+    padding: 5rem 1.5rem;
+  }
 
   @media (max-width: 768px) {
-    padding: 4rem 1.5rem;
+    padding: 3.5rem 1rem;
   }
 `;
 
 const SectionTitle = styled.h2`
+  ${titleCss}
   font-size: 2.5rem;
   text-align: center;
   margin-bottom: 1rem;
-  color: #333;
   font-weight: 700;
 
   @media (max-width: 768px) {
@@ -171,12 +192,17 @@ const SectionTitle = styled.h2`
 const SectionSubtitle = styled.p`
   text-align: center;
   font-size: 1.2rem;
-  color: #666;
+  color: ${modernTheme.colors.muted};
   margin-bottom: 3rem;
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
   line-height: 1.6;
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+  }
 `;
 
 const BenefitsGrid = styled.div`
@@ -188,25 +214,28 @@ const BenefitsGrid = styled.div`
 `;
 
 const BenefitCard = styled.div`
-  background: white;
+  ${glassPanelCss}
   padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  border-radius: 24px;
   transition: all 0.3s;
-  border: 2px solid transparent;
+  border: 1px solid rgba(255,255,255,0.82);
 
   &:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    border-color: #F6885C;
+    box-shadow: 0 24px 52px rgba(15, 23, 42, 0.14);
+    border-color: rgba(246, 136, 92, 0.24);
+  }
+
+  @media (max-width: 768px) {
+    padding: 1.5rem;
   }
 `;
 
 const BenefitIcon = styled.div`
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #F6885C, #D95128);
-  border-radius: 12px;
+  background: ${modernTheme.gradients.brand};
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -218,12 +247,12 @@ const BenefitIcon = styled.div`
 const BenefitTitle = styled.h3`
   font-size: 1.5rem;
   margin-bottom: 1rem;
-  color: #333;
+  color: ${modernTheme.colors.ink};
   font-weight: 600;
 `;
 
 const BenefitDescription = styled.p`
-  color: #666;
+  color: ${modernTheme.colors.muted};
   line-height: 1.6;
   font-size: 1rem;
 `;
@@ -231,10 +260,14 @@ const BenefitDescription = styled.p`
 // How It Works Section
 const HowItWorksSection = styled.section`
   padding: 6rem 2rem;
-  background: #f8f9fa;
+  background: transparent;
+
+  @media (max-width: 1024px) {
+    padding: 5rem 1.5rem;
+  }
 
   @media (max-width: 768px) {
-    padding: 4rem 1.5rem;
+    padding: 3.5rem 1rem;
   }
 `;
 
@@ -247,24 +280,27 @@ const StepsContainer = styled.div`
 `;
 
 const StepCard = styled.div`
-  background: white;
+  ${glassPanelCss}
   padding: 2rem;
-  border-radius: 12px;
+  border-radius: 24px;
   text-align: center;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
   position: relative;
   transition: all 0.3s;
 
   &:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 24px 52px rgba(15, 23, 42, 0.14);
+  }
+
+  @media (max-width: 768px) {
+    padding: 1.5rem;
   }
 `;
 
 const StepNumber = styled.div`
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #F6885C, #D95128);
+  background: ${modernTheme.gradients.brand};
   color: white;
   border-radius: 50%;
   display: flex;
@@ -277,19 +313,19 @@ const StepNumber = styled.div`
 
 const StepIcon = styled.div`
   font-size: 2rem;
-  color: #F6885C;
+  color: ${modernTheme.colors.brandStrong};
   margin-bottom: 1rem;
 `;
 
 const StepTitle = styled.h3`
   font-size: 1.3rem;
   margin-bottom: 1rem;
-  color: #333;
+  color: ${modernTheme.colors.ink};
   font-weight: 600;
 `;
 
 const StepDescription = styled.p`
-  color: #666;
+  color: ${modernTheme.colors.muted};
   line-height: 1.6;
   font-size: 1rem;
 `;
@@ -299,18 +335,23 @@ const CalculatorSection = styled.section`
   padding: 6rem 2rem;
   background: white;
 
+  @media (max-width: 1024px) {
+    padding: 5rem 1.5rem;
+  }
+
   @media (max-width: 768px) {
-    padding: 4rem 1.5rem;
+    padding: 3.5rem 1rem;
   }
 `;
 
 const CalculatorContainer = styled.div`
   max-width: 800px;
   margin: 0 auto;
-  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  background: rgba(255, 255, 255, 0.74);
   padding: 3rem;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border-radius: 28px;
+  box-shadow: ${modernTheme.shadows.soft};
+  border: 1px solid rgba(255, 255, 255, 0.82);
 
   @media (max-width: 768px) {
     padding: 2rem;
@@ -332,47 +373,38 @@ const FormGroup = styled.div`
 
 const Label = styled.label`
   font-size: 0.9rem;
-  color: #333;
-  font-weight: 500;
+  color: ${modernTheme.colors.inkSoft};
+  font-weight: 600;
 `;
 
 const Input = styled.input`
-  padding: 0.75rem;
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.3s;
-
-  &:focus {
-    outline: none;
-    border-color: #F6885C;
-  }
+  ${formFieldCss}
 `;
 
 const ResultBox = styled.div`
-  background: white;
+  background: rgba(255,255,255,0.84);
   padding: 2rem;
-  border-radius: 12px;
+  border-radius: 24px;
   text-align: center;
-  border: 2px solid #F6885C;
+  border: 1px solid rgba(246, 136, 92, 0.24);
 `;
 
 const ResultLabel = styled.div`
   font-size: 1rem;
-  color: #666;
+  color: ${modernTheme.colors.muted};
   margin-bottom: 0.5rem;
 `;
 
 const ResultAmount = styled.div`
   font-size: 2.5rem;
   font-weight: 700;
-  color: #F6885C;
+  color: ${modernTheme.colors.brandStrong};
   margin-bottom: 0.5rem;
 `;
 
 const ResultPeriod = styled.div`
   font-size: 0.9rem;
-  color: #999;
+  color: ${modernTheme.colors.muted};
 `;
 
 // Success Stories Section
@@ -380,8 +412,12 @@ const SuccessSection = styled.section`
   padding: 6rem 2rem;
   background: #f8f9fa;
 
+  @media (max-width: 1024px) {
+    padding: 5rem 1.5rem;
+  }
+
   @media (max-width: 768px) {
-    padding: 4rem 1.5rem;
+    padding: 3.5rem 1rem;
   }
 `;
 
@@ -394,10 +430,9 @@ const TestimonialsGrid = styled.div`
 `;
 
 const TestimonialCard = styled.div`
-  background: white;
+  ${glassPanelCss}
   padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  border-radius: 24px;
 `;
 
 const TestimonialHeader = styled.div`
@@ -410,7 +445,7 @@ const TestimonialHeader = styled.div`
 const Avatar = styled.div`
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #F6885C, #D95128);
+  background: ${modernTheme.gradients.brand};
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -426,13 +461,13 @@ const TestimonialInfo = styled.div`
 
 const TestimonialName = styled.div`
   font-weight: 600;
-  color: #333;
+  color: ${modernTheme.colors.ink};
   margin-bottom: 0.25rem;
 `;
 
 const TestimonialLocation = styled.div`
   font-size: 0.9rem;
-  color: #666;
+  color: ${modernTheme.colors.muted};
 `;
 
 const Stars = styled.div`
@@ -443,7 +478,7 @@ const Stars = styled.div`
 `;
 
 const TestimonialText = styled.p`
-  color: #666;
+  color: ${modernTheme.colors.muted};
   line-height: 1.6;
   font-style: italic;
 `;
@@ -451,8 +486,8 @@ const TestimonialText = styled.p`
 const TestimonialEarnings = styled.div`
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid #e9ecef;
-  color: #F6885C;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  color: ${modernTheme.colors.brandStrong};
   font-weight: 600;
 `;
 
@@ -461,8 +496,12 @@ const ProtectionSection = styled.section`
   padding: 6rem 2rem;
   background: white;
 
+  @media (max-width: 1024px) {
+    padding: 5rem 1.5rem;
+  }
+
   @media (max-width: 768px) {
-    padding: 4rem 1.5rem;
+    padding: 3.5rem 1rem;
   }
 `;
 
@@ -510,8 +549,12 @@ const RequirementsSection = styled.section`
   padding: 6rem 2rem;
   background: #f8f9fa;
 
+  @media (max-width: 1024px) {
+    padding: 5rem 1.5rem;
+  }
+
   @media (max-width: 768px) {
-    padding: 4rem 1.5rem;
+    padding: 3.5rem 1rem;
   }
 `;
 
@@ -576,6 +619,14 @@ const FinalCTASection = styled.section`
   background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
   color: white;
   text-align: center;
+
+  @media (max-width: 1024px) {
+    padding: 5rem 1.5rem;
+  }
+
+  @media (max-width: 768px) {
+    padding: 3.5rem 1rem;
+  }
 `;
 
 const FinalCTATitle = styled.h2`
@@ -880,7 +931,9 @@ const BecomeHostPage: React.FC = () => {
               </Stars>
               <TestimonialText>"{testimonial.text}"</TestimonialText>
               <TestimonialEarnings>
-                <BarChart size={16} style={{ marginRight: '0.5rem' }} />
+                <span style={{ display: 'inline-flex', marginRight: '0.5rem' }}>
+                  <BarChart size={16} />
+                </span>
                 {testimonial.earnings}
               </TestimonialEarnings>
             </TestimonialCard>

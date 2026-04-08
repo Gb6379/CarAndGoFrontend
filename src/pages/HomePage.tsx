@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import styled from 'styled-components';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
@@ -15,6 +15,8 @@ L.Icon.Default.mergeOptions({
 });
 import { PlayArrow } from '@mui/icons-material';
 import { vehicleService, bookingService } from '../services/authService';
+import modernTheme from '../styles/modernTheme';
+import { darkPanelCss, glassPanelCss, primaryButtonCss, secondaryButtonCss, solidPanelCss, subtitleCss } from '../styles/modernPrimitives';
 
 function normalizePhotoSrc(raw: unknown): string | null {
   if (typeof raw !== 'string') return null;
@@ -38,18 +40,22 @@ function getFeaturedCarImageSrc(vehicle: any): string | null {
   return normalizePhotoSrc(raw);
 }
 
+function getStoredUser(): any {
+  try {
+    return JSON.parse(localStorage.getItem('user') || '{}');
+  } catch {
+    return {};
+  }
+}
+
 // Hero Section with Search - Turo Style
 const HeroSection = styled.section`
-  background: linear-gradient(
-    135deg, 
-    rgba(10, 50, 80, 0.9) 0%, 
-    rgba(15, 70, 110, 0.95) 100%
-  ), url(${heroBg});
+  background: ${modernTheme.gradients.hero}, url(${heroBg});
   background-size: cover;
   background-position: center;
   background-blend-mode: multiply;
   color: white;
-  padding: 3rem 2rem 2.5rem;
+  padding: 4.25rem 2rem 3.5rem;
   min-height: auto;
   display: flex;
   flex-direction: column;
@@ -57,6 +63,11 @@ const HeroSection = styled.section`
   justify-content: center;
   position: relative;
   overflow: hidden;
+  max-width: ${modernTheme.widths.hero};
+  margin: 1.25rem auto 0;
+  border-radius: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 36px 90px rgba(15, 23, 42, 0.24);
 
   &::before {
     content: '';
@@ -65,25 +76,38 @@ const HeroSection = styled.section`
     left: 0;
     right: 0;
     bottom: 0;
-    background: url(${heroBg});
-    background-size: cover;
-    background-position: center;
-    filter: blur(3px) brightness(0.4);
-    opacity: 0.5;
+    background:
+      radial-gradient(circle at 18% 18%, rgba(246, 136, 92, 0.28), transparent 24%),
+      radial-gradient(circle at 84% 12%, rgba(139, 92, 246, 0.22), transparent 22%),
+      radial-gradient(circle at 50% 100%, rgba(56, 189, 248, 0.18), transparent 24%);
+    z-index: 0;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: auto -10% -32% 46%;
+    height: 280px;
+    background: rgba(246, 136, 92, 0.18);
+    filter: blur(70px);
     z-index: 0;
   }
 
   @media (max-width: 768px) {
-    padding: 2.5rem 1.5rem 2rem;
+    margin: 0.75rem 1rem 0;
+    padding: 3rem 1.25rem 2.5rem;
+    border-radius: 28px;
   }
 
   @media (max-width: 480px) {
-    padding: 2rem 1rem 1.5rem;
+    margin: 0.5rem 0.75rem 0;
+    padding: 2.5rem 1rem 2rem;
+    border-radius: 24px;
   }
 `;
 
 const HeroWrapper = styled.div`
-  max-width: 1200px;
+  max-width: 1180px;
   margin: 0 auto;
   width: 100%;
   padding: 0 2rem;
@@ -104,12 +128,28 @@ const HeroContent = styled.div`
   width: 100%;
 `;
 
+const HeroEyebrow = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: ${modernTheme.radii.pill};
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+`;
+
 const HeroTitle = styled.h1`
-  font-size: 2.5rem;
-  margin-bottom: 0.75rem;
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
+  font-size: clamp(2.6rem, 6vw, 4.8rem);
+  margin: 0 auto 1rem;
+  max-width: 840px;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
   color: white;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
 
@@ -124,15 +164,15 @@ const HeroTitle = styled.h1`
 `;
 
 const HeroSubtitle = styled.p`
-  font-size: 1.1rem;
-  margin-bottom: 1.5rem;
+  font-size: 1.15rem;
+  margin-bottom: 1.75rem;
   opacity: 1;
-  max-width: none;
+  max-width: 720px;
   margin-left: auto;
   margin-right: auto;
   font-weight: 400;
-  line-height: 1.5;
-  color: white;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.86);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
 
   @media (max-width: 768px) {
@@ -148,27 +188,55 @@ const HeroSubtitle = styled.p`
   }
 `;
 
+const HeroHighlights = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+
+  @media (max-width: 768px) {
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+`;
+
+const HeroHighlight = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1rem;
+  border-radius: ${modernTheme.radii.pill};
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.95rem;
+  backdrop-filter: blur(10px);
+
+  svg {
+    color: #ffb594;
+    flex-shrink: 0;
+  }
+`;
+
 const SearchContainer = styled.div`
-  background: white;
-  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.42);
   padding: 0;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  box-shadow: 0 28px 65px rgba(15, 23, 42, 0.22);
   max-width: 100%;
   margin: 0 auto;
   width: 100%;
   overflow: hidden;
   display: flex;
   align-items: center;
+  backdrop-filter: blur(18px);
 
   @media (max-width: 768px) {
     flex-direction: column;
-    border-radius: 12px;
-    margin: 0 0.5rem;
-    width: calc(100% - 1rem);
-  }
-  @media (max-width: 480px) {
-    margin: 0 0.25rem;
-    width: calc(100% - 0.5rem);
+    border-radius: 24px;
+    width: 100%;
   }
 `;
 
@@ -193,14 +261,14 @@ const SearchField = styled.div`
   min-width: 0;
 
   &:not(:last-child) {
-    border-right: 1px solid #e5e5e5;
+    border-right: 1px solid rgba(15, 23, 42, 0.08);
   }
 
   @media (max-width: 768px) {
     width: 100%;
     flex: none;
     border-right: none;
-    border-bottom: 1px solid #e5e5e5;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
     
     &:last-of-type {
       border-bottom: none;
@@ -213,8 +281,8 @@ const SearchInput = styled.input`
   outline: none;
   font-size: 1rem;
   padding: 1.25rem 1.5rem;
-  background: white;
-  color: #333;
+  background: transparent;
+  color: ${modernTheme.colors.ink};
   transition: all 0.2s ease;
   height: 64px;
   box-sizing: border-box;
@@ -222,11 +290,11 @@ const SearchInput = styled.input`
   width: 100%;
 
   &:focus {
-    background: #fafafa;
+    background: rgba(248, 250, 252, 0.86);
   }
 
   &::placeholder {
-    color: #999;
+    color: ${modernTheme.colors.muted};
     font-weight: 400;
   }
 
@@ -243,13 +311,13 @@ const DateTimeContainer = styled.div`
   position: relative;
 
   &:not(:last-child) {
-    border-right: 1px solid #e5e5e5;
+    border-right: 1px solid rgba(15, 23, 42, 0.08);
   }
 
   @media (max-width: 768px) {
     width: 100%;
     border-right: none;
-    border-bottom: 1px solid #e5e5e5;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
     flex-direction: column;
     
     &:last-of-type {
@@ -263,8 +331,8 @@ const DateInput = styled.input`
   outline: none;
   font-size: 1rem;
   padding: 1.5rem 1rem 0.75rem 1rem;
-  background: white;
-  color: #333;
+  background: transparent;
+  color: ${modernTheme.colors.ink};
   transition: all 0.2s ease;
   height: 64px;
   box-sizing: border-box;
@@ -275,11 +343,11 @@ const DateInput = styled.input`
   width: 100%;
 
   &:focus {
-    background: #fafafa;
+    background: rgba(248, 250, 252, 0.86);
   }
 
   &::placeholder {
-    color: #999;
+    color: ${modernTheme.colors.muted};
   }
 
   &::-webkit-calendar-picker-indicator {
@@ -298,7 +366,7 @@ const DateInput = styled.input`
   @media (max-width: 480px) {
     flex: none;
     width: 100%;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
   }
 `;
 
@@ -307,26 +375,26 @@ const TimeSelect = styled.select`
   outline: none;
   font-size: 1rem;
   padding: 1.5rem 1rem 0.75rem 1rem;
-  background: white;
-  color: #333;
+  background: transparent;
+  color: ${modernTheme.colors.ink};
   transition: all 0.2s ease;
   height: 64px;
   box-sizing: border-box;
   font-weight: 400;
   flex: 1;
   cursor: pointer;
-  border-left: 1px solid #e5e5e5;
+  border-left: 1px solid rgba(15, 23, 42, 0.08);
   min-width: 90px;
 
   &:focus {
-    background: #fafafa;
+    background: rgba(248, 250, 252, 0.86);
   }
 
   @media (max-width: 768px) {
     height: 52px;
     min-height: 48px;
     padding: 1rem 0.75rem 0.5rem 0.75rem;
-    border-left: 1px solid #eee;
+    border-left: 1px solid rgba(15, 23, 42, 0.08);
     border-bottom: none;
     min-width: 0;
     flex: 1;
@@ -336,7 +404,7 @@ const TimeSelect = styled.select`
     flex: none;
     width: 100%;
     border-left: none;
-    border-top: 1px solid #eee;
+    border-top: 1px solid rgba(15, 23, 42, 0.08);
   }
 `;
 
@@ -348,14 +416,14 @@ const DateTimeWrapper = styled.div`
   min-width: 0;
 
   &:not(:last-child) {
-    border-right: 1px solid #e5e5e5;
+    border-right: 1px solid rgba(15, 23, 42, 0.08);
   }
 
   @media (max-width: 768px) {
     width: 100%;
     flex: none;
     border-right: none;
-    border-bottom: 1px solid #e5e5e5;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
     
     &:last-of-type {
       border-bottom: none;
@@ -369,7 +437,7 @@ const DateLabel = styled.span`
   left: 12px;
   font-size: 0.7rem;
   font-weight: 600;
-  color: #666;
+  color: ${modernTheme.colors.muted};
   text-transform: uppercase;
   letter-spacing: 0.5px;
   z-index: 1;
@@ -404,22 +472,22 @@ const LocationInputWrapper = styled.div`
   min-width: 0;
 
   &:not(:last-child) {
-    border-right: 1px solid #e5e5e5;
+    border-right: 1px solid rgba(15, 23, 42, 0.08);
   }
 
   @media (max-width: 768px) {
     width: 100%;
     flex: none;
     border-right: none;
-    border-bottom: 1px solid #e5e5e5;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
   }
 `;
 
 const GeoLocationButton = styled.button`
   position: absolute;
   right: 8px;
-  background: #f0f0f0;
-  border: none;
+  background: ${modernTheme.colors.brandSoft};
+  border: 1px solid rgba(246, 136, 92, 0.2);
   border-radius: 50%;
   width: 36px;
   height: 36px;
@@ -428,11 +496,10 @@ const GeoLocationButton = styled.button`
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
-  color: #666;
+  color: ${modernTheme.colors.brandStrong};
 
   &:hover {
-    background: #e0e0e0;
-    color: #333;
+    background: rgba(246, 136, 92, 0.18);
   }
 
   &:disabled {
@@ -446,13 +513,13 @@ const GeoLocationButton = styled.button`
 `;
 
 const SearchButton = styled.button`
-  background: #F6885CFF;
+  background: ${modernTheme.gradients.brand};
   color: white;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.15);
   padding: 0;
   font-size: 1rem;
   font-weight: 600;
-  border-radius: 0;
+  border-radius: 20px;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
@@ -463,30 +530,33 @@ const SearchButton = styled.button`
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  margin: 8px;
+  box-shadow: ${modernTheme.shadows.glow};
 
   &:hover {
-    background: #ED733AFF;
+    transform: translateY(-1px) scale(1.01);
   }
 
   &:active {
-    background: #D95128FF;
+    transform: translateY(0);
   }
 
   @media (max-width: 768px) {
     width: 100%;
     height: 56px;
-    border-radius: 0 0 12px 12px;
+    border-radius: 0 0 24px 24px;
+    margin: 0;
   }
 `;
 
 const GetToKnowButton = styled.button`
-  background: #000000;
+  background: rgba(255, 255, 255, 0.12);
   color: white;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.18);
   padding: 0.75rem 1.75rem;
   font-size: 0.95rem;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: ${modernTheme.radii.pill};
   cursor: pointer;
   transition: all 0.2s ease;
   display: inline-flex;
@@ -494,9 +564,10 @@ const GetToKnowButton = styled.button`
   gap: 0.5rem;
   margin-top: 1.5rem;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  backdrop-filter: blur(12px);
 
   &:hover {
-    background: #1a1a1a;
+    background: rgba(255, 255, 255, 0.18);
     transform: translateY(-1px);
   }
 
@@ -513,25 +584,33 @@ const GetToKnowButton = styled.button`
 
 // How It Works Section
 const HowItWorksSection = styled.section`
-  padding: 6rem 2rem;
-  background: #f8f9fa;
+  padding: 4.5rem 2rem;
+  background: ${modernTheme.gradients.section};
+  max-width: ${modernTheme.widths.content};
+  margin: 1.5rem auto 0;
+  border-radius: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  box-shadow: ${modernTheme.shadows.soft};
 
   @media (max-width: 768px) {
     padding: 4rem 1.5rem;
+    margin: 1rem 1rem 0;
   }
 
   @media (max-width: 480px) {
     padding: 3rem 1rem;
+    margin: 0.75rem 0.75rem 0;
+    border-radius: 24px;
   }
 `;
 
 const SectionTitle = styled.h2`
-  font-size: 3rem;
+  font-size: clamp(2rem, 4vw, 3.25rem);
   text-align: center;
   margin-bottom: 1rem;
-  color: #1a1a1a;
+  color: ${modernTheme.colors.ink};
   font-weight: 800;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.04em;
   line-height: 1.2;
 
   @media (max-width: 768px) {
@@ -545,9 +624,9 @@ const SectionTitle = styled.h2`
 
 const SectionSubtitle = styled.p`
   text-align: center;
-  font-size: 1.25rem;
-  color: #666;
-  margin-bottom: 4rem;
+  font-size: 1.08rem;
+  color: ${modernTheme.colors.muted};
+  margin-bottom: 3rem;
   max-width: 700px;
   margin-left: auto;
   margin-right: auto;
@@ -560,25 +639,30 @@ const TabsContainer = styled.div`
   justify-content: center;
   margin-bottom: 3rem;
   gap: 1rem;
+  padding: 0.4rem;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+  background: rgba(15, 23, 42, 0.05);
+  border-radius: ${modernTheme.radii.pill};
 `;
 
 const Tab = styled.button<{ active: boolean }>`
-  padding: 1rem 2.5rem;
-  border: 2px solid ${props => props.active ? '#F6885C' : '#e0e0e0'};
-  background: ${props => props.active ? 'linear-gradient(135deg, #F6885C 0%, #D95128 100%)' : 'white'};
-  color: ${props => props.active ? 'white' : '#666'};
-  border-radius: 12px;
+  padding: 1rem 2.25rem;
+  border: 1px solid ${props => props.active ? 'rgba(255, 255, 255, 0.26)' : 'transparent'};
+  background: ${props => props.active ? modernTheme.gradients.brand : 'transparent'};
+  color: ${props => props.active ? 'white' : modernTheme.colors.muted};
+  border-radius: ${modernTheme.radii.pill};
   cursor: pointer;
   font-weight: 700;
   font-size: 1.05rem;
   transition: all 0.3s ease;
-  box-shadow: ${props => props.active ? '0 4px 12px rgba(102, 126, 234, 0.3)' : '0 1px 3px rgba(0,0,0,0.05)'};
+  box-shadow: ${props => props.active ? modernTheme.shadows.glow : 'none'};
 
   &:hover {
-    border-color: #F6885C;
-    background: ${props => props.active ? 'linear-gradient(135deg, #F6885C 0%, #D95128 100%)' : '#f5f5f5'};
+    background: ${props => props.active ? modernTheme.gradients.brand : 'rgba(255, 255, 255, 0.8)'};
     transform: translateY(-2px);
-    box-shadow: ${props => props.active ? '0 6px 16px rgba(102, 126, 234, 0.35)' : '0 4px 12px rgba(0,0,0,0.08)'};
+    box-shadow: ${props => props.active ? modernTheme.shadows.glow : '0 10px 25px rgba(15, 23, 42, 0.08)'};
   }
 
   &:active {
@@ -595,25 +679,25 @@ const StepsGrid = styled.div`
 `;
 
 const StepCard = styled.div`
-  background: white;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.92) 100%);
   padding: 2.5rem;
-  border-radius: 16px;
+  border-radius: 24px;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.1);
   transition: all 0.3s ease;
-  border: 1px solid rgba(0,0,0,0.05);
+  border: 1px solid rgba(255, 255, 255, 0.8);
 
   &:hover {
     transform: translateY(-8px);
-    box-shadow: 0 12px 35px rgba(0,0,0,0.12);
-    border-color: rgba(102, 126, 234, 0.15);
+    box-shadow: 0 24px 50px rgba(15, 23, 42, 0.14);
+    border-color: rgba(246, 136, 92, 0.2);
   }
 `;
 
 const StepNumber = styled.div`
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #F6885C, #D95128);
+  background: ${modernTheme.gradients.brand};
   color: white;
   border-radius: 50%;
   display: flex;
@@ -622,6 +706,7 @@ const StepNumber = styled.div`
   font-size: 1.5rem;
   font-weight: bold;
   margin: 0 auto 1.5rem;
+  box-shadow: ${modernTheme.shadows.glow};
 `;
 
 const StepTitle = styled.h3`
@@ -637,13 +722,18 @@ const StepDescription = styled.p`
 
 // Featured Cars Section - Turo Style
 const FeaturedSection = styled.section`
-  padding: 3rem 2rem;
-  background: white;
-  max-width: 1400px;
-  margin: 0 auto;
+  padding: 2.5rem 2rem;
+  background: ${modernTheme.gradients.section};
+  max-width: ${modernTheme.widths.hero};
+  margin: 1.25rem auto 0;
+  border-radius: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  box-shadow: ${modernTheme.shadows.soft};
 
   @media (max-width: 768px) {
     padding: 2rem 1rem;
+    margin: 1rem 1rem 0;
+    border-radius: 24px;
   }
 `;
 
@@ -657,7 +747,7 @@ const SectionHeader = styled.div`
 const SectionTitleWithArrow = styled.h2`
   font-size: 1.5rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: ${modernTheme.colors.ink};
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -665,7 +755,7 @@ const SectionTitleWithArrow = styled.h2`
   transition: color 0.2s ease;
 
   &:hover {
-    color: #ea580c;
+    color: ${modernTheme.colors.brandStrong};
   }
 `;
 
@@ -683,16 +773,16 @@ const CarsScrollContainer = styled.div`
   }
 
   &::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: rgba(15, 23, 42, 0.08);
     border-radius: 4px;
   }
 
   &::-webkit-scrollbar-thumb {
-    background: #888;
+    background: rgba(15, 23, 42, 0.24);
     border-radius: 4px;
 
     &:hover {
-      background: #555;
+      background: rgba(15, 23, 42, 0.36);
     }
   }
 
@@ -702,21 +792,21 @@ const CarsScrollContainer = styled.div`
 `;
 
 const CarCard = styled.div`
-  background: white;
-  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.94) 100%);
+  border-radius: 22px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.1);
   transition: all 0.3s ease;
   cursor: pointer;
-  border: 1px solid rgba(0,0,0,0.08);
+  border: 1px solid rgba(255, 255, 255, 0.85);
   min-width: 320px;
   max-width: 320px;
   flex-shrink: 0;
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-    border-color: rgba(0,0,0,0.12);
+    box-shadow: 0 24px 52px rgba(15, 23, 42, 0.16);
+    border-color: rgba(246, 136, 92, 0.2);
   }
 
   @media (max-width: 768px) {
@@ -728,7 +818,7 @@ const CarCard = styled.div`
 const CarImage = styled.div`
   width: 100%;
   height: 200px;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: linear-gradient(135deg, rgba(246, 136, 92, 0.12) 0%, rgba(139, 92, 246, 0.12) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -796,7 +886,7 @@ const CarPriceRow = styled.div`
 const CarPrice = styled.div`
   font-size: 1.25rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: ${modernTheme.colors.ink};
   text-decoration: underline;
   text-decoration-thickness: 2px;
   text-underline-offset: 3px;
@@ -829,8 +919,19 @@ const ViewAllButton = styled.button`
 
 // Trust Section
 const TrustSection = styled.section`
-  padding: 6rem 2rem;
-  background: #f8f9fa;
+  padding: 4.5rem 2rem;
+  background: ${modernTheme.gradients.section};
+  max-width: ${modernTheme.widths.content};
+  margin: 1.5rem auto 0;
+  border-radius: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  box-shadow: ${modernTheme.shadows.soft};
+
+  @media (max-width: 768px) {
+    padding: 3.5rem 1.25rem;
+    margin: 1rem 1rem 0;
+    border-radius: 24px;
+  }
 `;
 
 const TrustGrid = styled.div`
@@ -844,11 +945,22 @@ const TrustGrid = styled.div`
 const TrustCard = styled.div`
   text-align: center;
   padding: 2rem;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: 24px;
+  box-shadow: 0 16px 38px rgba(15, 23, 42, 0.08);
 `;
 
 const TrustIcon = styled.div`
-  font-size: 3rem;
-  margin-bottom: 1rem;
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  background: rgba(246, 136, 92, 0.12);
+  color: ${modernTheme.colors.brandStrong};
 `;
 
 const TrustTitle = styled.h3`
@@ -864,22 +976,55 @@ const TrustDescription = styled.p`
 
 // CTA Section
 const CTASection = styled.section`
-  padding: 6rem 2rem;
-  background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
+  padding: 4.5rem 2rem;
+  background: ${modernTheme.gradients.dark};
   color: white;
   text-align: center;
+  max-width: ${modernTheme.widths.content};
+  margin: 1.5rem auto 0;
+  border-radius: 32px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 32px 80px rgba(15, 23, 42, 0.22);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -20% auto auto -10%;
+    width: 320px;
+    height: 320px;
+    border-radius: 50%;
+    background: rgba(246, 136, 92, 0.16);
+    filter: blur(80px);
+    z-index: 0;
+  }
+
+  & > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (max-width: 768px) {
+    padding: 3.5rem 1.25rem;
+    margin: 1rem 1rem 0;
+    border-radius: 24px;
+  }
 `;
 
 // Filter Bar Section
 const FilterBarSection = styled.section`
-  background: white;
-  padding: 1.5rem 2rem;
+  background: transparent;
+  padding: 0 2rem;
   display: flex;
   justify-content: center;
   width: 100%;
+  margin: -1.5rem auto 0;
+  position: relative;
+  z-index: 4;
 
   @media (max-width: 768px) {
     padding: 1rem;
+    margin-top: -1rem;
   }
 `;
 
@@ -888,8 +1033,14 @@ const FilterBar = styled.div`
   gap: 0.5rem;
   overflow-x: auto;
   justify-content: center;
-  max-width: 1200px;
+  max-width: ${modernTheme.widths.content};
   width: 100%;
+  padding: 0.65rem;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: ${modernTheme.radii.pill};
+  box-shadow: ${modernTheme.shadows.soft};
+  backdrop-filter: blur(18px);
 
   @media (max-width: 768px) {
     gap: 0.5rem;
@@ -902,24 +1053,24 @@ const FilterOption = styled.button<{ active?: boolean }>`
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 8px;
-  background: ${props => props.active ? '#e5e5e5' : 'transparent'};
-  color: #333;
+  border: 1px solid ${props => props.active ? 'rgba(255, 255, 255, 0.18)' : 'transparent'};
+  border-radius: ${modernTheme.radii.pill};
+  background: ${props => props.active ? modernTheme.gradients.brand : 'transparent'};
+  color: ${props => props.active ? 'white' : modernTheme.colors.inkSoft};
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
   min-width: fit-content;
 
   &:hover {
-    background: ${props => props.active ? '#d5d5d5' : '#f5f5f5'};
+    background: ${props => props.active ? modernTheme.gradients.brand : 'rgba(255, 255, 255, 0.82)'};
   }
 
   svg {
     font-size: 1rem;
-    color: #333;
+    color: inherit;
   }
 `;
 
@@ -929,24 +1080,29 @@ const CarsGridSection = styled.section`
   background: white;
 `;
 
-const CTAButton = styled.button`
-  background: white;
-  color: #F6885C;
-  border: none;
+const CTAButtons = styled.div`
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+`;
+
+const CTAButton = styled.button<{ $secondary?: boolean }>`
+  background: ${props => props.$secondary ? 'rgba(255, 255, 255, 0.08)' : modernTheme.gradients.brand};
+  color: white;
+  border: 1px solid ${props => props.$secondary ? 'rgba(255, 255, 255, 0.18)' : 'rgba(255, 255, 255, 0.14)'};
   padding: 1.25rem 3rem;
   font-size: 1.2rem;
   font-weight: 700;
   border-radius: 50px;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin: 0 0.75rem;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+  box-shadow: ${props => props.$secondary ? 'none' : modernTheme.shadows.glow};
+  backdrop-filter: blur(12px);
 
   &:hover {
-    background: #f8f9fa;
     transform: translateY(-3px);
-    box-shadow: 0 12px 30px rgba(0,0,0,0.25);
-    color: #c2410c;
+    box-shadow: ${props => props.$secondary ? '0 20px 40px rgba(15, 23, 42, 0.16)' : '0 24px 60px rgba(220, 94, 49, 0.28)'};
   }
 
   &:active {
@@ -954,220 +1110,654 @@ const CTAButton = styled.button`
   }
 
   @media (max-width: 768px) {
-    margin: 0.5rem;
     padding: 1rem 2.5rem;
   }
 `;
 
 // Lessor home – painel administrativo
-const LessorHero = styled.section`
-  background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
-  color: white;
-  padding: 3rem 2rem;
-  text-align: center;
+const LessorShell = styled.section`
+  max-width: 1320px;
+  margin: 1.25rem auto 0;
+  padding: 0 1rem 2rem;
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: 1fr;
+  }
+
+  @media (max-width: 768px) {
+    padding: 0 0.9rem 1.5rem;
+    margin-top: 0.9rem;
+  }
 `;
 
-const LessorHeroTitle = styled.h1`
-  font-size: 2.25rem;
-  margin: 0 0 0.5rem 0;
-  font-weight: 700;
-  @media (max-width: 768px) { font-size: 1.75rem; }
+const LessorSidebar = styled.aside`
+  ${darkPanelCss}
+  padding: 1.5rem;
+  position: sticky;
+  top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+
+  @media (max-width: 1100px) {
+    position: static;
+  }
+
+  @media (max-width: 768px) {
+    padding: 1.15rem;
+    border-radius: 24px;
+  }
+`;
+
+const LessorSidebarBrand = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+`;
+
+const LessorSidebarIcon = styled.div`
+  width: 50px;
+  height: 50px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(246, 136, 92, 0.98) 0%, rgba(220, 94, 49, 0.98) 100%);
+  color: white;
+  box-shadow: 0 18px 36px rgba(220, 94, 49, 0.28);
+  flex-shrink: 0;
+`;
+
+const LessorSidebarCopy = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+`;
+
+const LessorSidebarTitle = styled.h1`
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.2;
+`;
+
+const LessorSidebarText = styled.p`
+  margin: 0;
+  color: rgba(255,255,255,0.7);
+  font-size: 0.9rem;
+  line-height: 1.6;
+`;
+
+const LessorSidebarNav = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+
+  @media (max-width: 1100px) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+`;
+
+const LessorSidebarNavButton = styled.button<{ $active?: boolean }>`
+  border: 1px solid ${p => p.$active ? 'rgba(255,255,255,0.16)' : 'rgba(255,255,255,0.08)'};
+  border-radius: 18px;
+  background: ${p => p.$active ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.06)'};
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.95rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.16);
+  }
+`;
+
+const LessorSidebarStats = styled.div`
+  display: grid;
+  gap: 0.75rem;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+`;
+
+const LessorSidebarStat = styled.div`
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 1rem;
+`;
+
+const LessorSidebarStatLabel = styled.span`
+  display: block;
+  color: rgba(255,255,255,0.68);
+  font-size: 0.82rem;
+`;
+
+const LessorSidebarStatValue = styled.strong`
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 1.35rem;
+  line-height: 1.1;
+`;
+
+const LessorMain = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+`;
+
+const LessorHero = styled.section`
+  ${darkPanelCss}
+  padding: 1.75rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(220px, 0.9fr);
+  gap: 1.2rem;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: auto -6% -18% auto;
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    background: rgba(246, 136, 92, 0.18);
+    filter: blur(76px);
+  }
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+    padding: 1.35rem;
+  }
+`;
+
+const LessorHeroContent = styled.div`
+  position: relative;
+  z-index: 1;
+`;
+
+const LessorHeroEyebrow = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.48rem 0.82rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.09);
+  color: rgba(255,255,255,0.84);
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+`;
+
+const LessorHeroTitle = styled.h2`
+  margin: 0 0 0.8rem;
+  font-size: clamp(1.9rem, 2.2vw, 2.5rem);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
 `;
 
 const LessorHeroSubtitle = styled.p`
-  font-size: 1.1rem;
   margin: 0;
-  opacity: 0.95;
-  @media (max-width: 768px) { font-size: 1rem; }
+  max-width: 620px;
+  color: rgba(255,255,255,0.72);
+  line-height: 1.7;
 `;
 
-const LessorContent = styled.div`
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 2rem;
+const LessorHeroActions = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  margin-top: 1.5rem;
+`;
+
+const LessorHeroButton = styled.button<{ $secondary?: boolean }>`
+  ${p => p.$secondary ? secondaryButtonCss : primaryButtonCss}
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.9rem 1.15rem;
+  font-size: 0.94rem;
+  font-weight: 600;
+  cursor: pointer;
+  ${p => p.$secondary && `
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border-color: rgba(255,255,255,0.12);
+  `}
+`;
+
+const LessorHeroMetrics = styled.div`
+  display: grid;
+  gap: 0.8rem;
+  position: relative;
+  z-index: 1;
+`;
+
+const LessorHeroMetricCard = styled.div`
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 22px;
+  padding: 1rem 1.05rem;
+
+  span {
+    display: block;
+    color: rgba(255,255,255,0.66);
+    font-size: 0.82rem;
+    margin-bottom: 0.35rem;
+  }
+`;
+
+const LessorHeroMetricValue = styled.strong`
+  display: block;
+  font-size: 1.45rem;
+  line-height: 1.1;
 `;
 
 const LessorStats = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 1rem;
-  margin-bottom: 2rem;
 `;
 
-const LessorStatCard = styled.div`
-  background: white;
-  border-radius: 12px;
-  padding: 1.25rem;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-  text-align: center;
+const LessorStatCard = styled.article`
+  ${glassPanelCss}
+  border-radius: 24px;
+  padding: 1.2rem;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    height: 4px;
+    background: ${modernTheme.gradients.brand};
+  }
 `;
 
 const LessorStatIcon = styled.div`
-  margin-bottom: 0.5rem;
-  display: flex;
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  color: #F6885C;
+  margin-bottom: 0.85rem;
+  background: rgba(246, 136, 92, 0.12);
+  color: ${modernTheme.colors.brandStrong};
 `;
 
 const LessorStatNumber = styled.div`
-  font-size: 1.75rem;
+  font-size: 1.85rem;
   font-weight: 700;
-  color: #F6885C;
-  margin-bottom: 0.25rem;
+  color: ${modernTheme.colors.ink};
+  line-height: 1.1;
 `;
 
 const LessorStatLabel = styled.div`
+  margin-top: 0.25rem;
   font-size: 0.9rem;
-  color: #666;
+  color: ${modernTheme.colors.inkSoft};
 `;
 
-const LessorSectionTitle = styled.h2`
-  font-size: 1.35rem;
-  color: #333;
-  margin: 0 0 1.25rem 0;
-  font-weight: 600;
+const LessorStatMeta = styled.div`
+  margin-top: 0.4rem;
+  font-size: 0.84rem;
+  color: ${modernTheme.colors.muted};
 `;
 
-const LessorActionsGrid = styled.div`
+const LessorOverviewGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1.25rem;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 1rem;
+`;
+
+const LessorInsightCard = styled.article<{ $span?: number; $dark?: boolean }>`
+  ${p => p.$dark ? darkPanelCss : glassPanelCss}
+  grid-column: span ${p => p.$span || 4};
+  border-radius: 28px;
+  padding: 1.35rem;
+  overflow: hidden;
+  position: relative;
+  min-width: 0;
+  color: ${p => p.$dark ? 'white' : modernTheme.colors.ink};
+
+  @media (max-width: 1100px) {
+    grid-column: span 12;
+  }
+`;
+
+const LessorCardHeader = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.85rem;
+  margin-bottom: 1rem;
+`;
+
+const LessorCardTitle = styled.h3<{ $dark?: boolean }>`
+  margin: 0;
+  font-size: 1.05rem;
+  color: ${p => p.$dark ? 'white' : modernTheme.colors.ink};
+`;
+
+const LessorCardSubtitle = styled.p<{ $dark?: boolean }>`
+  ${subtitleCss}
+  margin: 0.3rem 0 0;
+  color: ${p => p.$dark ? 'rgba(255,255,255,0.72)' : modernTheme.colors.muted};
+  font-size: 0.92rem;
+`;
+
+const LessorQuickActionsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.9rem;
 `;
 
 const LessorActionCard = styled.button`
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 1.5rem;
+  ${solidPanelCss}
+  border-radius: 22px;
+  padding: 1rem;
   text-align: left;
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
-    border-color: #F6885C;
-    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
     transform: translateY(-2px);
+    box-shadow: 0 20px 44px rgba(15, 23, 42, 0.12);
   }
 `;
 
 const LessorActionIcon = styled.div`
-  width: 48px;
-  height: 48px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
-  color: white;
-  display: flex;
+  width: 44px;
+  height: 44px;
+  border-radius: 15px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 1rem;
-  font-size: 1.5rem;
+  background: ${modernTheme.gradients.brand};
+  color: white;
+  box-shadow: ${modernTheme.shadows.glow};
 `;
 
 const LessorActionTitle = styled.div`
-  font-weight: 600;
-  font-size: 1.1rem;
-  color: #333;
-  margin-bottom: 0.35rem;
+  font-weight: 700;
+  color: ${modernTheme.colors.ink};
 `;
 
 const LessorActionDesc = styled.div`
   font-size: 0.9rem;
-  color: #666;
-  line-height: 1.4;
+  color: ${modernTheme.colors.muted};
+  line-height: 1.5;
 `;
 
-// Conteúdo exibido ao clicar nos cards (sem abas)
-const LessorPanelContent = styled.div`
-  background: white;
-  padding: 1.5rem 2rem;
-  border-radius: 10px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-`;
-
-const LessorVehiclesGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.25rem;
-  margin-top: 1rem;
-`;
-
-const LessorVehicleCard = styled.div`
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 1.25rem;
-  transition: box-shadow 0.2s;
-  &:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-`;
-
-const LessorVehicleCardTitle = styled.div`
-  font-weight: 600;
-  font-size: 1.1rem;
-  color: #333;
-  margin-bottom: 0.35rem;
-`;
-
-const LessorVehicleCardMeta = styled.div`
-  font-size: 0.9rem;
-  color: #666;
-  margin-bottom: 0.5rem;
-`;
-
-const LessorVehicleCardPrice = styled.div`
-  font-weight: 700;
-  color: #F6885C;
-  font-size: 1rem;
-  margin-bottom: 1rem;
-`;
-
-const LessorVehicleCardActions = styled.div`
+const LessorStatusStack = styled.div`
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 0.8rem;
 `;
 
-const LessorCardBtn = styled.button<{ $primary?: boolean }>`
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 500;
+const LessorStatusRow = styled.div`
+  background: rgba(255,255,255,0.06);
+  border-radius: 20px;
+  padding: 0.85rem 0.95rem;
+`;
+
+const LessorStatusMeta = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.6rem;
+`;
+
+const LessorStatusLabel = styled.span`
+  color: inherit;
+  font-weight: 600;
+`;
+
+const LessorStatusValue = styled.span`
+  color: inherit;
+  opacity: 0.78;
+  font-size: 0.88rem;
+`;
+
+const LessorStatusTrack = styled.div`
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  overflow: hidden;
+`;
+
+const LessorStatusFill = styled.div<{ $accent?: string; $width: number }>`
+  height: 100%;
+  width: ${p => (p.$width <= 0 ? 0 : Math.max(6, p.$width))}%;
+  border-radius: inherit;
+  background: ${p => p.$accent || modernTheme.colors.brand};
+`;
+
+const LessorRingWrap = styled.div`
+  display: flex;
+  justify-content: center;
+  margin: 1.1rem 0 1rem;
+`;
+
+const LessorRing = styled.div<{ $value: number }>`
+  width: 176px;
+  height: 176px;
+  border-radius: 50%;
+  position: relative;
+  display: grid;
+  place-items: center;
+  background:
+    conic-gradient(
+      ${modernTheme.colors.brand} 0 ${p => p.$value}%,
+      rgba(255,255,255,0.12) ${p => p.$value}% 100%
+    );
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 16px;
+    border-radius: 50%;
+    background: rgba(7, 17, 31, 0.92);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+  }
+`;
+
+const LessorRingCenter = styled.div`
+  position: relative;
+  z-index: 1;
+  text-align: center;
+
+  strong {
+    display: block;
+    font-size: 2rem;
+    line-height: 1;
+  }
+
+  span {
+    display: block;
+    margin-top: 0.35rem;
+    color: rgba(255,255,255,0.68);
+    font-size: 0.88rem;
+  }
+`;
+
+const LessorBookingPreviewList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+`;
+
+const LessorBookingPreviewItem = styled.button`
+  ${solidPanelCss}
+  border-radius: 20px;
+  padding: 0.95rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
   cursor: pointer;
-  border: 1px solid #ddd;
-  background: ${p => p.$primary ? '#F6885C' : 'white'};
-  color: ${p => p.$primary ? 'white' : '#333'};
-  &:hover { background: ${p => p.$primary ? '#ED733A' : '#f8f9fa'}; }
+  text-align: left;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 18px 34px rgba(15, 23, 42, 0.1);
+  }
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+`;
+
+const LessorBookingPreviewMain = styled.div`
+  min-width: 0;
+`;
+
+const LessorBookingPreviewTitle = styled.div`
+  font-weight: 700;
+  color: ${modernTheme.colors.ink};
+`;
+
+const LessorBookingPreviewMeta = styled.div`
+  margin-top: 0.3rem;
+  font-size: 0.88rem;
+  color: ${modernTheme.colors.muted};
+`;
+
+const LessorStatusBadge = styled.span<{ $color: string }>`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: ${p => `${p.$color}18`};
+  color: ${p => p.$color};
+  font-size: 0.8rem;
+  font-weight: 700;
+`;
+
+const LessorVehicleList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+`;
+
+const LessorVehicleItem = styled.div`
+  background: rgba(255,255,255,0.58);
+  border: 1px solid rgba(255,255,255,0.76);
+  border-radius: 20px;
+  padding: 0.95rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+`;
+
+const LessorVehicleSummary = styled.div`
+  min-width: 0;
+`;
+
+const LessorVehicleTitle = styled.div`
+  font-weight: 700;
+  color: ${modernTheme.colors.ink};
+`;
+
+const LessorVehicleMeta = styled.div`
+  margin-top: 0.25rem;
+  color: ${modernTheme.colors.muted};
+  font-size: 0.88rem;
+`;
+
+const LessorVehicleValue = styled.div`
+  text-align: right;
+
+  strong {
+    display: block;
+    color: ${modernTheme.colors.ink};
+    font-size: 1rem;
+  }
+
+  span {
+    display: block;
+    margin-top: 0.25rem;
+    color: ${modernTheme.colors.muted};
+    font-size: 0.84rem;
+  }
+
+  @media (max-width: 640px) {
+    text-align: left;
+  }
+`;
+
+const LessorPanelContent = styled.div`
+  ${glassPanelCss}
+  border-radius: 28px;
+  padding: 1.4rem;
 `;
 
 const LessorBookingCard = styled.div`
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 1.25rem;
+  ${solidPanelCss}
+  border-radius: 22px;
+  padding: 1.15rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
   gap: 1rem;
   cursor: pointer;
-  transition: box-shadow 0.2s;
-  &:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 20px 44px rgba(15, 23, 42, 0.12);
+  }
 `;
 
 const LessorBookingCardLink = styled.span`
-  color: #F6885C;
+  color: ${modernTheme.colors.brandStrong};
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.85rem;
-  &:hover { text-decoration: underline; }
+  font-size: 0.86rem;
+  font-weight: 600;
+
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 const LessorModalOverlay = styled.div`
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(7, 17, 31, 0.58);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1176,18 +1766,19 @@ const LessorModalOverlay = styled.div`
 `;
 
 const LessorModalContent = styled.div`
-  background: white;
-  border-radius: 12px;
-  max-width: 480px;
+  ${glassPanelCss}
+  background: rgba(255,255,255,0.96);
+  border-radius: 24px;
+  max-width: 500px;
   width: 100%;
   max-height: 90vh;
   overflow: hidden;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  box-shadow: 0 30px 60px rgba(15, 23, 42, 0.2);
 `;
 
 const LessorModalHeader = styled.div`
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1195,8 +1786,8 @@ const LessorModalHeader = styled.div`
 
 const LessorModalTitle = styled.h3`
   margin: 0;
-  font-size: 1.25rem;
-  color: #333;
+  font-size: 1.2rem;
+  color: ${modernTheme.colors.ink};
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -1206,11 +1797,14 @@ const LessorModalCloseBtn = styled.button`
   background: none;
   border: none;
   font-size: 1.5rem;
-  color: #666;
+  color: ${modernTheme.colors.muted};
   cursor: pointer;
   padding: 0.25rem;
   line-height: 1;
-  &:hover { color: #333; }
+
+  &:hover {
+    color: ${modernTheme.colors.ink};
+  }
 `;
 
 const LessorModalBody = styled.div`
@@ -1218,48 +1812,68 @@ const LessorModalBody = styled.div`
 `;
 
 const LessorModalAddress = styled.div`
-  background: #f8f9fa;
-  border-radius: 8px;
-  padding: 1rem 1.25rem;
+  background: rgba(246, 136, 92, 0.08);
+  border-radius: 16px;
+  padding: 1rem 1.1rem;
   margin-bottom: 1rem;
-  border-left: 4px solid #F6885C;
+  border-left: 4px solid ${modernTheme.colors.brand};
 `;
 
 const LessorModalAddressLine = styled.p`
   margin: 0;
   font-size: 1rem;
-  color: #333;
+  color: ${modernTheme.colors.ink};
   line-height: 1.5;
-  & + & { margin-top: 0.25rem; font-size: 0.95rem; color: #555; }
+
+  & + & {
+    margin-top: 0.25rem;
+    font-size: 0.95rem;
+    color: ${modernTheme.colors.inkSoft};
+  }
 `;
 
 const LessorModalMapWrap = styled.div`
   height: 220px;
-  border-radius: 8px;
+  border-radius: 14px;
   overflow: hidden;
-  .leaflet-container { height: 100%; width: 100%; }
+
+  .leaflet-container {
+    height: 100%;
+    width: 100%;
+  }
 `;
 
 const LessorProfileRow = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid #eee;
-  &:last-child { border-bottom: none; }
+  padding: 0.8rem 0;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+
+  &:last-child {
+    border-bottom: none;
+  }
 `;
 
 const LessorProfileLabel = styled.span`
   font-size: 0.8rem;
-  color: #666;
+  color: ${modernTheme.colors.muted};
   text-transform: uppercase;
   letter-spacing: 0.02em;
 `;
 
 const LessorProfileValue = styled.span`
   font-size: 1rem;
-  color: #333;
-  a { color: #F6885C; text-decoration: none; &:hover { text-decoration: underline; } }
+  color: ${modernTheme.colors.ink};
+
+  a {
+    color: ${modernTheme.colors.brandStrong};
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 `;
 
 const LessorHomeView: React.FC<{ navigate: (path: string) => void }> = ({ navigate }) => {
@@ -1269,8 +1883,6 @@ const LessorHomeView: React.FC<{ navigate: (path: string) => void }> = ({ naviga
     if (tab === 'bookings') return 'bookings';
     return 'overview';
   });
-  const [vehiclesCount, setVehiclesCount] = useState<number>(0);
-  const [bookingsCount, setBookingsCount] = useState<number>(0);
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -1285,19 +1897,19 @@ const LessorHomeView: React.FC<{ navigate: (path: string) => void }> = ({ naviga
       navigate('/vehicles/my');
       return;
     }
-    if (tab === 'bookings') setPanelView('bookings');
+    setPanelView(tab === 'bookings' ? 'bookings' : 'overview');
   }, [searchParams, navigate]);
 
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
     Promise.all([
       vehicleService.getAllVehicles().catch(() => []),
       bookingService.getBookings().catch(() => []),
     ]).then(([allVehicles, allBookings]) => {
       const myVehicles = Array.isArray(allVehicles) ? allVehicles.filter((v: any) => v.ownerId === user.id || v.owner?.id === user.id) : [];
-      const lessorBookings = Array.isArray(allBookings) ? allBookings.filter((b: any) => b.lessorId === user.id || b.lessor?.id === user.id) : [];
-      setVehiclesCount(myVehicles.length);
-      setBookingsCount(lessorBookings.length);
       setVehicles(myVehicles);
       setBookings(Array.isArray(allBookings) ? allBookings : []);
     }).finally(() => setLoading(false));
@@ -1317,6 +1929,14 @@ const LessorHomeView: React.FC<{ navigate: (path: string) => void }> = ({ naviga
     return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
   };
 
+  const formatCurrency = (value: number) =>
+    value.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    });
+
   const getStatusLabel = (status: string) => {
     const statusMap: { [key: string]: string } = {
       'pending': 'Pendente', 'confirmed': 'Confirmada', 'active': 'Em andamento',
@@ -1334,96 +1954,375 @@ const LessorHomeView: React.FC<{ navigate: (path: string) => void }> = ({ naviga
     return colorMap[status?.toLowerCase()] || '#6b7280';
   };
 
+  const getLessorAmount = (booking: any) => {
+    const lessorAmount = typeof booking?.lessorAmount === 'number' ? booking.lessorAmount : parseFloat(booking?.lessorAmount) || 0;
+    if (lessorAmount > 0) return lessorAmount;
+    return typeof booking?.totalAmount === 'number' ? booking.totalAmount : parseFloat(booking?.totalAmount) || 0;
+  };
+
+  const getBookingTimestamp = (booking: any) => {
+    const source = booking?.startDate || booking?.createdAt || booking?.updatedAt;
+    const date = source ? new Date(source) : null;
+    return date && !Number.isNaN(date.getTime()) ? date.getTime() : 0;
+  };
+
   const lesseeBookings = bookings.filter((b: any) => b.lesseeId === user?.id || b.lessee?.id === user?.id);
   const lessorBookings = bookings.filter((b: any) => b.lessorId === user?.id || b.lessor?.id === user?.id);
+  const vehiclesCount = vehicles.length;
+  const bookingsCount = lessorBookings.length;
+  const activeStatuses = ['pending', 'confirmed', 'active', 'awaiting_return'];
+  const activeLessorBookings = lessorBookings.filter((b: any) => activeStatuses.includes(String(b.status || '').toLowerCase()));
+  const pendingLessorBookings = lessorBookings.filter((b: any) => String(b.status || '').toLowerCase() === 'pending');
+  const confirmedLessorBookings = lessorBookings.filter((b: any) => String(b.status || '').toLowerCase() === 'confirmed');
+  const completedLessorBookings = lessorBookings.filter((b: any) => String(b.status || '').toLowerCase() === 'completed');
+  const cancelledLessorBookings = lessorBookings.filter((b: any) => ['cancelled', 'rejected'].includes(String(b.status || '').toLowerCase()));
+  const totalEarnings = lessorBookings.reduce((sum: number, booking: any) => sum + getLessorAmount(booking), 0);
+  const avgTicket = bookingsCount ? totalEarnings / bookingsCount : 0;
+  const completionRate = bookingsCount ? Math.round((completedLessorBookings.length / bookingsCount) * 100) : 0;
+  const occupancyRate = vehiclesCount ? Math.min(100, Math.round((activeLessorBookings.length / vehiclesCount) * 100)) : 0;
+  const firstName = user?.firstName || 'Locador';
+
+  const vehiclePerformance = useMemo(() => {
+    const bookingsByVehicle: Record<string, { count: number; earnings: number }> = {};
+
+    for (const booking of lessorBookings) {
+      const vehicleId = booking.vehicleId || booking.vehicle?.id;
+      if (!vehicleId) continue;
+      if (!bookingsByVehicle[vehicleId]) {
+        bookingsByVehicle[vehicleId] = { count: 0, earnings: 0 };
+      }
+      bookingsByVehicle[vehicleId].count += 1;
+      bookingsByVehicle[vehicleId].earnings += getLessorAmount(booking);
+    }
+
+    return vehicles
+      .map((vehicle: any) => {
+        const stats = bookingsByVehicle[vehicle.id] || { count: 0, earnings: 0 };
+        return {
+          ...vehicle,
+          totalBookings: stats.count,
+          totalEarnings: stats.earnings,
+        };
+      })
+      .sort((a: any, b: any) => {
+        if (b.totalBookings !== a.totalBookings) return b.totalBookings - a.totalBookings;
+        return b.totalEarnings - a.totalEarnings;
+      })
+      .slice(0, 3);
+  }, [vehicles, lessorBookings]);
+
+  const recentBookings = useMemo(
+    () => [...lessorBookings].sort((a: any, b: any) => getBookingTimestamp(b) - getBookingTimestamp(a)).slice(0, 4),
+    [lessorBookings]
+  );
+
+  const statusRows = [
+    { label: 'Pendentes', value: pendingLessorBookings.length, accent: '#f59e0b' },
+    { label: 'Confirmadas', value: confirmedLessorBookings.length, accent: '#10b981' },
+    { label: 'Em andamento', value: activeLessorBookings.length, accent: modernTheme.colors.brand },
+    { label: 'Concluídas', value: completedLessorBookings.length, accent: '#8b5cf6' },
+  ];
+  const maxStatusValue = Math.max(...statusRows.map((item) => item.value), 1);
 
   const actions = [
-    { title: 'Meus veículos', desc: 'Ver e editar seus anúncios', path: '/vehicles/my', icon: <Car size={24} /> },
-    { title: 'Anunciar veículo', desc: 'Cadastrar um novo carro para locação', path: '/list-vehicle', icon: <Edit size={24} /> },
-    { title: 'Reservas', desc: 'Reservas dos seus veículos e locatários', onClick: () => setTab('bookings'), icon: <Calendar size={24} /> },
-    { title: 'Dados bancários', desc: 'Onde receber os pagamentos', path: '/bank-details', icon: <Money size={24} /> },
+    { title: 'Meus veículos', desc: 'Ver e editar seus anúncios ativos', onClick: () => navigate('/vehicles/my'), icon: <Car size={22} /> },
+    { title: 'Anunciar veículo', desc: 'Cadastrar um novo carro para locação', onClick: () => navigate('/list-vehicle'), icon: <Edit size={22} /> },
+    { title: 'Reservas', desc: 'Acompanhar solicitações e locatários', onClick: () => setTab('bookings'), icon: <Calendar size={22} /> },
+    { title: 'Dados bancários', desc: 'Configurar onde receber os pagamentos', onClick: () => navigate('/bank-details'), icon: <Money size={22} /> },
   ];
 
   return (
     <>
-      <LessorHero>
-        <LessorHeroTitle>Seu painel de locador</LessorHeroTitle>
-        <LessorHeroSubtitle>Gerencie seus anúncios, reservas e recebimentos</LessorHeroSubtitle>
-      </LessorHero>
-      <LessorContent>
-        {loading ? (
-          <p style={{ textAlign: 'center', color: '#666' }}>Carregando...</p>
-        ) : (
-          <>
-            <LessorStats>
-              <LessorStatCard>
-                <LessorStatIcon><Car size={28} /></LessorStatIcon>
-                <LessorStatNumber>{vehiclesCount}</LessorStatNumber>
-                <LessorStatLabel>Veículos anunciados</LessorStatLabel>
-              </LessorStatCard>
-              <LessorStatCard>
-                <LessorStatIcon><Calendar size={28} /></LessorStatIcon>
-                <LessorStatNumber>{bookingsCount}</LessorStatNumber>
-                <LessorStatLabel>Reservas recebidas</LessorStatLabel>
-              </LessorStatCard>
-            </LessorStats>
-            <LessorSectionTitle>Ações rápidas</LessorSectionTitle>
-            <LessorActionsGrid>
-              {actions.map((action) => (
-                <LessorActionCard
-                  key={action.title}
-                  type="button"
-                  onClick={() => ('path' in action && action.path) ? navigate(action.path) : ('onClick' in action && action.onClick) ? action.onClick() : undefined}
-                >
-                  <LessorActionIcon>{action.icon}</LessorActionIcon>
-                  <LessorActionTitle>{action.title}</LessorActionTitle>
-                  <LessorActionDesc>{action.desc}</LessorActionDesc>
-                </LessorActionCard>
-              ))}
-            </LessorActionsGrid>
+      <LessorShell>
+        <LessorSidebar>
+          <LessorSidebarBrand>
+            <LessorSidebarIcon>
+              <Car size={24} color="white" />
+            </LessorSidebarIcon>
+            <LessorSidebarCopy>
+              <LessorSidebarTitle>Painel do locador</LessorSidebarTitle>
+              <LessorSidebarText>
+                Gerencie anúncios, reservas e recebimentos com o visual principal do CarAndGo.
+              </LessorSidebarText>
+            </LessorSidebarCopy>
+          </LessorSidebarBrand>
 
-            <LessorPanelContent ref={contentSectionRef} style={{ marginTop: '2rem' }}>
-              {panelView === 'overview' && (
-                <>
-                  <h3 style={{ marginBottom: '1rem', color: '#333' }}>Resumo</h3>
-                  <p style={{ color: '#666', marginBottom: '1rem' }}>
-                    Você tem <strong>{vehiclesCount}</strong> veículo(s) anunciado(s) e <strong>{bookingsCount}</strong> reserva(s) recebida(s).
-                  </p>
-                  <LessorStats>
-                    <LessorStatCard>
-                      <LessorStatIcon><Car size={28} /></LessorStatIcon>
-                      <LessorStatNumber>{vehiclesCount}</LessorStatNumber>
-                      <LessorStatLabel>Veículos anunciados</LessorStatLabel>
-                    </LessorStatCard>
-                    <LessorStatCard>
-                      <LessorStatIcon><Calendar size={28} /></LessorStatIcon>
-                      <LessorStatNumber>{bookingsCount}</LessorStatNumber>
-                      <LessorStatLabel>Reservas recebidas</LessorStatLabel>
-                    </LessorStatCard>
-                  </LessorStats>
-                </>
-              )}
-              {panelView === 'bookings' && (
-                <>
-                  <h3 style={{ marginBottom: '1rem', color: '#333' }}>Minhas Reservas</h3>
+          <LessorSidebarNav>
+            <LessorSidebarNavButton type="button" $active={panelView === 'overview'} onClick={() => setTab('overview')}>
+              <Car size={18} color="white" />
+              Visão geral
+            </LessorSidebarNavButton>
+            <LessorSidebarNavButton type="button" $active={panelView === 'bookings'} onClick={() => setTab('bookings')}>
+              <Calendar size={18} color="white" />
+              Reservas
+            </LessorSidebarNavButton>
+            <LessorSidebarNavButton type="button" onClick={() => navigate('/vehicles/my')}>
+              <Edit size={18} color="white" />
+              Meus veículos
+            </LessorSidebarNavButton>
+            <LessorSidebarNavButton type="button" onClick={() => navigate('/bank-details')}>
+              <Money size={18} color="white" />
+              Recebimentos
+            </LessorSidebarNavButton>
+          </LessorSidebarNav>
+
+          <LessorSidebarStats>
+            <LessorSidebarStat>
+              <LessorSidebarStatLabel>Receita total</LessorSidebarStatLabel>
+              <LessorSidebarStatValue>{formatCurrency(totalEarnings)}</LessorSidebarStatValue>
+            </LessorSidebarStat>
+            <LessorSidebarStat>
+              <LessorSidebarStatLabel>Taxa de conclusão</LessorSidebarStatLabel>
+              <LessorSidebarStatValue>{completionRate}%</LessorSidebarStatValue>
+            </LessorSidebarStat>
+          </LessorSidebarStats>
+        </LessorSidebar>
+
+        <LessorMain>
+          <LessorHero>
+            <LessorHeroContent>
+              <LessorHeroEyebrow>
+                <Calendar size={14} color="white" />
+                Operação do locador
+              </LessorHeroEyebrow>
+              <LessorHeroTitle>Olá, {firstName}. Seu negócio está centralizado aqui.</LessorHeroTitle>
+              <LessorHeroSubtitle>
+                Acompanhe o desempenho dos seus veículos, veja reservas recentes e acesse rapidamente os principais fluxos do locador.
+              </LessorHeroSubtitle>
+              <LessorHeroActions>
+                <LessorHeroButton type="button" onClick={() => navigate('/list-vehicle')}>
+                  Anunciar veículo
+                  <ArrowRight size={16} color="white" />
+                </LessorHeroButton>
+                <LessorHeroButton type="button" $secondary onClick={() => setTab('bookings')}>
+                  Abrir reservas
+                </LessorHeroButton>
+              </LessorHeroActions>
+            </LessorHeroContent>
+
+            <LessorHeroMetrics>
+              <LessorHeroMetricCard>
+                <span>Pendentes</span>
+                <LessorHeroMetricValue>{pendingLessorBookings.length}</LessorHeroMetricValue>
+              </LessorHeroMetricCard>
+              <LessorHeroMetricCard>
+                <span>Em andamento</span>
+                <LessorHeroMetricValue>{activeLessorBookings.length}</LessorHeroMetricValue>
+              </LessorHeroMetricCard>
+              <LessorHeroMetricCard>
+                <span>Concluídas</span>
+                <LessorHeroMetricValue>{completedLessorBookings.length}</LessorHeroMetricValue>
+              </LessorHeroMetricCard>
+            </LessorHeroMetrics>
+          </LessorHero>
+
+          {loading ? (
+            <LessorPanelContent>
+              <p style={{ textAlign: 'center', color: modernTheme.colors.muted }}>Carregando painel do locador...</p>
+            </LessorPanelContent>
+          ) : (
+            <>
+              <LessorStats>
+                <LessorStatCard>
+                  <LessorStatIcon><Car size={22} color={modernTheme.colors.brandStrong} /></LessorStatIcon>
+                  <LessorStatNumber>{vehiclesCount}</LessorStatNumber>
+                  <LessorStatLabel>Veículos anunciados</LessorStatLabel>
+                  <LessorStatMeta>{activeLessorBookings.length} com operação em andamento</LessorStatMeta>
+                </LessorStatCard>
+
+                <LessorStatCard>
+                  <LessorStatIcon><Calendar size={22} color={modernTheme.colors.brandStrong} /></LessorStatIcon>
+                  <LessorStatNumber>{bookingsCount}</LessorStatNumber>
+                  <LessorStatLabel>Reservas recebidas</LessorStatLabel>
+                  <LessorStatMeta>{pendingLessorBookings.length} aguardando ação</LessorStatMeta>
+                </LessorStatCard>
+
+                <LessorStatCard>
+                  <LessorStatIcon><Money size={22} color={modernTheme.colors.brandStrong} /></LessorStatIcon>
+                  <LessorStatNumber>{formatCurrency(totalEarnings)}</LessorStatNumber>
+                  <LessorStatLabel>Receita total</LessorStatLabel>
+                  <LessorStatMeta>{formatCurrency(avgTicket)} por reserva em média</LessorStatMeta>
+                </LessorStatCard>
+
+                <LessorStatCard>
+                  <LessorStatIcon><Star size={22} color={modernTheme.colors.brandStrong} /></LessorStatIcon>
+                  <LessorStatNumber>{completionRate}%</LessorStatNumber>
+                  <LessorStatLabel>Reservas concluídas</LessorStatLabel>
+                  <LessorStatMeta>{cancelledLessorBookings.length} canceladas ou rejeitadas</LessorStatMeta>
+                </LessorStatCard>
+              </LessorStats>
+
+              {panelView === 'overview' ? (
+                <LessorOverviewGrid ref={contentSectionRef}>
+                  <LessorInsightCard $span={7} $dark>
+                    <LessorCardHeader>
+                      <div>
+                        <LessorCardTitle $dark>Ritmo das reservas</LessorCardTitle>
+                        <LessorCardSubtitle $dark>Status atual das reservas dos seus veículos.</LessorCardSubtitle>
+                      </div>
+                    </LessorCardHeader>
+                    <LessorStatusStack>
+                      {statusRows.map((row) => (
+                        <LessorStatusRow key={row.label}>
+                          <LessorStatusMeta>
+                            <LessorStatusLabel>{row.label}</LessorStatusLabel>
+                            <LessorStatusValue>{row.value} reserva(s)</LessorStatusValue>
+                          </LessorStatusMeta>
+                          <LessorStatusTrack>
+                            <LessorStatusFill $accent={row.accent} $width={(row.value / maxStatusValue) * 100} />
+                          </LessorStatusTrack>
+                        </LessorStatusRow>
+                      ))}
+                    </LessorStatusStack>
+                  </LessorInsightCard>
+
+                  <LessorInsightCard $span={5} $dark>
+                    <LessorCardHeader>
+                      <div>
+                        <LessorCardTitle $dark>Eficiência operacional</LessorCardTitle>
+                        <LessorCardSubtitle $dark>Leitura rápida da ocupação e do ticket médio.</LessorCardSubtitle>
+                      </div>
+                    </LessorCardHeader>
+                    <LessorRingWrap>
+                      <LessorRing $value={occupancyRate}>
+                        <LessorRingCenter>
+                          <strong>{occupancyRate}%</strong>
+                          <span>ocupação estimada</span>
+                        </LessorRingCenter>
+                      </LessorRing>
+                    </LessorRingWrap>
+                    <LessorHeroMetrics>
+                      <LessorHeroMetricCard>
+                        <span>Ticket médio</span>
+                        <LessorHeroMetricValue>{formatCurrency(avgTicket)}</LessorHeroMetricValue>
+                      </LessorHeroMetricCard>
+                      <LessorHeroMetricCard>
+                        <span>Reservas ativas</span>
+                        <LessorHeroMetricValue>{activeLessorBookings.length}</LessorHeroMetricValue>
+                      </LessorHeroMetricCard>
+                    </LessorHeroMetrics>
+                  </LessorInsightCard>
+
+                  <LessorInsightCard $span={7}>
+                    <LessorCardHeader>
+                      <div>
+                        <LessorCardTitle>Ações rápidas</LessorCardTitle>
+                        <LessorCardSubtitle>Atalhos para os fluxos principais do locador.</LessorCardSubtitle>
+                      </div>
+                    </LessorCardHeader>
+                    <LessorQuickActionsGrid>
+                      {actions.map((action) => (
+                        <LessorActionCard key={action.title} type="button" onClick={action.onClick}>
+                          <LessorActionIcon>{action.icon}</LessorActionIcon>
+                          <div>
+                            <LessorActionTitle>{action.title}</LessorActionTitle>
+                            <LessorActionDesc>{action.desc}</LessorActionDesc>
+                          </div>
+                        </LessorActionCard>
+                      ))}
+                    </LessorQuickActionsGrid>
+                  </LessorInsightCard>
+
+                  <LessorInsightCard $span={5}>
+                    <LessorCardHeader>
+                      <div>
+                        <LessorCardTitle>Veículos em destaque</LessorCardTitle>
+                        <LessorCardSubtitle>Seus anúncios com melhor tração recente.</LessorCardSubtitle>
+                      </div>
+                    </LessorCardHeader>
+                    {vehiclePerformance.length === 0 ? (
+                      <p style={{ margin: 0, color: modernTheme.colors.muted, lineHeight: 1.6 }}>
+                        Você ainda não anunciou nenhum veículo. Use o atalho acima para publicar o primeiro carro.
+                      </p>
+                    ) : (
+                      <LessorVehicleList>
+                        {vehiclePerformance.map((vehicle: any) => (
+                          <LessorVehicleItem key={vehicle.id}>
+                            <LessorVehicleSummary>
+                              <LessorVehicleTitle>{vehicle.make} {vehicle.model} {vehicle.year}</LessorVehicleTitle>
+                              <LessorVehicleMeta>
+                                {[vehicle.city, vehicle.state].filter(Boolean).join(', ') || 'Localização não informada'}
+                              </LessorVehicleMeta>
+                            </LessorVehicleSummary>
+                            <LessorVehicleValue>
+                              <strong>{vehicle.totalBookings} reserva(s)</strong>
+                              <span>{formatCurrency(vehicle.totalEarnings)} acumulados</span>
+                            </LessorVehicleValue>
+                          </LessorVehicleItem>
+                        ))}
+                      </LessorVehicleList>
+                    )}
+                  </LessorInsightCard>
+
+                  <LessorInsightCard $span={12}>
+                    <LessorCardHeader>
+                      <div>
+                        <LessorCardTitle>Reservas recentes</LessorCardTitle>
+                        <LessorCardSubtitle>Últimas movimentações dos seus veículos.</LessorCardSubtitle>
+                      </div>
+                    </LessorCardHeader>
+                    {recentBookings.length === 0 ? (
+                      <p style={{ margin: 0, color: modernTheme.colors.muted, lineHeight: 1.6 }}>
+                        Nenhuma reserva recebida ainda. Quando surgirem solicitações, elas aparecerão aqui.
+                      </p>
+                    ) : (
+                      <LessorBookingPreviewList>
+                        {recentBookings.map((booking: any) => (
+                          <LessorBookingPreviewItem
+                            key={booking.id}
+                            type="button"
+                            onClick={() => navigate(`/booking/${booking.id}/details`)}
+                          >
+                            <LessorBookingPreviewMain>
+                              <LessorBookingPreviewTitle>
+                                {booking.vehicle?.make || 'Veículo'} {booking.vehicle?.model || ''} {booking.vehicle?.year || ''}
+                              </LessorBookingPreviewTitle>
+                              <LessorBookingPreviewMeta>
+                                Locatário: {booking.lessee?.firstName || booking.lessee?.name || 'N/A'} • {formatDate(booking.startDate)} - {formatDate(booking.endDate)}
+                              </LessorBookingPreviewMeta>
+                            </LessorBookingPreviewMain>
+                            <div>
+                              <LessorStatusBadge $color={getStatusColor(booking.status)}>
+                                {getStatusLabel(booking.status)}
+                              </LessorStatusBadge>
+                              <LessorBookingPreviewMeta style={{ textAlign: 'right', marginTop: '0.45rem' }}>
+                                {formatCurrency(getLessorAmount(booking))}
+                              </LessorBookingPreviewMeta>
+                            </div>
+                          </LessorBookingPreviewItem>
+                        ))}
+                      </LessorBookingPreviewList>
+                    )}
+                  </LessorInsightCard>
+                </LessorOverviewGrid>
+              ) : (
+                <LessorPanelContent ref={contentSectionRef}>
+                  <LessorCardHeader>
+                    <div>
+                      <LessorCardTitle>Minhas reservas</LessorCardTitle>
+                      <LessorCardSubtitle>
+                        Acompanhe reservas como locador e, se aplicável, também como locatário.
+                      </LessorCardSubtitle>
+                    </div>
+                  </LessorCardHeader>
                   {lesseeBookings.length === 0 && lessorBookings.length === 0 ? (
-                    <p style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>Você ainda não possui reservas.</p>
+                    <p style={{ textAlign: 'center', padding: '2rem', color: modernTheme.colors.muted }}>Você ainda não possui reservas.</p>
                   ) : (
                     <>
                       {lesseeBookings.length > 0 && (
                         <div style={{ marginBottom: '2rem' }}>
-                          <h4 style={{ marginBottom: '1rem', color: '#333' }}>Reservas como Locatário</h4>
+                          <h4 style={{ marginBottom: '1rem', color: modernTheme.colors.ink }}>Reservas como locatário</h4>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             {lesseeBookings.map((booking: any) => (
                               <LessorBookingCard key={booking.id} onClick={() => booking.vehicle && setPickupLocationBooking(booking)}>
                                 <div style={{ flex: 1, minWidth: '200px' }}>
-                                  <div style={{ fontWeight: 600, fontSize: '1.1rem', marginBottom: '0.5rem' }}>
+                                  <div style={{ fontWeight: 600, fontSize: '1.1rem', marginBottom: '0.5rem', color: modernTheme.colors.ink }}>
                                     {booking.vehicle?.make || 'Veículo'} {booking.vehicle?.model || ''} {booking.vehicle?.year || ''}
                                   </div>
-                                  <div style={{ color: '#666', fontSize: '0.9rem' }}>
+                                  <div style={{ color: modernTheme.colors.muted, fontSize: '0.9rem' }}>
                                     {formatDate(booking.startDate)} - {formatDate(booking.endDate)}
                                   </div>
-                                  <div style={{ marginTop: '0.5rem' }}>
+                                  <div style={{ marginTop: '0.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
                                     <LessorBookingCardLink onClick={(e) => { e.stopPropagation(); navigate(`/booking/${booking.id}/details`); }}>
                                       Ver detalhes
                                     </LessorBookingCardLink>
@@ -1435,20 +2334,11 @@ const LessorHomeView: React.FC<{ navigate: (path: string) => void }> = ({ naviga
                                   </div>
                                 </div>
                                 <div style={{ textAlign: 'right' }}>
-                                  <span style={{
-                                    display: 'inline-block',
-                                    padding: '0.25rem 0.75rem',
-                                    borderRadius: '20px',
-                                    fontSize: '0.8rem',
-                                    fontWeight: 500,
-                                    background: `${getStatusColor(booking.status)}20`,
-                                    color: getStatusColor(booking.status),
-                                    marginBottom: '0.5rem'
-                                  }}>
+                                  <LessorStatusBadge $color={getStatusColor(booking.status)}>
                                     {getStatusLabel(booking.status)}
-                                  </span>
-                                  <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>
-                                    R$ {typeof booking.totalAmount === 'number' ? booking.totalAmount.toFixed(2) : (parseFloat(booking.totalAmount) || 0).toFixed(2)}
+                                  </LessorStatusBadge>
+                                  <div style={{ fontWeight: 700, fontSize: '1.1rem', marginTop: '0.55rem', color: modernTheme.colors.ink }}>
+                                    {formatCurrency(typeof booking.totalAmount === 'number' ? booking.totalAmount : parseFloat(booking.totalAmount) || 0)}
                                   </div>
                                 </div>
                               </LessorBookingCard>
@@ -1456,68 +2346,63 @@ const LessorHomeView: React.FC<{ navigate: (path: string) => void }> = ({ naviga
                           </div>
                         </div>
                       )}
+
                       {lessorBookings.length > 0 && (
                         <div>
-                          <h4 style={{ marginBottom: '1rem', color: '#333' }}>Reservas dos Meus Veículos</h4>
+                          <h4 style={{ marginBottom: '1rem', color: modernTheme.colors.ink }}>Reservas dos meus veículos</h4>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            {lessorBookings.map((booking: any) => (
-                              <LessorBookingCard key={booking.id} onClick={() => booking.vehicle && setPickupLocationBooking(booking)}>
-                                <div style={{ flex: 1, minWidth: '200px' }}>
-                                  <div style={{ fontWeight: 600, fontSize: '1.1rem', marginBottom: '0.5rem' }}>
-                                    {booking.vehicle?.make || 'Veículo'} {booking.vehicle?.model || ''} {booking.vehicle?.year || ''}
-                                  </div>
-                                  <div style={{ color: '#666', fontSize: '0.9rem', marginBottom: '0.25rem' }}>
-                                    Locatário: {booking.lessee?.firstName || booking.lessee?.name || 'N/A'}
-                                  </div>
-                                  <div style={{ color: '#666', fontSize: '0.9rem' }}>
-                                    {formatDate(booking.startDate)} - {formatDate(booking.endDate)}
-                                  </div>
-                                  <div style={{ marginTop: '0.5rem' }}>
-                                    <LessorBookingCardLink onClick={(e) => { e.stopPropagation(); navigate(`/booking/${booking.id}/details`); }}>
-                                      Ver detalhes
-                                    </LessorBookingCardLink>
-                                    {booking.lessee && (
-                                      <LessorBookingCardLink onClick={(e) => { e.stopPropagation(); setLesseeProfileBooking(booking); }}>
-                                        <User size={14} /> Ver perfil do locatário
+                            {lessorBookings
+                              .slice()
+                              .sort((a: any, b: any) => getBookingTimestamp(b) - getBookingTimestamp(a))
+                              .map((booking: any) => (
+                                <LessorBookingCard key={booking.id} onClick={() => booking.vehicle && setPickupLocationBooking(booking)}>
+                                  <div style={{ flex: 1, minWidth: '200px' }}>
+                                    <div style={{ fontWeight: 600, fontSize: '1.1rem', marginBottom: '0.5rem', color: modernTheme.colors.ink }}>
+                                      {booking.vehicle?.make || 'Veículo'} {booking.vehicle?.model || ''} {booking.vehicle?.year || ''}
+                                    </div>
+                                    <div style={{ color: modernTheme.colors.muted, fontSize: '0.9rem', marginBottom: '0.25rem' }}>
+                                      Locatário: {booking.lessee?.firstName || booking.lessee?.name || 'N/A'}
+                                    </div>
+                                    <div style={{ color: modernTheme.colors.muted, fontSize: '0.9rem' }}>
+                                      {formatDate(booking.startDate)} - {formatDate(booking.endDate)}
+                                    </div>
+                                    <div style={{ marginTop: '0.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
+                                      <LessorBookingCardLink onClick={(e) => { e.stopPropagation(); navigate(`/booking/${booking.id}/details`); }}>
+                                        Ver detalhes
                                       </LessorBookingCardLink>
-                                    )}
-                                    {booking.vehicle && (
-                                      <LessorBookingCardLink onClick={(e) => { e.stopPropagation(); setPickupLocationBooking(booking); }}>
-                                        <LocationOn size={14} /> Ver local de retirada
-                                      </LessorBookingCardLink>
-                                    )}
+                                      {booking.lessee && (
+                                        <LessorBookingCardLink onClick={(e) => { e.stopPropagation(); setLesseeProfileBooking(booking); }}>
+                                          <User size={14} /> Ver perfil do locatário
+                                        </LessorBookingCardLink>
+                                      )}
+                                      {booking.vehicle && (
+                                        <LessorBookingCardLink onClick={(e) => { e.stopPropagation(); setPickupLocationBooking(booking); }}>
+                                          <LocationOn size={14} /> Ver local de retirada
+                                        </LessorBookingCardLink>
+                                      )}
+                                    </div>
                                   </div>
-                                </div>
-                                <div style={{ textAlign: 'right' }}>
-                                  <span style={{
-                                    display: 'inline-block',
-                                    padding: '0.25rem 0.75rem',
-                                    borderRadius: '20px',
-                                    fontSize: '0.8rem',
-                                    fontWeight: 500,
-                                    background: `${getStatusColor(booking.status)}20`,
-                                    color: getStatusColor(booking.status),
-                                    marginBottom: '0.5rem'
-                                  }}>
-                                    {getStatusLabel(booking.status)}
-                                  </span>
-                                  <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>
-                                    R$ {typeof booking.totalAmount === 'number' ? booking.totalAmount.toFixed(2) : (parseFloat(booking.totalAmount) || 0).toFixed(2)}
+                                  <div style={{ textAlign: 'right' }}>
+                                    <LessorStatusBadge $color={getStatusColor(booking.status)}>
+                                      {getStatusLabel(booking.status)}
+                                    </LessorStatusBadge>
+                                    <div style={{ fontWeight: 700, fontSize: '1.1rem', marginTop: '0.55rem', color: modernTheme.colors.ink }}>
+                                      {formatCurrency(getLessorAmount(booking))}
+                                    </div>
                                   </div>
-                                </div>
-                              </LessorBookingCard>
-                            ))}
+                                </LessorBookingCard>
+                              ))}
                           </div>
                         </div>
                       )}
                     </>
                   )}
-                </>
+                </LessorPanelContent>
               )}
-            </LessorPanelContent>
-          </>
-        )}
-      </LessorContent>
+            </>
+          )}
+        </LessorMain>
+      </LessorShell>
 
       {pickupLocationBooking?.vehicle && (
         <LessorModalOverlay onClick={() => setPickupLocationBooking(null)}>
@@ -1610,8 +2495,15 @@ const LessorHomeView: React.FC<{ navigate: (path: string) => void }> = ({ naviga
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const isLessorHome = (user?.userType === 'lessor' || user?.userType === 'both') && user?.id;
+  const [viewerUser, setViewerUser] = useState<any>(() => getStoredUser());
+  const userType = viewerUser?.userType;
+  const isLoggedIn = !!viewerUser?.id;
+  const isLocatarioUser = userType === 'lessee' || userType === 'rent';
+  const isLocadorUser = userType === 'lessor' || userType === 'host';
+  const isBothUser = userType === 'both';
+  const isLessorHome = (isLocadorUser || isBothUser) && viewerUser?.id;
+  const canShowFindCarCta = !isLoggedIn || isLocatarioUser || isBothUser || (!isLocadorUser && !isLocatarioUser);
+  const canShowListCarCta = !isLoggedIn || isLocadorUser || isBothUser || (!isLocadorUser && !isLocatarioUser);
   const [searchData, setSearchData] = useState({
     location: '',
     fromDate: '',
@@ -1695,6 +2587,20 @@ const HomePage: React.FC = () => {
   const [featuredCars, setFeaturedCars] = useState<any[]>([]);
   const [loadingCars, setLoadingCars] = useState(true);
   const [carsLoadError, setCarsLoadError] = useState(false);
+
+  useEffect(() => {
+    const refreshUser = () => setViewerUser(getStoredUser());
+
+    window.addEventListener('userLoggedIn', refreshUser);
+    window.addEventListener('storage', refreshUser);
+    window.addEventListener('focus', refreshUser);
+
+    return () => {
+      window.removeEventListener('userLoggedIn', refreshUser);
+      window.removeEventListener('storage', refreshUser);
+      window.removeEventListener('focus', refreshUser);
+    };
+  }, []);
 
   const validateDates = (): string | null => {
     if (!searchData.fromDate || !searchData.untilDate) {
@@ -1891,10 +2797,28 @@ const HomePage: React.FC = () => {
       <HeroSection>
         <HeroWrapper>
           <HeroContent>
-            <HeroTitle>Encontre o carro perfeito para você</HeroTitle>
+            <HeroEyebrow>
+              <Star size={14} />
+              Experiência premium para alugar e anunciar
+            </HeroEyebrow>
+            <HeroTitle>Mobilidade com visual moderno e reserva sem atrito</HeroTitle>
             <HeroSubtitle>
-              Alugue qualquer carro, em qualquer lugar
+              Descubra carros perto de você, reserve em minutos e acompanhe toda a jornada em uma experiência mais elegante, confiável e clara.
             </HeroSubtitle>
+            <HeroHighlights>
+              <HeroHighlight>
+                <Check size={16} />
+                Reserva 100% online
+              </HeroHighlight>
+              <HeroHighlight>
+                <Location size={16} />
+                Retirada flexível
+              </HeroHighlight>
+              <HeroHighlight>
+                <Shield size={16} />
+                Proteção e suporte 24/7
+              </HeroHighlight>
+            </HeroHighlights>
             <SearchContainer>
             <SearchForm>
               <LocationInputWrapper>
@@ -2015,12 +2939,12 @@ const HomePage: React.FC = () => {
             {searchError && (
               <div style={{ 
                 color: '#c33', 
-                backgroundColor: '#fee', 
+                backgroundColor: 'rgba(255, 241, 242, 0.94)', 
                 padding: '0.75rem 1rem', 
-                borderRadius: '0 0 12px 12px',
+                borderRadius: '0 0 28px 28px',
                 fontSize: '0.9rem',
                 textAlign: 'center',
-                borderTop: '1px solid #fcc'
+                borderTop: '1px solid rgba(248, 113, 113, 0.18)'
               }}>
                 {searchError}
               </div>
@@ -2134,56 +3058,60 @@ const HomePage: React.FC = () => {
         )}
       </FeaturedSection>
 
-      {/* How It Works */}
-      <HowItWorksSection>
-        <SectionTitle>Como funciona</SectionTitle>
-        <SectionSubtitle>
-          Seja para alugar um carro ou compartilhar o seu, tornamos tudo simples
-        </SectionSubtitle>
-        
-        <TabsContainer>
-          <Tab 
-            active={activeTab === 'rent'} 
-            onClick={() => setActiveTab('rent')}
-          >
-            Para Hóspedes
-          </Tab>
-          <Tab 
-            active={activeTab === 'host'} 
-            onClick={() => setActiveTab('host')}
-          >
-            Para Anfitriões
-          </Tab>
-        </TabsContainer>
+      {!isLoggedIn && (
+        <>
+          {/* How It Works */}
+          <HowItWorksSection>
+            <SectionTitle>Como funciona</SectionTitle>
+            <SectionSubtitle>
+              Seja para alugar um carro ou compartilhar o seu, tornamos tudo simples
+            </SectionSubtitle>
+            
+            <TabsContainer>
+              <Tab 
+                active={activeTab === 'rent'} 
+                onClick={() => setActiveTab('rent')}
+              >
+                Para Hóspedes
+              </Tab>
+              <Tab 
+                active={activeTab === 'host'} 
+                onClick={() => setActiveTab('host')}
+              >
+                Para Anfitriões
+              </Tab>
+            </TabsContainer>
 
-        <StepsGrid>
-          {(activeTab === 'rent' ? renterSteps : ownerSteps).map((step, index) => (
-            <StepCard key={index}>
-              <StepNumber>{index + 1}</StepNumber>
-              <StepTitle>{step.title}</StepTitle>
-              <StepDescription>{step.description}</StepDescription>
-            </StepCard>
-          ))}
-        </StepsGrid>
-      </HowItWorksSection>
+            <StepsGrid>
+              {(activeTab === 'rent' ? renterSteps : ownerSteps).map((step, index) => (
+                <StepCard key={index}>
+                  <StepNumber>{index + 1}</StepNumber>
+                  <StepTitle>{step.title}</StepTitle>
+                  <StepDescription>{step.description}</StepDescription>
+                </StepCard>
+              ))}
+            </StepsGrid>
+          </HowItWorksSection>
 
-      {/* Trust Section */}
-      <TrustSection>
-        <SectionTitle>Por que escolher CAR AND GO?</SectionTitle>
-        <SectionSubtitle>
-          Estamos comprometidos em fornecer uma experiência segura, confiável e segura de compartilhamento de carros
-        </SectionSubtitle>
-        
-        <TrustGrid>
-          {trustFeatures.map((feature, index) => (
-            <TrustCard key={index}>
-              <TrustIcon>{feature.icon}</TrustIcon>
-              <TrustTitle>{feature.title}</TrustTitle>
-              <TrustDescription>{feature.description}</TrustDescription>
-            </TrustCard>
-          ))}
-        </TrustGrid>
-      </TrustSection>
+          {/* Trust Section */}
+          <TrustSection>
+            <SectionTitle>Por que escolher CAR AND GO?</SectionTitle>
+            <SectionSubtitle>
+              Estamos comprometidos em fornecer uma experiência segura, confiável e segura de compartilhamento de carros
+            </SectionSubtitle>
+            
+            <TrustGrid>
+              {trustFeatures.map((feature, index) => (
+                <TrustCard key={index}>
+                  <TrustIcon>{feature.icon}</TrustIcon>
+                  <TrustTitle>{feature.title}</TrustTitle>
+                  <TrustDescription>{feature.description}</TrustDescription>
+                </TrustCard>
+              ))}
+            </TrustGrid>
+          </TrustSection>
+        </>
+      )}
 
       {/* CTA Section */}
       <CTASection>
@@ -2193,14 +3121,18 @@ const HomePage: React.FC = () => {
         <SectionSubtitle style={{ color: 'white', marginBottom: '3rem' }}>
           Junte-se a milhares de clientes satisfeitos em todo o Brasil
         </SectionSubtitle>
-        <div>
-          <CTAButton onClick={() => navigate('/vehicles')}>
-            Encontrar um Carro
-          </CTAButton>
-          <CTAButton onClick={() => navigate('/register')}>
-            Anunciar Seu Carro
-          </CTAButton>
-        </div>
+        <CTAButtons>
+          {canShowFindCarCta && (
+            <CTAButton onClick={() => navigate('/vehicles')}>
+              Encontrar um Carro
+            </CTAButton>
+          )}
+          {canShowListCarCta && (
+            <CTAButton $secondary onClick={() => navigate('/register')}>
+              Anunciar Seu Carro
+            </CTAButton>
+          )}
+        </CTAButtons>
       </CTASection>
     </>
   );

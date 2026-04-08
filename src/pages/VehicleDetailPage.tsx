@@ -10,6 +10,15 @@ import { errorToDisplay } from '../utils/errorUtils';
 import { Electric, Car, LocationOn, Star, CheckCircle, Phone, Map, Lock, Shield, Usb, Bluetooth, AirConditioning, Edit } from '../components/IconSystem';
 import AuthModal from '../components/AuthModal';
 import { isFavorite, toggleFavorite } from '../utils/favorites';
+import modernTheme from '../styles/modernTheme';
+import {
+  formFieldCss,
+  glassPanelCss,
+  pageShellCss,
+  primaryButtonCss,
+  secondaryButtonCss,
+  titleCss,
+} from '../styles/modernPrimitives';
 
 const GALLERY_MAX_PREVIEW_THUMBS = 5;
 
@@ -21,13 +30,15 @@ L.Icon.Default.mergeOptions({
 });
 
 const Container = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
+  ${pageShellCss}
 `;
 
 const Header = styled.div`
   margin-bottom: 2rem;
+
+  @media (max-width: 768px) {
+    margin-bottom: 1.5rem;
+  }
 `;
 
 const Breadcrumb = styled.div`
@@ -35,11 +46,11 @@ const Breadcrumb = styled.div`
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 1rem;
-  color: #666;
+  color: ${modernTheme.colors.muted};
   font-size: 0.9rem;
 
   a {
-    color: #F6885C;
+    color: ${modernTheme.colors.brandStrong};
     text-decoration: none;
     
     &:hover {
@@ -54,13 +65,22 @@ const TitleRow = styled.div`
   justify-content: space-between;
   gap: 1rem;
   margin-bottom: 0.5rem;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 `;
 
 const VehicleTitle = styled.h1`
+  ${titleCss}
   font-size: 2.5rem;
-  color: #333;
   margin: 0;
   font-weight: 700;
+
+  @media (max-width: 768px) {
+    font-size: 2rem;
+  }
 `;
 
 const FavoriteButton = styled.button`
@@ -68,20 +88,19 @@ const FavoriteButton = styled.button`
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  border: 1px solid rgba(0,0,0,0.1);
-  background: white;
-  color: #ea580c;
+  border: 1px solid rgba(255,255,255,0.8);
+  background: rgba(255, 255, 255, 0.86);
+  color: ${modernTheme.colors.brandStrong};
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.1);
 
   &:hover {
-    background: #f8f9fa;
+    background: white;
     transform: scale(1.05);
-    color: #c2410c;
   }
 
   svg {
@@ -95,18 +114,17 @@ const EditAnnouncementButton = styled.button`
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.25rem;
-  border-radius: 8px;
+  border-radius: ${modernTheme.radii.pill};
   border: none;
-  background: #F6885C;
+  background: ${modernTheme.gradients.brand};
   color: white;
   font-weight: 600;
   font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: ${modernTheme.shadows.glow};
 
   &:hover {
-    background: #ED733A;
     transform: translateY(-1px);
   }
 `;
@@ -116,8 +134,14 @@ const VehicleSubtitle = styled.div`
   align-items: center;
   gap: 1rem;
   margin-bottom: 1rem;
-  color: #666;
+  color: ${modernTheme.colors.muted};
   font-size: 1.1rem;
+
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-size: 1rem;
+  }
 `;
 
 const RatingSection = styled.div`
@@ -137,6 +161,10 @@ const MainContent = styled.div`
     grid-template-columns: 1fr;
     gap: 2rem;
   }
+
+  @media (max-width: 768px) {
+    gap: 1.5rem;
+  }
 `;
 
 const LeftColumn = styled.div`
@@ -153,22 +181,28 @@ const RightColumn = styled.div`
 
 // Photo Gallery
 const PhotoGallery = styled.div`
-  background: white;
-  border-radius: 12px;
+  ${glassPanelCss}
   overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 `;
 
 const MainPhoto = styled.div`
   height: 400px;
-  background: linear-gradient(135deg, #F6885C, #D95128);
+  background: linear-gradient(135deg, rgba(246, 136, 92, 0.18) 0%, rgba(139, 92, 246, 0.22) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 4rem;
-  color: white;
+  color: ${modernTheme.colors.brandStrong};
   position: relative;
   cursor: pointer;
+
+  @media (max-width: 768px) {
+    height: 300px;
+  }
+
+  @media (max-width: 480px) {
+    height: 240px;
+  }
 `;
 
 const PhotoThumbnails = styled.div`
@@ -176,6 +210,11 @@ const PhotoThumbnails = styled.div`
   padding: 1rem;
   gap: 0.5rem;
   flex-wrap: nowrap;
+  overflow-x: auto;
+
+  @media (max-width: 480px) {
+    padding: 0.75rem;
+  }
 `;
 
 const Thumbnail = styled.div<{ active?: boolean }>`
@@ -183,10 +222,10 @@ const Thumbnail = styled.div<{ active?: boolean }>`
   flex-shrink: 0;
   width: 80px;
   height: 60px;
-  background: linear-gradient(135deg, #F6885C, #D95128);
-  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(246, 136, 92, 0.18) 0%, rgba(139, 92, 246, 0.2) 100%);
+  border-radius: 12px;
   cursor: pointer;
-  border: 2px solid ${props => props.active ? '#F6885C' : 'transparent'};
+  border: 2px solid ${props => props.active ? modernTheme.colors.brandStrong : 'transparent'};
   opacity: ${props => props.active ? 1 : 0.7};
   transition: all 0.3s;
   overflow: hidden;
@@ -234,6 +273,11 @@ const PhotoLightboxToolbar = styled.div`
   padding: 0.75rem 1rem;
   color: white;
   font-size: 0.95rem;
+
+  @media (max-width: 600px) {
+    padding: 0.75rem;
+    font-size: 0.85rem;
+  }
 `;
 
 const PhotoLightboxClose = styled.button`
@@ -262,6 +306,10 @@ const PhotoLightboxStage = styled.div`
   justify-content: center;
   width: 100%;
   min-height: 200px;
+
+  @media (max-width: 600px) {
+    min-height: 160px;
+  }
 `;
 
 const PhotoLightboxImg = styled.img`
@@ -311,6 +359,10 @@ const PhotoLightboxThumbs = styled.div`
   max-width: 100%;
   overflow-x: auto;
   flex-shrink: 0;
+
+  @media (max-width: 600px) {
+    padding-top: 0.5rem;
+  }
 `;
 
 const PhotoLightboxThumb = styled.button<{ $active?: boolean }>`
@@ -339,15 +391,13 @@ const PhotoLightboxThumb = styled.button<{ $active?: boolean }>`
 
 // Vehicle Info Section
 const VehicleInfoSection = styled.div`
-  background: white;
-  border-radius: 12px;
+  ${glassPanelCss}
   padding: 2rem;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 `;
 
 const SectionTitle = styled.h2`
   font-size: 1.5rem;
-  color: #333;
+  color: ${modernTheme.colors.ink};
   margin-bottom: 1.5rem;
   font-weight: 600;
 `;
@@ -366,27 +416,25 @@ const InfoItem = styled.div`
 
 const InfoLabel = styled.span`
   font-size: 0.9rem;
-  color: #666;
+  color: ${modernTheme.colors.muted};
   font-weight: 500;
 `;
 
 const InfoValue = styled.span`
   font-size: 1.1rem;
-  color: #333;
+  color: ${modernTheme.colors.ink};
   font-weight: 600;
 `;
 
 const MapSection = styled.div`
-  background: white;
-  border-radius: 12px;
+  ${glassPanelCss}
   overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   padding: 1.5rem 1.5rem 0 1.5rem;
 `;
 
 const MapSectionTitle = styled.h2`
   font-size: 1.5rem;
-  color: #333;
+  color: ${modernTheme.colors.ink};
   margin: 0 0 1rem 0;
   font-weight: 600;
   display: flex;
@@ -395,26 +443,26 @@ const MapSectionTitle = styled.h2`
 `;
 
 const MapAddressBlock = styled.div`
-  background: #f8f9fa;
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.74);
+  border-radius: 14px;
   padding: 1rem 1.25rem;
   margin-bottom: 1rem;
-  border-left: 4px solid #F6885C;
+  border-left: 4px solid ${modernTheme.colors.brandStrong};
 `;
 
 const MapAddressLine = styled.p`
   margin: 0;
   font-size: 1rem;
-  color: #333;
+  color: ${modernTheme.colors.inkSoft};
   line-height: 1.5;
   &:first-child {
     font-weight: 600;
-    color: #1a1a1a;
+    color: ${modernTheme.colors.ink};
   }
   & + & {
     margin-top: 0.25rem;
     font-size: 0.95rem;
-    color: #555;
+    color: ${modernTheme.colors.muted};
   }
 `;
 
@@ -432,10 +480,8 @@ const MapWrapper = styled.div`
 
 // Features Section
 const FeaturesSection = styled.div`
-  background: white;
-  border-radius: 12px;
+  ${glassPanelCss}
   padding: 2rem;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 `;
 
 const FeaturesGrid = styled.div`
@@ -449,8 +495,8 @@ const FeatureItem = styled.div`
   align-items: center;
   gap: 0.75rem;
   padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.74);
+  border-radius: 14px;
 `;
 
 const FeatureIcon = styled.span`
@@ -458,18 +504,25 @@ const FeatureIcon = styled.span`
 `;
 
 const FeatureText = styled.span`
-  color: #333;
+  color: ${modernTheme.colors.inkSoft};
   font-weight: 500;
 `;
 
 // Booking Section
 const BookingSection = styled.div`
-  background: white;
-  border-radius: 12px;
+  ${glassPanelCss}
   padding: 2rem;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   position: sticky;
   top: 2rem;
+
+  @media (max-width: 1024px) {
+    position: static;
+    top: auto;
+  }
+
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+  }
 `;
 
 const PriceDisplay = styled.div`
@@ -482,84 +535,63 @@ const PriceDisplay = styled.div`
 const DailyPrice = styled.span`
   font-size: 2rem;
   font-weight: 700;
-  color: #333;
+  color: ${modernTheme.colors.ink};
 `;
 
 const PriceUnit = styled.span`
-  color: #666;
+  color: ${modernTheme.colors.muted};
   font-size: 1rem;
 `;
 
 const TotalPrice = styled.div`
-  background: #f8f9fa;
+  background: rgba(255, 255, 255, 0.74);
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: 14px;
   margin: 1rem 0;
   text-align: center;
 `;
 
 const TotalLabel = styled.div`
   font-size: 0.9rem;
-  color: #666;
+  color: ${modernTheme.colors.muted};
   margin-bottom: 0.5rem;
 `;
 
 const TotalAmount = styled.div`
   font-size: 1.5rem;
   font-weight: 700;
-  color: #333;
+  color: ${modernTheme.colors.ink};
 `;
 
 const BookingButton = styled.button`
+  ${primaryButtonCss}
   width: 100%;
-  background: #F6885C;
   color: white;
   border: none;
   padding: 1rem 2rem;
   font-size: 1.1rem;
   font-weight: 600;
-  border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s;
   margin-top: 1rem;
-
-  &:hover {
-    background: #ED733A;
-    transform: translateY(-2px);
-  }
-
-  &:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-    transform: none;
-  }
 `;
 
 const MonthlyButton = styled.button`
+  ${secondaryButtonCss}
   width: 100%;
-  background: #fff4ed;
   color: #9a3412;
-  border: 1px solid #fdba74;
   padding: 0.9rem 1.2rem;
   font-size: 1rem;
   font-weight: 700;
-  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
   margin-top: 0.75rem;
-
-  &:hover {
-    background: #ffedd5;
-    transform: translateY(-1px);
-  }
 `;
 
 // Host Section
 const HostSection = styled.div`
-  background: white;
-  border-radius: 12px;
+  ${glassPanelCss}
   padding: 2rem;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 `;
 
 const HostInfo = styled.div`
@@ -572,7 +604,7 @@ const HostInfo = styled.div`
 const HostAvatar = styled.div`
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #F6885C, #D95128);
+  background: ${modernTheme.gradients.brand};
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -589,12 +621,12 @@ const HostDetails = styled.div`
 const HostName = styled.div`
   font-size: 1.2rem;
   font-weight: 600;
-  color: #333;
+  color: ${modernTheme.colors.ink};
   margin-bottom: 0.25rem;
 `;
 
 const HostStats = styled.div`
-  color: #666;
+  color: ${modernTheme.colors.muted};
   font-size: 0.9rem;
 `;
 
@@ -609,15 +641,13 @@ const HostBadge = styled.div`
 
 // Reviews Section
 const ReviewsSection = styled.div`
-  background: white;
-  border-radius: 12px;
+  ${glassPanelCss}
   padding: 2rem;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 `;
 
 const ReviewItem = styled.div`
   padding: 1.5rem 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
 
   &:last-child {
     border-bottom: none;
@@ -637,12 +667,12 @@ const ReviewInfo = styled.div`
 
 const ReviewerName = styled.div`
   font-weight: 600;
-  color: #333;
+  color: ${modernTheme.colors.ink};
   margin-bottom: 0.25rem;
 `;
 
 const ReviewDate = styled.div`
-  color: #666;
+  color: ${modernTheme.colors.muted};
   font-size: 0.9rem;
 `;
 
@@ -654,19 +684,19 @@ const ReviewRating = styled.div`
 `;
 
 const ReviewText = styled.div`
-  color: #333;
+  color: ${modernTheme.colors.inkSoft};
   line-height: 1.6;
 `;
 
 const ReviewForm = styled.form`
   margin-top: 1.5rem;
   padding-top: 1.5rem;
-  border-top: 1px solid #eee;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
 `;
 
 const ReviewFormTitle = styled.div`
   font-weight: 600;
-  color: #333;
+  color: ${modernTheme.colors.ink};
   margin-bottom: 0.75rem;
 `;
 
@@ -678,49 +708,31 @@ const StarRatingInput = styled.div`
 `;
 
 const ReviewTextarea = styled.textarea`
-  width: 100%;
+  ${formFieldCss}
   min-height: 100px;
-  padding: 0.75rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 1rem;
   font-family: inherit;
   resize: vertical;
   margin-bottom: 0.75rem;
-  &:focus {
-    outline: none;
-    border-color: #F6885C;
-  }
 `;
 
 const SubmitReviewButton = styled.button`
-  background: #F6885C;
+  ${primaryButtonCss}
   color: white;
   border: none;
   padding: 0.6rem 1.25rem;
-  border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  &:hover {
-    background: #ED733A;
-  }
-  &:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-  }
 `;
 
 const ReviewEmpty = styled.p`
-  color: #666;
+  color: ${modernTheme.colors.muted};
   font-style: italic;
 `;
 
 // Safety Section
 const SafetySection = styled.div`
-  background: white;
-  border-radius: 12px;
+  ${glassPanelCss}
   padding: 2rem;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 `;
 
 const SafetyGrid = styled.div`
@@ -734,8 +746,8 @@ const SafetyItem = styled.div`
   align-items: center;
   gap: 0.75rem;
   padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.74);
+  border-radius: 14px;
 `;
 
 const SafetyIcon = styled.span`
@@ -744,7 +756,7 @@ const SafetyIcon = styled.span`
 `;
 
 const SafetyText = styled.span`
-  color: #333;
+  color: ${modernTheme.colors.inkSoft};
   font-weight: 500;
 `;
 

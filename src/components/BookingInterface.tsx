@@ -6,19 +6,27 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { bookingService } from '../services/authService';
 import { Car, Calendar, Map, Money, Lock } from './IconSystem';
 import { getErrorMessage, errorToDisplay } from '../utils/errorUtils';
+import modernTheme from '../styles/modernTheme';
+import {
+  errorNoticeCss,
+  formFieldCss,
+  glassPanelCss,
+  labelCss,
+  pageShellCss,
+  primaryButtonCss,
+  solidPanelCss,
+  successNoticeCss,
+  titleCss,
+} from '../styles/modernPrimitives';
 
 const Container = styled.div`
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 2rem;
-  background: white;
-  border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  ${pageShellCss}
+  ${glassPanelCss}
 `;
 
 const Title = styled.h2`
+  ${titleCss}
   font-size: 2rem;
-  color: #333;
   margin-bottom: 2rem;
   text-align: center;
 `;
@@ -34,19 +42,18 @@ const BookingGrid = styled.div`
 `;
 
 const VehicleCard = styled.div`
-  border: 1px solid #e0e0e0;
-  border-radius: 10px;
+  ${solidPanelCss}
   overflow: hidden;
 `;
 
 const VehicleImage = styled.div`
   height: 200px;
-  background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
+  background: linear-gradient(135deg, rgba(246, 136, 92, 0.18) 0%, rgba(139, 92, 246, 0.2) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 4rem;
-  color: white;
+  color: ${modernTheme.colors.brandStrong};
 `;
 
 const VehicleInfo = styled.div`
@@ -56,30 +63,29 @@ const VehicleInfo = styled.div`
 const VehicleTitle = styled.h3`
   font-size: 1.3rem;
   margin-bottom: 0.5rem;
-  color: #333;
+  color: ${modernTheme.colors.ink};
 `;
 
 const VehicleDetails = styled.p`
-  color: #666;
+  color: ${modernTheme.colors.muted};
   margin-bottom: 0.5rem;
 `;
 
 const Price = styled.div`
   font-size: 1.5rem;
   font-weight: bold;
-  color: #F6885C;
+  color: ${modernTheme.colors.brandStrong};
   margin-top: 1rem;
 `;
 
 const BookingForm = styled.div`
-  border: 1px solid #e0e0e0;
-  border-radius: 10px;
+  ${solidPanelCss}
   padding: 1.5rem;
 `;
 
 const FormTitle = styled.h3`
   font-size: 1.3rem;
-  color: #333;
+  color: ${modernTheme.colors.ink};
   margin-bottom: 1.5rem;
 `;
 
@@ -95,16 +101,7 @@ const FormRow = styled.div`
 `;
 
 const Input = styled.input`
-  padding: 0.75rem;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.3s;
-  
-  &:focus {
-    outline: none;
-    border-color: #F6885C;
-  }
+  ${formFieldCss}
 `;
 
 const DatePickerWrapper = styled.div`
@@ -112,38 +109,16 @@ const DatePickerWrapper = styled.div`
     width: 100%;
   }
   .react-datepicker__input-container input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: border-color 0.3s;
-    box-sizing: border-box;
-    &:focus {
-      outline: none;
-      border-color: #F6885C;
-    }
+    ${formFieldCss}
   }
 `;
 
 const Label = styled.label`
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: #333;
+  ${labelCss}
 `;
 
 const Select = styled.select`
-  padding: 0.75rem;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.3s;
-  
-  &:focus {
-    outline: none;
-    border-color: #F6885C;
-  }
+  ${formFieldCss}
 `;
 
 const CheckboxContainer = styled.div`
@@ -159,33 +134,19 @@ const Checkbox = styled.input`
 `;
 
 const Button = styled.button`
-  background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
+  ${primaryButtonCss}
   color: white;
   border: none;
   padding: 1rem 2rem;
-  border-radius: 10px;
   font-size: 1.1rem;
   cursor: pointer;
   transition: all 0.3s;
   width: 100%;
   margin-top: 1rem;
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-  }
-  
-  &:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-  }
 `;
 
 const SummaryCard = styled.div`
-  background: #f8f9fa;
-  border-radius: 10px;
+  ${glassPanelCss}
   padding: 1.5rem;
   margin-top: 1rem;
 `;
@@ -198,51 +159,41 @@ const SummaryRow = styled.div`
   &.total {
     font-weight: bold;
     font-size: 1.2rem;
-    border-top: 2px solid #e0e0e0;
+    border-top: 1px solid rgba(15, 23, 42, 0.08);
     padding-top: 0.5rem;
     margin-top: 1rem;
   }
 `;
 
 const ErrorMessage = styled.div`
-  background: #ffebee;
-  color: #c62828;
-  padding: 1rem;
-  border-radius: 8px;
+  ${errorNoticeCss}
   margin-bottom: 1rem;
 `;
 
 const SuccessMessage = styled.div`
-  background: #e8f5e8;
-  color: #2e7d32;
-  padding: 1rem;
-  border-radius: 8px;
+  ${successNoticeCss}
   margin-bottom: 1rem;
 `;
 
 const RouteSection = styled.div`
-  border: 1px solid #e0e0e0;
-  border-radius: 10px;
+  ${glassPanelCss}
   padding: 1.5rem;
   margin-top: 1rem;
 `;
 
 const MapPlaceholder = styled.div`
   height: 200px;
-  background: #f0f0f0;
-  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.05);
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #666;
+  color: ${modernTheme.colors.muted};
   font-size: 1.1rem;
 `;
 
 const AvailabilityWarning = styled.div`
-  background: #ffebee;
-  color: #c62828;
-  padding: 1rem;
-  border-radius: 8px;
+  ${errorNoticeCss}
   margin-bottom: 1rem;
   display: flex;
   align-items: center;
@@ -251,10 +202,7 @@ const AvailabilityWarning = styled.div`
 `;
 
 const AvailabilitySuccess = styled.div`
-  background: #e8f5e9;
-  color: #2e7d32;
-  padding: 1rem;
-  border-radius: 8px;
+  ${successNoticeCss}
   margin-bottom: 1rem;
   display: flex;
   align-items: center;

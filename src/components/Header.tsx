@@ -5,6 +5,7 @@ import logoSvg from '../assets/logo.svg';
 import { User, ArrowDown, Menu, Car, CreditCard, Close } from './IconSystem';
 import AuthModal from './AuthModal';
 import { authService } from '../services/authService';
+import modernTheme from '../styles/modernTheme';
 import { 
   Inbox, 
   Gavel, 
@@ -24,12 +25,14 @@ const HeaderContainer = styled.header`
   top: 0;
   left: 0;
   right: 0;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(248, 251, 255, 0.72);
+  backdrop-filter: blur(24px) saturate(165%);
+  -webkit-backdrop-filter: blur(24px) saturate(165%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.78);
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
   padding: 1rem 2rem;
   z-index: 1000;
-  transition: all 0.3s ease;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
 
   @media (max-width: 768px) {
     padding: 0.75rem 1rem;
@@ -44,21 +47,22 @@ const Nav = styled.nav`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  max-width: 1200px;
+  max-width: ${modernTheme.widths.content};
   margin: 0 auto;
 `;
 
 const Logo = styled(Link)`
   font-size: 1.8rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: ${modernTheme.colors.ink};
   text-decoration: none;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  letter-spacing: -0.03em;
   
   &:hover {
-    color: #F6885C;
+    color: ${modernTheme.colors.brandStrong};
   }
 
   @media (max-width: 768px) {
@@ -75,6 +79,7 @@ const LogoImage = styled.img`
   width: 40px;
   height: 40px;
   object-fit: contain;
+  filter: drop-shadow(0 10px 20px rgba(246, 136, 92, 0.3));
 
   @media (max-width: 768px) {
     width: 32px;
@@ -98,16 +103,19 @@ const NavLinks = styled.div`
 `;
 
 const NavLink = styled(Link)`
-  color: #333;
+  color: ${modernTheme.colors.inkSoft};
   text-decoration: none;
   font-weight: 500;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
+  padding: 0.65rem 1rem;
+  border-radius: ${modernTheme.radii.pill};
   transition: all 0.3s ease;
+  border: 1px solid transparent;
   
   &:hover {
-    color: #F6885C;
-    background: rgba(102, 126, 234, 0.1);
+    color: ${modernTheme.colors.brandStrong};
+    background: rgba(255, 255, 255, 0.72);
+    border-color: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
   }
 `;
 
@@ -122,40 +130,43 @@ const AuthButtons = styled.div`
 `;
 
 const LoginButton = styled.button`
-  background: none;
-  border: none;
-  color: #333;
+  background: rgba(255, 255, 255, 0.66);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  color: ${modernTheme.colors.inkSoft};
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
   padding: 0.5rem 1rem;
-  border-radius: 6px;
+  border-radius: ${modernTheme.radii.pill};
   transition: all 0.3s ease;
   cursor: pointer;
   min-height: 44px;
   -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
 
   &:hover {
-    color: #F6885C;
-    background: rgba(102, 126, 234, 0.1);
+    color: ${modernTheme.colors.brandStrong};
+    background: rgba(255, 255, 255, 0.86);
+    transform: translateY(-1px);
   }
 `;
 
 const SignUpButton = styled.button`
-  background: #F6885C;
+  background: ${modernTheme.gradients.brand};
   color: white;
   text-decoration: none;
   font-weight: 600;
   padding: 0.75rem 1.5rem;
-  border-radius: 8px;
+  border-radius: ${modernTheme.radii.pill};
   transition: all 0.3s ease;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.18);
   cursor: pointer;
   min-height: 44px;
   -webkit-tap-highlight-color: transparent;
+  box-shadow: ${modernTheme.shadows.glow};
 
   &:hover {
-    background: #ED733A;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 28px 60px rgba(220, 94, 49, 0.28);
   }
 
   @media (max-width: 768px) {
@@ -180,12 +191,12 @@ const UserMenu = styled.div`
 `;
 
 const UserButton = styled.button`
-  background: none;
-  border: none;
-  color: #333;
+  background: rgba(255, 255, 255, 0.66);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  color: ${modernTheme.colors.inkSoft};
   font-weight: 500;
   padding: 0.5rem 1rem;
-  border-radius: 6px;
+  border-radius: ${modernTheme.radii.pill};
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
@@ -193,9 +204,10 @@ const UserButton = styled.button`
   gap: 0.5rem;
   min-height: 44px;
   -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
 
   &:hover {
-    background: rgba(102, 126, 234, 0.1);
+    background: rgba(255, 255, 255, 0.84);
   }
 `;
 
@@ -211,11 +223,14 @@ const DropdownMenu = styled.div<{ isOpen: boolean }>`
   position: absolute;
   top: 100%;
   right: 0;
-  background: white;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-  min-width: 200px;
+  margin-top: 0.75rem;
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: 22px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.14);
+  min-width: 240px;
   opacity: ${props => props.isOpen ? 1 : 0};
   visibility: ${props => props.isOpen ? 'visible' : 'hidden'};
   transform: ${props => props.isOpen ? 'translateY(0)' : 'translateY(-10px)'};
@@ -228,17 +243,17 @@ const DropdownItem = styled(Link)`
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  color: #333;
+  color: ${modernTheme.colors.inkSoft};
   text-decoration: none;
   transition: background 0.3s ease;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
 
   &:hover {
-    background: #f8f9fa;
+    background: rgba(246, 136, 92, 0.08);
   }
 
   &:first-child {
-    border-radius: 8px 8px 0 0;
+    border-radius: 22px 22px 0 0;
   }
 
   svg {
@@ -258,7 +273,7 @@ const DropdownItem = styled(Link)`
 
 const DropdownDivider = styled.div`
   height: 1px;
-  background: #e5e5e5;
+  background: rgba(15, 23, 42, 0.08);
   margin: 0;
 `;
 
@@ -270,15 +285,15 @@ const LogoutButton = styled.button`
   padding: 0.75rem 1rem;
   border: none;
   background: none;
-  color: #333;
+  color: ${modernTheme.colors.inkSoft};
   text-align: left;
   cursor: pointer;
   transition: background 0.3s ease;
-  border-radius: 0 0 8px 8px;
-  border-top: 1px solid #f0f0f0;
+  border-radius: 0 0 22px 22px;
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
 
   &:hover {
-    background: #f8f9fa;
+    background: rgba(246, 136, 92, 0.08);
   }
 
   svg {
@@ -290,10 +305,10 @@ const LogoutButton = styled.button`
 
 const MobileMenuButton = styled.button`
   display: none;
-  background: none;
-  border: none;
+  background: rgba(255, 255, 255, 0.68);
+  border: 1px solid rgba(255, 255, 255, 0.78);
   font-size: 1.5rem;
-  color: #333;
+  color: ${modernTheme.colors.ink};
   cursor: pointer;
   padding: 0.5rem;
   min-width: 44px;
@@ -302,6 +317,7 @@ const MobileMenuButton = styled.button`
   justify-content: center;
   border-radius: 8px;
   -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
 
   @media (max-width: 768px) {
     display: flex;
@@ -314,7 +330,8 @@ const MobileMenuOverlay = styled.div<{ isOpen: boolean }>`
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.4);
+    background: rgba(7, 17, 31, 0.45);
+    backdrop-filter: blur(6px);
     z-index: 999;
     opacity: ${p => p.isOpen ? 1 : 0};
     visibility: ${p => p.isOpen ? 'visible' : 'hidden'};
@@ -336,8 +353,8 @@ const MobileMenuPanel = styled.div<{ isOpen: boolean }>`
     max-width: 100%;
     height: 100vh;
     height: 100dvh;
-    background: white;
-    box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(244, 247, 251, 0.99) 100%);
+    box-shadow: -16px 0 40px rgba(15, 23, 42, 0.18);
     z-index: 1001;
     padding: 0;
     overflow: hidden;
@@ -367,7 +384,7 @@ const MobileMenuHeader = styled.div`
     align-items: center;
     justify-content: space-between;
     padding: 1rem 1.25rem;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
     flex-shrink: 0;
   }
 `;
@@ -391,26 +408,28 @@ const MobileMenuCloseBtn = styled.button`
   justify-content: center;
   width: 44px;
   height: 44px;
-  border: none;
-  background: none;
-  color: #333;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.72);
+  color: ${modernTheme.colors.inkSoft};
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: 12px;
   -webkit-tap-highlight-color: transparent;
-  &:hover { background: #f0f0f0; }
+  &:hover { background: white; }
 `;
 
 const MobileMenuLink = styled(Link)`
   padding: 1rem 1.5rem;
-  color: #333;
+  color: ${modernTheme.colors.inkSoft};
   text-decoration: none;
   font-weight: 500;
   min-height: 48px;
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
   -webkit-tap-highlight-color: transparent;
+  transition: background 0.2s ease;
+  &:hover { background: rgba(246, 136, 92, 0.08); }
   svg { flex-shrink: 0; font-size: 20px; }
 `;
 
@@ -420,15 +439,17 @@ const MobileMenuButtonAction = styled.button`
   text-align: left;
   border: none;
   background: none;
-  color: #333;
+  color: ${modernTheme.colors.inkSoft};
   font-weight: 500;
   min-height: 48px;
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  transition: background 0.2s ease;
+  &:hover { background: rgba(246, 136, 92, 0.08); }
   svg { flex-shrink: 0; font-size: 20px; }
 `;
 

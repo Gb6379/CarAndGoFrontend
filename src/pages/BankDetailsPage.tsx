@@ -3,16 +3,23 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
 import { CreditCard } from '../components/IconSystem';
+import {
+  formFieldCss,
+  glassPanelCss,
+  labelCss,
+  pageShellCss,
+  primaryButtonCss,
+  subtitleCss,
+  titleCss,
+} from '../styles/modernPrimitives';
 
 const Container = styled.div`
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 2rem;
+  ${pageShellCss}
 `;
 
 const Title = styled.h1`
+  ${titleCss}
   font-size: 2rem;
-  color: #333;
   margin-bottom: 0.5rem;
   font-weight: 700;
   display: flex;
@@ -21,15 +28,13 @@ const Title = styled.h1`
 `;
 
 const Subtitle = styled.p`
-  color: #666;
+  ${subtitleCss}
   margin-bottom: 2rem;
 `;
 
 const Card = styled.div`
-  background: white;
-  border-radius: 12px;
+  ${glassPanelCss}
   padding: 2rem;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
 `;
 
 const FormGroup = styled.div`
@@ -37,59 +42,28 @@ const FormGroup = styled.div`
 `;
 
 const Label = styled.label`
-  display: block;
+  ${labelCss}
   margin-bottom: 0.35rem;
-  color: #333;
-  font-weight: 500;
   font-size: 0.95rem;
 `;
 
 const Input = styled.input`
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 1rem;
-
-  &:focus {
-    outline: none;
-    border-color: #F6885C;
-  }
+  ${formFieldCss}
 `;
 
 const Select = styled.select`
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 1rem;
-  background: white;
-
-  &:focus {
-    outline: none;
-    border-color: #F6885C;
-  }
+  ${formFieldCss}
 `;
 
 const SaveButton = styled.button`
-  background: #F6885C;
+  ${primaryButtonCss}
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
-  border-radius: 8px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   margin-top: 0.5rem;
-
-  &:hover {
-    background: #ED733A;
-  }
-
-  &:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-  }
 `;
 
 const BankDetailsPage: React.FC = () => {

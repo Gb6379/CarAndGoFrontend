@@ -4,21 +4,29 @@ import styled from 'styled-components';
 import { Lock, Photo, CheckCircle, ArrowRight, ArrowLeft } from '../components/IconSystem';
 import { authService } from '../services/authService';
 import { errorToDisplay } from '../utils/errorUtils';
+import modernTheme from '../styles/modernTheme';
+import {
+  errorNoticeCss,
+  glassPanelCss,
+  pageShellCss,
+  primaryButtonCss,
+  secondaryButtonCss,
+  successNoticeCss,
+  subtitleCss,
+  titleCss,
+} from '../styles/modernPrimitives';
 
 const CAC_LINK = 'https://servicos.pf.gov.br/epol-sinic-publico/';
 
 const Container = styled.div`
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 2rem;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  ${pageShellCss}
+  ${glassPanelCss}
+  max-width: 720px;
 `;
 
 const Title = styled.h1`
+  ${titleCss}
   font-size: 1.5rem;
-  color: #333;
   margin-bottom: 0.5rem;
   display: flex;
   align-items: center;
@@ -26,10 +34,9 @@ const Title = styled.h1`
 `;
 
 const Subtitle = styled.p`
-  color: #666;
+  ${subtitleCss}
   margin-bottom: 2rem;
   font-size: 0.95rem;
-  line-height: 1.5;
 `;
 
 const Steps = styled.div`
@@ -42,13 +49,13 @@ const StepDot = styled.div<{ active: boolean; done: boolean }>`
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: ${p => p.done ? '#2e7d32' : p.active ? '#1e3c72' : '#e0e0e0'};
+  background: ${p => p.done ? '#047857' : p.active ? modernTheme.colors.brandStrong : 'rgba(15, 23, 42, 0.12)'};
   transition: background 0.2s;
 `;
 
 const StepLabel = styled.span<{ active: boolean }>`
   font-size: 0.85rem;
-  color: ${p => p.active ? '#1e3c72' : '#999'};
+  color: ${p => p.active ? modernTheme.colors.ink : modernTheme.colors.muted};
   font-weight: ${p => p.active ? '600' : '400'};
 `;
 
@@ -60,16 +67,14 @@ const StepRow = styled.div`
 `;
 
 const Card = styled.div`
-  border: 1px solid #e8e8e8;
-  border-radius: 10px;
+  ${glassPanelCss}
   padding: 1.5rem;
   margin-bottom: 1.5rem;
-  background: #fafafa;
 `;
 
 const CardTitle = styled.h2`
   font-size: 1.1rem;
-  color: #333;
+  color: ${modernTheme.colors.ink};
   margin-bottom: 0.75rem;
   display: flex;
   align-items: center;
@@ -77,16 +82,16 @@ const CardTitle = styled.h2`
 `;
 
 const CardDescription = styled.p`
-  color: #555;
+  color: ${modernTheme.colors.muted};
   font-size: 0.9rem;
   line-height: 1.5;
   margin-bottom: 1rem;
 `;
 
 const LinkBox = styled.div`
-  background: #e3f2fd;
-  border: 1px solid #90caf9;
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: 14px;
   padding: 1rem 1.25rem;
   margin-bottom: 1.25rem;
 `;
@@ -94,13 +99,13 @@ const LinkBox = styled.div`
 const LinkTitle = styled.div`
   font-size: 0.9rem;
   font-weight: 600;
-  color: #1565c0;
+  color: ${modernTheme.colors.ink};
   margin-bottom: 0.5rem;
 `;
 
 const LinkDescription = styled.p`
   font-size: 0.85rem;
-  color: #555;
+  color: ${modernTheme.colors.muted};
   margin-bottom: 0.75rem;
   line-height: 1.4;
 `;
@@ -109,7 +114,7 @@ const LinkAnchor = styled.a`
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: #1565c0;
+  color: ${modernTheme.colors.brandStrong};
   font-weight: 600;
   text-decoration: none;
   font-size: 0.95rem;
@@ -125,16 +130,16 @@ const UploadZone = styled.label<{ hasFile: boolean }>`
   align-items: center;
   justify-content: center;
   min-height: 140px;
-  border: 2px dashed ${p => p.hasFile ? '#2e7d32' : '#bdbdbd'};
-  border-radius: 10px;
-  background: ${p => p.hasFile ? '#e8f5e9' : '#fafafa'};
+  border: 2px dashed ${p => p.hasFile ? '#047857' : 'rgba(15, 23, 42, 0.16)'};
+  border-radius: 18px;
+  background: ${p => p.hasFile ? 'rgba(236, 253, 245, 0.84)' : 'rgba(255, 255, 255, 0.66)'};
   cursor: pointer;
   transition: all 0.2s;
   padding: 1rem;
 
   &:hover {
-    border-color: #1e3c72;
-    background: #f5f5f5;
+    border-color: ${modernTheme.colors.brandStrong};
+    background: rgba(255, 255, 255, 0.86);
   }
 
   input {
@@ -143,19 +148,19 @@ const UploadZone = styled.label<{ hasFile: boolean }>`
 `;
 
 const UploadIcon = styled.div`
-  color: #666;
+  color: ${modernTheme.colors.muted};
   margin-bottom: 0.5rem;
 `;
 
 const UploadText = styled.span`
   font-size: 0.9rem;
-  color: #555;
+  color: ${modernTheme.colors.inkSoft};
   text-align: center;
 `;
 
 const FileName = styled.span`
   font-size: 0.85rem;
-  color: #2e7d32;
+  color: #047857;
   font-weight: 500;
   margin-top: 0.5rem;
 `;
@@ -172,7 +177,7 @@ const Button = styled.button`
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  border-radius: 8px;
+  border-radius: ${modernTheme.radii.pill};
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
@@ -180,19 +185,12 @@ const Button = styled.button`
   border: none;
 
   &.primary {
-    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    ${primaryButtonCss}
     color: white;
   }
-  &.primary:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(30, 60, 114, 0.4);
-  }
   &.secondary {
-    background: #f5f5f5;
-    color: #333;
-  }
-  &.secondary:hover:not(:disabled) {
-    background: #eee;
+    ${secondaryButtonCss}
+    color: ${modernTheme.colors.inkSoft};
   }
   &:disabled {
     opacity: 0.6;
@@ -201,19 +199,13 @@ const Button = styled.button`
 `;
 
 const ErrorMessage = styled.div`
-  background: #ffebee;
-  color: #c62828;
-  padding: 1rem;
-  border-radius: 8px;
+  ${errorNoticeCss}
   margin-bottom: 1rem;
   font-size: 0.9rem;
 `;
 
 const SuccessMessage = styled.div`
-  background: #e8f5e9;
-  color: #2e7d32;
-  padding: 1rem;
-  border-radius: 8px;
+  ${successNoticeCss}
   margin-bottom: 1rem;
   font-size: 0.9rem;
   display: flex;

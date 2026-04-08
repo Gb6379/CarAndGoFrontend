@@ -3,17 +3,18 @@ import { useSearchParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { adminService } from '../../services/authService';
 import { getErrorMessage, errorToDisplay } from '../../utils/errorUtils';
+import modernTheme from '../../styles/modernTheme';
+import { glassPanelCss, titleCss } from '../../styles/modernPrimitives';
 
 const Title = styled.h1`
+  ${titleCss}
   font-size: 1.75rem;
-  color: #1a1d29;
   margin-bottom: 1.5rem;
 `;
 
 const TableWrap = styled.div`
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  ${glassPanelCss}
+  border-radius: 20px;
   overflow: auto;
 `;
 
@@ -27,12 +28,21 @@ const Table = styled.table`
     border-bottom: 1px solid #eee;
   }
   th {
-    background: #f8f9fa;
+    background: rgba(255,255,255,0.72);
     font-weight: 600;
-    color: #333;
+    color: ${modernTheme.colors.ink};
   }
   tr:hover td {
-    background: #fafafa;
+    background: rgba(255,255,255,0.58);
+  }
+
+  @media (max-width: 768px) {
+    min-width: 560px;
+
+    th, td {
+      padding: 0.75rem;
+      font-size: 0.9rem;
+    }
   }
 `;
 
@@ -47,15 +57,16 @@ const Badge = styled.span<{ $status?: string }>`
 
 const Btn = styled.button<{ $variant?: 'primary' | 'danger' }>`
   padding: 0.4rem 0.75rem;
-  border-radius: 6px;
+  border-radius: ${modernTheme.radii.pill};
   border: none;
   font-size: 0.85rem;
   cursor: pointer;
   margin-right: 0.5rem;
-  background: ${p => p.$variant === 'danger' ? '#ef4444' : '#F6885C'};
+  background: ${p => p.$variant === 'danger' ? 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)' : modernTheme.gradients.brand};
   color: white;
+  box-shadow: ${p => p.$variant === 'danger' ? '0 18px 32px rgba(185, 28, 28, 0.18)' : modernTheme.shadows.glow};
   &:hover:not(:disabled) {
-    opacity: 0.9;
+    transform: translateY(-1px);
   }
   &:disabled {
     opacity: 0.6;

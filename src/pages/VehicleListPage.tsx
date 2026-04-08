@@ -8,6 +8,7 @@ import { getFavorites, toggleFavorite } from '../utils/favorites';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import modernTheme from '../styles/modernTheme';
 import { 
   Search, 
   Electric,
@@ -44,17 +45,19 @@ const carMarkerIcon = L.divIcon({
 });
 
 const Container = styled.div`
-  max-width: 1400px;
+  max-width: ${modernTheme.widths.hero};
   margin: 0 auto;
   padding: 2rem;
 `;
 
 const Header = styled.div`
-  background: #1a1a1a;
+  background: ${modernTheme.gradients.dark};
   color: white;
-  padding: 2rem;
-  border-radius: 12px;
+  padding: 2.25rem;
+  border-radius: 28px;
   margin-bottom: 2rem;
+  box-shadow: 0 30px 75px rgba(15, 23, 42, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 `;
 
 const HeaderTitle = styled.h1`
@@ -64,21 +67,22 @@ const HeaderTitle = styled.h1`
 `;
 
 const SearchResults = styled.div`
-  color: #ccc;
+  color: rgba(226, 232, 240, 0.76);
   font-size: 1.1rem;
 `;
 
 const FilterSidebar = styled.div`
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  background: ${modernTheme.gradients.section};
+  border-radius: 24px;
+  box-shadow: ${modernTheme.shadows.soft};
+  border: 1px solid rgba(255, 255, 255, 0.78);
   padding: 0;
   overflow: hidden;
 `;
 
 const FilterHeader = styled.div`
   padding: 1.5rem;
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -87,25 +91,27 @@ const FilterHeader = styled.div`
 const FilterTitle = styled.h3`
   font-size: 1.2rem;
   font-weight: 600;
-  color: #333;
+  color: ${modernTheme.colors.ink};
   margin: 0;
 `;
 
 const ClearFiltersButton = styled.button`
-  background: none;
-  border: none;
-  color: #F6885C;
+  background: rgba(246, 136, 92, 0.1);
+  border: 1px solid rgba(246, 136, 92, 0.18);
+  color: ${modernTheme.colors.brandStrong};
   cursor: pointer;
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
+  padding: 0.55rem 0.8rem;
+  border-radius: ${modernTheme.radii.pill};
   
   &:hover {
-    text-decoration: underline;
+    background: rgba(246, 136, 92, 0.16);
   }
 `;
 
 const FilterSection = styled.div<{ isOpen?: boolean }>`
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
   
   &:last-child {
     border-bottom: none;
@@ -121,14 +127,14 @@ const FilterSectionHeader = styled.div<{ isOpen?: boolean }>`
   transition: background 0.2s;
   
   &:hover {
-    background: #f8f9fa;
+    background: rgba(255, 255, 255, 0.52);
   }
 `;
 
 const FilterSectionTitle = styled.div`
   font-size: 1rem;
   font-weight: 600;
-  color: #333;
+  color: ${modernTheme.colors.ink};
 `;
 
 const FilterSectionIcon = styled.span<{ isOpen?: boolean }>`
@@ -151,27 +157,30 @@ const FilterGroup = styled.div`
 const FilterInput = styled.input`
   width: 100%;
   padding: 0.75rem;
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 14px;
   font-size: 0.9rem;
+  background: rgba(255, 255, 255, 0.84);
   
   &:focus {
     outline: none;
-    border-color: #F6885C;
+    border-color: rgba(246, 136, 92, 0.45);
+    box-shadow: 0 0 0 4px rgba(246, 136, 92, 0.12);
   }
 `;
 
 const FilterSelect = styled.select`
   width: 100%;
   padding: 0.75rem;
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 14px;
   font-size: 0.9rem;
-  background: white;
+  background: rgba(255, 255, 255, 0.84);
   
   &:focus {
     outline: none;
-    border-color: #F6885C;
+    border-color: rgba(246, 136, 92, 0.45);
+    box-shadow: 0 0 0 4px rgba(246, 136, 92, 0.12);
   }
 `;
 
@@ -191,17 +200,16 @@ const QuickFilterButtons = styled.div`
 
 const QuickFilterButton = styled.button<{ active?: boolean }>`
   padding: 0.5rem 1rem;
-  border: 2px solid ${props => props.active ? '#F6885C' : '#e9ecef'};
-  background: ${props => props.active ? '#F6885C' : 'white'};
-  color: ${props => props.active ? 'white' : '#666'};
-  border-radius: 20px;
+  border: 1px solid ${props => props.active ? 'rgba(255, 255, 255, 0.18)' : 'rgba(15, 23, 42, 0.08)'};
+  background: ${props => props.active ? modernTheme.gradients.brand : 'rgba(255, 255, 255, 0.82)'};
+  color: ${props => props.active ? 'white' : modernTheme.colors.muted};
+  border-radius: ${modernTheme.radii.pill};
   cursor: pointer;
   font-size: 0.85rem;
   transition: all 0.3s;
 
   &:hover {
-    border-color: #F6885C;
-    background: ${props => props.active ? '#ED733A' : '#f8f9fa'};
+    background: ${props => props.active ? modernTheme.gradients.brand : 'white'};
   }
 `;
 
@@ -220,7 +228,7 @@ const FilterCheckbox = styled.label`
   
   span {
     font-size: 0.9rem;
-    color: #333;
+    color: ${modernTheme.colors.inkSoft};
   }
   
   &:hover {
@@ -245,10 +253,11 @@ const MainContent = styled.div`
 `;
 
 const CarsSection = styled.div`
-  background: white;
-  border-radius: 12px;
+  background: ${modernTheme.gradients.section};
+  border-radius: 28px;
   padding: 1.5rem;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: ${modernTheme.shadows.soft};
+  border: 1px solid rgba(255, 255, 255, 0.78);
 `;
 
 const CarsHeader = styled.div`
@@ -260,16 +269,16 @@ const CarsHeader = styled.div`
 
 const CarsCount = styled.div`
   font-size: 1.2rem;
-  color: #333;
+  color: ${modernTheme.colors.ink};
   font-weight: 600;
 `;
 
 const SortSelect = styled.select`
   padding: 0.5rem 1rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  background: white;
-  color: #333;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.84);
+  color: ${modernTheme.colors.inkSoft};
 `;
 
 const ListRefreshNotice = styled.div`
@@ -279,10 +288,11 @@ const ListRefreshNotice = styled.div`
   padding: 0.5rem 0.75rem;
   margin-bottom: 1rem;
   font-size: 0.875rem;
-  color: #555;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
+  color: ${modernTheme.colors.inkSoft};
+  background: rgba(255, 255, 255, 0.74);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
 `;
 
 const CarsGrid = styled.div`
@@ -291,21 +301,22 @@ const CarsGrid = styled.div`
 `;
 
 const CarCard = styled.div`
-  border: 1px solid #e9ecef;
-  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 250, 252, 0.92) 100%);
   overflow: hidden;
   transition: transform 0.3s, box-shadow 0.3s;
   cursor: pointer;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    transform: translateY(-4px);
+    box-shadow: 0 24px 52px rgba(15, 23, 42, 0.14);
   }
 `;
 
 const CarImage = styled.div`
   height: 200px;
-  background: linear-gradient(135deg, #F6885C, #D95128);
+  background: linear-gradient(135deg, rgba(246, 136, 92, 0.18) 0%, rgba(139, 92, 246, 0.22) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -348,20 +359,20 @@ const FavoriteIconButton = styled.button`
   height: 40px;
   border-radius: 50%;
   border: none;
-  background: rgba(255,255,255,0.95);
-  color: #ea580c;
+  background: rgba(255,255,255,0.9);
+  color: ${modernTheme.colors.brandStrong};
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
   z-index: 2;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.14);
 
   &:hover {
     background: white;
     transform: scale(1.08);
-    color: #c2410c;
+    color: ${modernTheme.colors.brandStrong};
   }
 
   svg {
@@ -376,7 +387,7 @@ const CarInfo = styled.div`
 const CarTitle = styled.h3`
   font-size: 1.3rem;
   margin-bottom: 0.5rem;
-  color: #333;
+  color: ${modernTheme.colors.ink};
   font-weight: 600;
 `;
 
@@ -390,7 +401,7 @@ const CarRating = styled.div`
 `;
 
 const CarLocation = styled.div`
-  color: #666;
+  color: ${modernTheme.colors.muted};
   margin-bottom: 1rem;
   display: flex;
   align-items: center;
@@ -411,14 +422,14 @@ const PriceInfo = styled.div`
 
 const OriginalPrice = styled.span`
   text-decoration: line-through;
-  color: #999;
+  color: ${modernTheme.colors.muted};
   font-size: 1rem;
 `;
 
 const TotalPrice = styled.span`
   font-size: 1.3rem;
   font-weight: bold;
-  color: #333;
+  color: ${modernTheme.colors.ink};
 `;
 
 const SaveAmount = styled.div`

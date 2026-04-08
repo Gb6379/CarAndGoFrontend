@@ -3,10 +3,19 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { bookingService } from '../services/authService';
 import { Check, ArrowLeft } from '../components/IconSystem';
+import modernTheme from '../styles/modernTheme';
+import {
+  glassPanelCss,
+  pageShellCss,
+  primaryButtonCss,
+  subtitleCss,
+  titleCss,
+} from '../styles/modernPrimitives';
 
 const Container = styled.div`
-  max-width: 500px;
-  margin: 0 auto;
+  ${pageShellCss}
+  ${glassPanelCss}
+  max-width: 560px;
   padding: 3rem 2rem;
   text-align: center;
   min-height: 60vh;
@@ -17,8 +26,8 @@ const Container = styled.div`
 `;
 
 const Title = styled.h1`
+  ${titleCss}
   font-size: 1.5rem;
-  color: #1a1a1a;
   margin-bottom: 1rem;
   display: flex;
   align-items: center;
@@ -27,16 +36,15 @@ const Title = styled.h1`
 `;
 
 const Message = styled.p`
-  color: #666;
+  ${subtitleCss}
   margin-bottom: 1.5rem;
-  line-height: 1.5;
 `;
 
 const Spinner = styled.div`
   width: 40px;
   height: 40px;
-  border: 3px solid #e5e7eb;
-  border-top-color: #F6885C;
+  border: 3px solid rgba(15, 23, 42, 0.08);
+  border-top-color: ${modernTheme.colors.brandStrong};
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin: 0 auto 1rem;
@@ -50,18 +58,13 @@ const BackButton = styled.button`
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
+  ${primaryButtonCss}
   color: white;
   border: none;
-  border-radius: 10px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   margin-top: 1rem;
-
-  &:hover {
-    opacity: 0.95;
-  }
 `;
 
 const PaymentCallbackPage: React.FC = () => {
@@ -112,7 +115,11 @@ const PaymentCallbackPage: React.FC = () => {
 
   return (
     <Container>
-      {status === 'success' && <Check size={48} color="#10b981" style={{ marginBottom: '1rem' }} />}
+      {status === 'success' && (
+        <div style={{ marginBottom: '1rem' }}>
+          <Check size={48} color="#10b981" />
+        </div>
+      )}
       <Title>{status === 'error' ? 'Atenção' : status === 'pending' ? 'Quase lá' : 'Pagamento confirmado'}</Title>
       <Message>{message}</Message>
       <BackButton onClick={() => navigate(bookingId ? `/booking/${bookingId}/details` : '/dashboard')}>

@@ -3,22 +3,24 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { Car, Star, Location, Calendar, Search } from '../components/IconSystem';
 import { bookingService } from '../services/authService';
+import modernTheme from '../styles/modernTheme';
+import {
+  glassPanelCss,
+  pageShellCss,
+  primaryButtonCss,
+  secondaryButtonCss,
+  titleCss,
+} from '../styles/modernPrimitives';
 
 const Container = styled.div`
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 2rem;
+  ${pageShellCss}
   min-height: calc(100vh - 200px);
-
-  @media (max-width: 768px) {
-    padding: 1.5rem 1rem;
-  }
 `;
 
 const PageTitle = styled.h1`
+  ${titleCss}
   font-size: 2rem;
   font-weight: 700;
-  color: #1a1a1a;
   margin-bottom: 2rem;
 
   @media (max-width: 768px) {
@@ -31,7 +33,9 @@ const TabsContainer = styled.div`
   display: flex;
   gap: 1rem;
   margin-bottom: 2rem;
-  border-bottom: 2px solid #e5e5e5;
+  padding: 0.35rem;
+  border-radius: ${modernTheme.radii.pill};
+  background: rgba(15, 23, 42, 0.05);
 
   @media (max-width: 768px) {
     overflow-x: auto;
@@ -40,20 +44,20 @@ const TabsContainer = styled.div`
 `;
 
 const Tab = styled.button<{ active: boolean }>`
-  padding: 1rem 0;
+  padding: 0.9rem 1.2rem;
   border: none;
-  background: none;
-  color: ${props => props.active ? '#1a1a1a' : '#666'};
-  border-bottom: 2px solid ${props => props.active ? '#1a1a1a' : 'transparent'};
+  border-radius: ${modernTheme.radii.pill};
+  background: ${props => props.active ? modernTheme.gradients.brand : 'transparent'};
+  color: ${props => props.active ? 'white' : modernTheme.colors.muted};
   cursor: pointer;
   font-weight: 600;
   font-size: 1rem;
   transition: all 0.2s ease;
-  margin-bottom: -2px;
   white-space: nowrap;
+  box-shadow: ${props => props.active ? modernTheme.shadows.glow : 'none'};
 
   &:hover {
-    color: #1a1a1a;
+    color: ${props => props.active ? 'white' : modernTheme.colors.brandStrong};
   }
 
   @media (max-width: 768px) {
@@ -159,19 +163,12 @@ const FindTripsButton = styled.button`
   align-items: center;
   gap: 0.5rem;
   padding: 0.875rem 1.75rem;
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  color: #1a1a1a;
+  ${secondaryButtonCss}
+  color: ${modernTheme.colors.inkSoft};
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-
-  &:hover {
-    border-color: #ea580c;
-    background: #fafafa;
-  }
 
   svg {
     font-size: 18px;
@@ -191,30 +188,26 @@ const TripsGrid = styled.div`
 `;
 
 const TripCard = styled.div`
-  background: white;
-  border-radius: 12px;
+  ${glassPanelCss}
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   transition: all 0.3s ease;
   cursor: pointer;
-  border: 1px solid rgba(0,0,0,0.08);
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-    border-color: rgba(0,0,0,0.12);
+    box-shadow: 0 24px 52px rgba(15, 23, 42, 0.14);
   }
 `;
 
 const TripImage = styled.div`
   width: 100%;
   height: 200px;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: linear-gradient(135deg, rgba(246, 136, 92, 0.14) 0%, rgba(139, 92, 246, 0.16) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 3rem;
-  color: #ea580c;
+  color: ${modernTheme.colors.brandStrong};
   position: relative;
   overflow: hidden;
 
@@ -239,7 +232,7 @@ const TripTitle = styled.h3`
   font-size: 1.1rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
-  color: #1a1a1a;
+  color: ${modernTheme.colors.ink};
   line-height: 1.3;
   flex: 1;
 `;
@@ -279,7 +272,7 @@ const TripLocation = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #666;
+  color: ${modernTheme.colors.muted};
   font-size: 0.9rem;
   margin-bottom: 1rem;
 `;
@@ -288,7 +281,7 @@ const TripDates = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #666;
+  color: ${modernTheme.colors.muted};
   font-size: 0.9rem;
   margin-bottom: 1rem;
 `;

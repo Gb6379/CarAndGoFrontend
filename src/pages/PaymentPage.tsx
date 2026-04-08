@@ -4,44 +4,58 @@ import styled from 'styled-components';
 import { bookingService, paymentService } from '../services/authService';
 import { Car, CreditCard, Calendar, Check, ArrowLeft } from '../components/IconSystem';
 import { getErrorMessage, errorToDisplay } from '../utils/errorUtils';
+import modernTheme from '../styles/modernTheme';
+import {
+  errorNoticeCss,
+  formFieldCss,
+  glassPanelCss,
+  pageShellCss,
+  primaryButtonCss,
+  secondaryButtonCss,
+  successNoticeCss,
+  titleCss,
+} from '../styles/modernPrimitives';
 
 const Container = styled.div`
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 2rem;
+  ${pageShellCss}
   min-height: calc(100vh - 200px);
-
-  @media (max-width: 768px) {
-    padding: 1rem;
-  }
 `;
 
 const BackButton = styled.button`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: none;
-  border: none;
-  color: #666;
+  ${secondaryButtonCss}
+  color: ${modernTheme.colors.inkSoft};
   font-size: 1rem;
   cursor: pointer;
-  padding: 0.5rem 0;
+  padding: 0.75rem 1rem;
   margin-bottom: 1.5rem;
   transition: color 0.2s;
 
   &:hover {
-    color: #333;
+    color: ${modernTheme.colors.ink};
+  }
+
+  @media (max-width: 640px) {
+    width: 100%;
+    justify-content: center;
   }
 `;
 
 const PageTitle = styled.h1`
+  ${titleCss}
   font-size: 1.75rem;
   font-weight: 700;
-  color: #1a1a1a;
   margin-bottom: 1.5rem;
   display: flex;
   align-items: center;
   gap: 0.75rem;
+
+  @media (max-width: 640px) {
+    font-size: 1.5rem;
+    gap: 0.5rem;
+  }
 `;
 
 const Grid = styled.div`
@@ -52,14 +66,19 @@ const Grid = styled.div`
   @media (max-width: 800px) {
     grid-template-columns: 1fr;
   }
+
+  @media (max-width: 640px) {
+    gap: 1.25rem;
+  }
 `;
 
 const MainCard = styled.div`
-  background: white;
-  border-radius: 16px;
+  ${glassPanelCss}
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  border: 1px solid #e5e7eb;
+
+  @media (max-width: 640px) {
+    padding: 1.1rem;
+  }
 `;
 
 const SummaryCard = styled(MainCard)`
@@ -68,25 +87,36 @@ const SummaryCard = styled(MainCard)`
 
 const Tabs = styled.div`
   display: flex;
-  gap: 0;
+  gap: 0.5rem;
   margin-bottom: 1.5rem;
-  border-bottom: 2px solid #e5e7eb;
+  padding: 0.35rem;
+  border-radius: ${modernTheme.radii.pill};
+  background: rgba(15, 23, 42, 0.05);
+
+  @media (max-width: 560px) {
+    flex-direction: column;
+  }
 `;
 
 const Tab = styled.button<{ active: boolean }>`
   padding: 1rem 1.5rem;
   border: none;
-  background: none;
+  border-radius: ${modernTheme.radii.pill};
+  background: ${p => p.active ? modernTheme.gradients.brand : 'transparent'};
   font-size: 1rem;
   font-weight: 600;
-  color: ${p => p.active ? '#F6885C' : '#666'};
-  border-bottom: 2px solid ${p => p.active ? '#F6885C' : 'transparent'};
-  margin-bottom: -2px;
+  color: ${p => p.active ? 'white' : modernTheme.colors.muted};
   cursor: pointer;
   transition: all 0.2s;
+  box-shadow: ${p => p.active ? modernTheme.shadows.glow : 'none'};
 
   &:hover {
-    color: #F6885C;
+    color: ${p => p.active ? 'white' : modernTheme.colors.brandStrong};
+  }
+
+  @media (max-width: 560px) {
+    width: 100%;
+    justify-content: center;
   }
 `;
 
@@ -96,23 +126,13 @@ const FormGroup = styled.div`
   label {
     display: block;
     font-size: 0.9rem;
-    font-weight: 500;
-    color: #374151;
+    font-weight: 600;
+    color: ${modernTheme.colors.inkSoft};
     margin-bottom: 0.5rem;
   }
 
   input {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    border: 1px solid #d1d5db;
-    border-radius: 10px;
-    font-size: 1rem;
-
-    &:focus {
-      outline: none;
-      border-color: #F6885C;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
-    }
+    ${formFieldCss}
   }
 `;
 
@@ -127,10 +147,10 @@ const Row = styled.div`
 `;
 
 const PayButton = styled.button`
+  ${primaryButtonCss}
   width: 100%;
   padding: 1rem 1.5rem;
   border: none;
-  border-radius: 12px;
   font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
@@ -147,21 +167,14 @@ const PayButton = styled.button`
   }
 
   &.primary {
-    background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
     color: white;
-
-    &:hover:not(:disabled) {
-      opacity: 0.95;
-      transform: translateY(-1px);
-    }
   }
 
   &.pix {
-    background: #32bcad;
+    background: linear-gradient(135deg, #32bcad 0%, #0f766e 100%);
     color: white;
 
     &:hover:not(:disabled) {
-      background: #2aa89d;
       transform: translateY(-1px);
     }
   }
@@ -170,7 +183,7 @@ const PayButton = styled.button`
 const SummaryTitle = styled.h2`
   font-size: 1.1rem;
   font-weight: 600;
-  color: #1a1a1a;
+  color: ${modernTheme.colors.ink};
   margin-bottom: 1rem;
   display: flex;
   align-items: center;
@@ -182,33 +195,38 @@ const SummaryRow = styled.div`
   justify-content: space-between;
   padding: 0.5rem 0;
   font-size: 0.95rem;
-  color: #666;
+  color: ${modernTheme.colors.muted};
 
   strong {
-    color: #1a1a1a;
+    color: ${modernTheme.colors.ink};
+  }
+
+  @media (max-width: 520px) {
+    flex-direction: column;
+    gap: 0.2rem;
   }
 `;
 
 const SummaryTotal = styled(SummaryRow)`
   margin-top: 0.75rem;
   padding-top: 1rem;
-  border-top: 2px solid #e5e7eb;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
   font-size: 1.1rem;
   font-weight: 700;
-  color: #F6885C;
+  color: ${modernTheme.colors.brandStrong};
 `;
 
 const VehicleLine = styled.div`
   font-size: 1rem;
   font-weight: 600;
-  color: #1a1a1a;
+  color: ${modernTheme.colors.ink};
   margin-bottom: 0.5rem;
 `;
 
 const PixBox = styled.div`
-  background: #f0fdfa;
-  border: 2px dashed #32bcad;
-  border-radius: 12px;
+  background: rgba(236, 253, 245, 0.8);
+  border: 2px dashed rgba(50, 188, 173, 0.7);
+  border-radius: 18px;
   padding: 2rem;
   text-align: center;
   margin-bottom: 1rem;
@@ -218,40 +236,34 @@ const PixQrPlaceholder = styled.div`
   width: 200px;
   height: 200px;
   margin: 0 auto 1rem;
-  background: white;
-  border: 2px solid #e5e7eb;
-  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.85rem;
-  color: #999;
+  color: ${modernTheme.colors.muted};
 `;
 
 const PixCode = styled.code`
   display: block;
-  background: white;
+  background: rgba(255, 255, 255, 0.92);
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: 14px;
   font-size: 0.8rem;
   word-break: break-all;
   margin-top: 1rem;
-  border: 1px solid #e5e7eb;
+  border: 1px solid rgba(15, 23, 42, 0.08);
 `;
 
 const CopyButton = styled.button`
+  ${secondaryButtonCss}
   margin-top: 1rem;
   padding: 0.5rem 1rem;
-  background: #32bcad;
-  color: white;
-  border: none;
-  border-radius: 8px;
+  color: #0f766e;
   font-size: 0.9rem;
   cursor: pointer;
-
-  &:hover {
-    background: #2aa89d;
-  }
 `;
 
 const LoadingContainer = styled.div`
@@ -260,22 +272,16 @@ const LoadingContainer = styled.div`
   align-items: center;
   min-height: 400px;
   font-size: 1rem;
-  color: #666;
+  color: ${modernTheme.colors.muted};
 `;
 
 const ErrorMessage = styled.div`
-  background: #fef2f2;
-  color: #b91c1c;
-  padding: 1rem;
-  border-radius: 10px;
+  ${errorNoticeCss}
   margin-bottom: 1rem;
 `;
 
 const SuccessMessage = styled.div`
-  background: #dcfce7;
-  color: #166534;
-  padding: 1rem;
-  border-radius: 10px;
+  ${successNoticeCss}
   margin-bottom: 1rem;
   display: flex;
   align-items: center;
@@ -547,7 +553,10 @@ const PaymentPage: React.FC = () => {
             {vehicle.make} {vehicle.model} {vehicle.year}
           </VehicleLine>
           <SummaryRow>
-            <span><Calendar size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Período</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+              <Calendar size={14} />
+              Período
+            </span>
             <strong>
               {formatDate(startDateStr || '')} - {formatDate(endDateStr || '')}
             </strong>

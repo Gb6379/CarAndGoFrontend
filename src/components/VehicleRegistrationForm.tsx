@@ -3,19 +3,26 @@ import styled from 'styled-components';
 import { vehicleService } from '../services/authService';
 import { Car, Location, Settings, Edit as EditIcon, Money } from '../components/IconSystem';
 import { getErrorMessage, errorToDisplay } from '../utils/errorUtils';
+import modernTheme from '../styles/modernTheme';
+import {
+  errorNoticeCss,
+  formFieldCss,
+  glassPanelCss,
+  labelCss,
+  pageShellCss,
+  primaryButtonCss,
+  successNoticeCss,
+  titleCss,
+} from '../styles/modernPrimitives';
 
 const Container = styled.div`
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem;
-  background: white;
-  border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  ${pageShellCss}
+  ${glassPanelCss}
 `;
 
 const Title = styled.h2`
+  ${titleCss}
   font-size: 2rem;
-  color: #333;
   margin-bottom: 2rem;
   text-align: center;
 `;
@@ -26,14 +33,18 @@ const Form = styled.form`
 `;
 
 const FormSection = styled.div`
-  border: 1px solid #e0e0e0;
-  border-radius: 10px;
+  ${glassPanelCss}
   padding: 1.5rem;
+
+  label {
+    ${labelCss}
+    font-size: 0.9rem;
+  }
 `;
 
 const SectionTitle = styled.h3`
   font-size: 1.2rem;
-  color: #F6885C;
+  color: ${modernTheme.colors.brandStrong};
   margin-bottom: 1rem;
   display: flex;
   align-items: center;
@@ -47,44 +58,17 @@ const FormRow = styled.div`
 `;
 
 const Input = styled.input`
-  padding: 0.75rem;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.3s;
-  
-  &:focus {
-    outline: none;
-    border-color: #F6885C;
-  }
+  ${formFieldCss}
 `;
 
 const Select = styled.select`
-  padding: 0.75rem;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.3s;
-  
-  &:focus {
-    outline: none;
-    border-color: #F6885C;
-  }
+  ${formFieldCss}
 `;
 
 const TextArea = styled.textarea`
-  padding: 0.75rem;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 1rem;
+  ${formFieldCss}
   min-height: 100px;
   resize: vertical;
-  transition: border-color 0.3s;
-  
-  &:focus {
-    outline: none;
-    border-color: #F6885C;
-  }
 `;
 
 const CheckboxContainer = styled.div`
@@ -100,41 +84,22 @@ const Checkbox = styled.input`
 `;
 
 const Button = styled.button`
-  background: linear-gradient(135deg, #F6885C 0%, #D95128 100%);
+  ${primaryButtonCss}
   color: white;
   border: none;
   padding: 1rem 2rem;
-  border-radius: 10px;
   font-size: 1.1rem;
   cursor: pointer;
   transition: all 0.3s;
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-  }
-  
-  &:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-  }
 `;
 
 const ErrorMessage = styled.div`
-  background: #ffebee;
-  color: #c62828;
-  padding: 1rem;
-  border-radius: 8px;
+  ${errorNoticeCss}
   margin-bottom: 1rem;
 `;
 
 const SuccessMessage = styled.div`
-  background: #e8f5e8;
-  color: #2e7d32;
-  padding: 1rem;
-  border-radius: 8px;
+  ${successNoticeCss}
   margin-bottom: 1rem;
 `;
 

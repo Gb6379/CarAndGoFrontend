@@ -6,6 +6,17 @@ import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { authService } from '../services/authService';
 import { validateCpfCnpj } from '../utils/cpfValidation';
 import { getErrorMessage, errorToDisplay } from '../utils/errorUtils';
+import modernTheme from '../styles/modernTheme';
+import {
+  errorNoticeCss,
+  formFieldCss,
+  glassPanelCss,
+  labelCss,
+  primaryButtonCss,
+  secondaryButtonCss,
+  subtitleCss,
+  titleCss,
+} from '../styles/modernPrimitives';
 
 interface IBGECity {
   id: number;
@@ -25,25 +36,23 @@ const ModalOverlay = styled.div<{ isOpen: boolean }>`
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(7, 17, 31, 0.55);
   display: ${props => props.isOpen ? 'flex' : 'none'};
   align-items: center;
   justify-content: center;
   z-index: 10000;
-  backdrop-filter: blur(5px);
+  backdrop-filter: blur(10px);
   padding: 1rem;
 `;
 
 const ModalContent = styled.div`
-  background: white;
-  border-radius: 16px;
+  ${glassPanelCss}
   padding: 2rem;
   width: 100%;
-  max-width: 450px;
+  max-width: 500px;
   max-height: calc(100vh - 2rem);
   overflow-y: auto;
   position: relative;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
   margin: auto;
 `;
 
@@ -51,20 +60,18 @@ const CloseButton = styled.button`
   position: absolute;
   top: 1rem;
   right: 1rem;
-  background: none;
-  border: none;
+  ${secondaryButtonCss}
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #666;
+  color: ${modernTheme.colors.inkSoft};
   transition: all 0.2s;
 
   &:hover {
-    background: #f5f5f5;
-    color: #333;
+    color: ${modernTheme.colors.ink};
   }
 `;
 
@@ -74,14 +81,14 @@ const ModalHeader = styled.div`
 `;
 
 const ModalTitle = styled.h2`
+  ${titleCss}
   font-size: 1.8rem;
   font-weight: 700;
-  color: #333;
   margin: 0 0 0.5rem 0;
 `;
 
 const ModalSubtitle = styled.p`
-  color: #666;
+  ${subtitleCss}
   margin: 0;
   font-size: 0.9rem;
 `;
@@ -89,22 +96,25 @@ const ModalSubtitle = styled.p`
 const TabsContainer = styled.div`
   display: flex;
   margin-bottom: 2rem;
-  border-bottom: 1px solid #e0e0e0;
+  padding: 0.35rem;
+  border-radius: ${modernTheme.radii.pill};
+  background: rgba(15, 23, 42, 0.05);
 `;
 
 const TabButton = styled.button<{ active: boolean }>`
   flex: 1;
   padding: 1rem;
   border: none;
-  background: none;
+  border-radius: ${modernTheme.radii.pill};
+  background: ${props => props.active ? modernTheme.gradients.brand : 'transparent'};
   cursor: pointer;
   font-weight: 600;
-  color: ${props => props.active ? '#F6885C' : '#666'};
-  border-bottom: 2px solid ${props => props.active ? '#F6885C' : 'transparent'};
+  color: ${props => props.active ? 'white' : modernTheme.colors.muted};
   transition: all 0.2s;
+  box-shadow: ${props => props.active ? modernTheme.shadows.glow : 'none'};
 
   &:hover {
-    color: #F6885C;
+    color: ${props => props.active ? 'white' : modernTheme.colors.brandStrong};
   }
 `;
 
@@ -121,9 +131,8 @@ const InputGroup = styled.div`
 `;
 
 const InputLabel = styled.label`
+  ${labelCss}
   font-size: 0.9rem;
-  font-weight: 500;
-  color: #333;
 `;
 
 const InputContainer = styled.div<{ $hasError?: boolean }>`
@@ -139,27 +148,13 @@ const InputContainer = styled.div<{ $hasError?: boolean }>`
 const InputIcon = styled.div`
   position: absolute;
   left: 1rem;
-  color: #666;
+  color: ${modernTheme.colors.muted};
   z-index: 1;
 `;
 
 const Input = styled.input`
-  width: 100%;
-  padding: 1rem 1rem 1rem 3rem;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.2s;
-  background: white;
-
-  &:focus {
-    outline: none;
-    border-color: #F6885C;
-  }
-
-  &::placeholder {
-    color: #999;
-  }
+  ${formFieldCss}
+  padding-left: 3rem;
 
   &.with-password-toggle {
     padding-right: 3rem;
@@ -175,13 +170,13 @@ const PasswordToggleBtn = styled.button`
   border: none;
   padding: 0.5rem;
   cursor: pointer;
-  color: #666;
+  color: ${modernTheme.colors.muted};
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
+  border-radius: 10px;
   -webkit-tap-highlight-color: transparent;
-  &:hover { color: #333; background: #f0f0f0; }
+  &:hover { color: ${modernTheme.colors.ink}; background: rgba(15, 23, 42, 0.06); }
 `;
 
 const SelectContainer = styled.div`
@@ -191,73 +186,48 @@ const SelectContainer = styled.div`
 `;
 
 const Select = styled.select`
-  width: 100%;
-  padding: 1rem 1rem 1rem 3rem;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 1rem;
-  background: white;
+  ${formFieldCss}
+  padding-left: 3rem;
   cursor: pointer;
-  transition: border-color 0.2s;
-
-  &:focus {
-    outline: none;
-    border-color: #F6885C;
-  }
 `;
 
 const SubmitButton = styled.button`
-  background: #F6885C;
+  ${primaryButtonCss}
   color: white;
   border: none;
   padding: 1rem;
-  border-radius: 8px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   margin-top: 1rem;
-
-  &:hover {
-    background: #ED733A;
-    transform: translateY(-1px);
-  }
-
-  &:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-    transform: none;
-  }
 `;
 
 const SwitchModeText = styled.p`
   text-align: center;
   margin-top: 1.5rem;
-  color: #666;
+  color: ${modernTheme.colors.muted};
   font-size: 0.9rem;
 `;
 
 const SwitchModeLink = styled.button`
   background: none;
   border: none;
-  color: #F6885C;
+  color: ${modernTheme.colors.brandStrong};
   cursor: pointer;
   font-weight: 600;
   text-decoration: underline;
 
   &:hover {
-    color: #ED733A;
+    color: ${modernTheme.colors.brandStrong};
   }
 `;
 
 const ErrorMessage = styled.div`
-  background: #fee;
-  color: #c33;
-  padding: 0.75rem;
-  border-radius: 6px;
+  ${errorNoticeCss}
+  padding: 0.85rem 1rem;
   font-size: 0.9rem;
   margin-bottom: 1rem;
-  border-left: 4px solid #c33;
 `;
 
 const FieldError = styled.span`

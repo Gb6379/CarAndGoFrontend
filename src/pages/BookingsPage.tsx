@@ -2,16 +2,22 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { Car, Location } from '../components/IconSystem';
+import modernTheme from '../styles/modernTheme';
+import {
+  glassPanelCss,
+  pageShellCss,
+  primaryButtonCss,
+  secondaryButtonCss,
+  titleCss,
+} from '../styles/modernPrimitives';
 
 const Container = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
+  ${pageShellCss}
 `;
 
 const Title = styled.h1`
+  ${titleCss}
   font-size: 2.5rem;
-  color: #333;
   margin-bottom: 2rem;
   font-weight: 700;
 `;
@@ -20,21 +26,34 @@ const TabsContainer = styled.div`
   display: flex;
   gap: 1rem;
   margin-bottom: 2rem;
-  border-bottom: 1px solid #ddd;
+  padding: 0.35rem;
+  border-radius: ${modernTheme.radii.pill};
+  background: rgba(15, 23, 42, 0.05);
+
+  @media (max-width: 768px) {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 `;
 
 const Tab = styled.button<{ active: boolean }>`
   padding: 1rem 2rem;
   border: none;
-  background: none;
-  color: ${props => props.active ? '#F6885C' : '#666'};
-  border-bottom: 2px solid ${props => props.active ? '#F6885C' : 'transparent'};
+  border-radius: ${modernTheme.radii.pill};
+  background: ${props => props.active ? modernTheme.gradients.brand : 'transparent'};
+  color: ${props => props.active ? 'white' : modernTheme.colors.muted};
   cursor: pointer;
   font-weight: 600;
   transition: all 0.3s;
+  box-shadow: ${props => props.active ? modernTheme.shadows.glow : 'none'};
 
   &:hover {
-    color: #F6885C;
+    color: ${props => props.active ? 'white' : modernTheme.colors.brandStrong};
+  }
+
+  @media (max-width: 640px) {
+    padding: 0.85rem 1rem;
+    white-space: nowrap;
   }
 `;
 
@@ -44,10 +63,8 @@ const BookingsGrid = styled.div`
 `;
 
 const BookingCard = styled.div`
-  background: white;
-  border-radius: 12px;
+  ${glassPanelCss}
   padding: 2rem;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
   transition: transform 0.3s;
 
   &:hover {
@@ -60,11 +77,17 @@ const BookingHeader = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
 `;
 
 const BookingId = styled.div`
   font-size: 0.9rem;
-  color: #666;
+  color: ${modernTheme.colors.muted};
 `;
 
 const BookingStatus = styled.div<{ status: string }>`
@@ -96,18 +119,23 @@ const CarInfo = styled.div`
   display: flex;
   gap: 1.5rem;
   margin-bottom: 1.5rem;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    gap: 1rem;
+  }
 `;
 
 const CarImage = styled.div`
   width: 100px;
   height: 70px;
-  background: linear-gradient(135deg, #F6885C, #D95128);
-  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(246, 136, 92, 0.18) 0%, rgba(139, 92, 246, 0.18) 100%);
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2rem;
-  color: white;
+  color: ${modernTheme.colors.brandStrong};
 `;
 
 const CarDetails = styled.div`
@@ -117,11 +145,11 @@ const CarDetails = styled.div`
 const CarTitle = styled.h3`
   font-size: 1.2rem;
   margin-bottom: 0.5rem;
-  color: #333;
+  color: ${modernTheme.colors.ink};
 `;
 
 const CarLocation = styled.p`
-  color: #666;
+  color: ${modernTheme.colors.muted};
   margin: 0;
 `;
 
@@ -135,23 +163,23 @@ const BookingDetails = styled.div`
 const DetailItem = styled.div`
   h4 {
     font-size: 0.9rem;
-    color: #666;
+    color: ${modernTheme.colors.muted};
     margin: 0 0 0.25rem 0;
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
   p {
     font-size: 1rem;
-    color: #333;
+    color: ${modernTheme.colors.ink};
     margin: 0;
     font-weight: 500;
   }
 `;
 
 const PriceInfo = styled.div`
-  background: #f8f9fa;
+  background: rgba(255, 255, 255, 0.72);
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: 16px;
   margin-bottom: 1.5rem;
 `;
 
@@ -164,18 +192,22 @@ const PriceRow = styled.div`
     margin-bottom: 0;
     font-weight: 600;
     font-size: 1.1rem;
-    color: #333;
+    color: ${modernTheme.colors.ink};
   }
 `;
 
 const Actions = styled.div`
   display: flex;
   gap: 1rem;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+  }
 `;
 
 const ActionButton = styled.button<{ variant?: 'primary' | 'secondary' | 'danger' }>`
   padding: 0.75rem 1.5rem;
-  border-radius: 8px;
+  border-radius: ${modernTheme.radii.pill};
   border: none;
   font-weight: 600;
   cursor: pointer;
@@ -185,22 +217,21 @@ const ActionButton = styled.button<{ variant?: 'primary' | 'secondary' | 'danger
     switch(props.variant) {
       case 'primary':
         return `
-          background: #F6885C;
+          background: ${modernTheme.gradients.brand};
           color: white;
-          &:hover { background: #ED733A; }
+          box-shadow: ${modernTheme.shadows.glow};
         `;
       case 'danger':
         return `
-          background: #e74c3c;
+          background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
           color: white;
-          &:hover { background: #c0392b; }
         `;
       default:
         return `
-          background: #f8f9fa;
-          color: #333;
-          border: 1px solid #ddd;
-          &:hover { background: #e9ecef; }
+          background: rgba(255, 255, 255, 0.74);
+          color: ${modernTheme.colors.inkSoft};
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          &:hover { background: white; }
         `;
     }
   }}
@@ -209,16 +240,20 @@ const ActionButton = styled.button<{ variant?: 'primary' | 'secondary' | 'danger
 const EmptyState = styled.div`
   text-align: center;
   padding: 4rem 2rem;
-  color: #666;
+  color: ${modernTheme.colors.muted};
   
   h3 {
     font-size: 1.5rem;
     margin-bottom: 1rem;
-    color: #333;
+    color: ${modernTheme.colors.ink};
   }
   
   p {
     margin-bottom: 2rem;
+  }
+
+  @media (max-width: 768px) {
+    padding: 3rem 1rem;
   }
 `;
 

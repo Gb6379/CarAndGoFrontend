@@ -3,11 +3,17 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { Car, Location, Star } from '../components/IconSystem';
 import { vehicleService, bookingService } from '../services/authService';
+import modernTheme from '../styles/modernTheme';
+import {
+  glassPanelCss,
+  pageShellCss,
+  primaryButtonCss,
+  secondaryButtonCss,
+  titleCss,
+} from '../styles/modernPrimitives';
 
 const Container = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
+  ${pageShellCss}
 `;
 
 const Header = styled.div`
@@ -24,25 +30,29 @@ const Header = styled.div`
 `;
 
 const Title = styled.h1`
+  ${titleCss}
   font-size: 2.5rem;
-  color: #333;
   margin: 0;
   font-weight: 700;
+
+  @media (max-width: 768px) {
+    font-size: 2rem;
+  }
 `;
 
 const AddCarButton = styled.button`
-  background: #F6885C;
+  ${primaryButtonCss}
   color: white;
   border: none;
   padding: 1rem 2rem;
-  border-radius: 8px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.3s;
 
-  &:hover {
-    background: #ED733A;
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: center;
   }
 `;
 
@@ -50,13 +60,16 @@ const CarsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 2rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
 `;
 
 const CarCard = styled.div`
-  background: white;
-  border-radius: 12px;
+  ${glassPanelCss}
   overflow: hidden;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
   transition: transform 0.3s;
   cursor: pointer;
 
@@ -69,14 +82,14 @@ const CarImage = styled.div<{ $photoUrl?: string }>`
   height: 200px;
   background: ${props => props.$photoUrl
     ? `url(${props.$photoUrl})`
-    : 'linear-gradient(135deg, #F6885C, #D95128)'};
+    : `linear-gradient(135deg, rgba(246, 136, 92, 0.18) 0%, rgba(139, 92, 246, 0.22) 100%)`};
   background-size: cover;
   background-position: center;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 4rem;
-  color: white;
+  color: ${modernTheme.colors.brandStrong};
   position: relative;
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 `;
@@ -114,7 +127,7 @@ const CarInfo = styled.div`
 const CarTitle = styled.h3`
   font-size: 1.3rem;
   margin-bottom: 0.5rem;
-  color: #333;
+  color: ${modernTheme.colors.ink};
 `;
 
 const CarDetails = styled.div`
@@ -122,12 +135,18 @@ const CarDetails = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
 `;
 
 const CarPrice = styled.div`
   font-size: 1.5rem;
   font-weight: bold;
-  color: #F6885C;
+  color: ${modernTheme.colors.brandStrong};
 `;
 
 const CarRating = styled.div`
@@ -140,24 +159,33 @@ const CarStats = styled.div`
   grid-template-columns: 1fr 1fr 1fr;
   gap: 1rem;
   margin-bottom: 1.5rem;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  @media (max-width: 420px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const Stat = styled.div`
   text-align: center;
   padding: 0.75rem;
-  background: #f8f9fa;
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.78);
 `;
 
 const StatNumber = styled.div`
   font-size: 1.2rem;
   font-weight: bold;
-  color: #333;
+  color: ${modernTheme.colors.ink};
 `;
 
 const StatLabel = styled.div`
   font-size: 0.8rem;
-  color: #666;
+  color: ${modernTheme.colors.muted};
   text-transform: uppercase;
   letter-spacing: 0.5px;
 `;
@@ -165,12 +193,16 @@ const StatLabel = styled.div`
 const CarActions = styled.div`
   display: flex;
   gap: 0.5rem;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+  }
 `;
 
 const ActionButton = styled.button<{ variant?: 'primary' | 'secondary' | 'danger' }>`
   flex: 1;
   padding: 0.75rem;
-  border-radius: 8px;
+  border-radius: ${modernTheme.radii.pill};
   border: none;
   font-weight: 600;
   cursor: pointer;
@@ -181,22 +213,21 @@ const ActionButton = styled.button<{ variant?: 'primary' | 'secondary' | 'danger
     switch(props.variant) {
       case 'primary':
         return `
-          background: #F6885C;
+          background: ${modernTheme.gradients.brand};
           color: white;
-          &:hover { background: #ED733A; }
+          box-shadow: ${modernTheme.shadows.glow};
         `;
       case 'danger':
         return `
-          background: #e74c3c;
+          background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
           color: white;
-          &:hover { background: #c0392b; }
         `;
       default:
         return `
-          background: #f8f9fa;
-          color: #333;
-          border: 1px solid #ddd;
-          &:hover { background: #e9ecef; }
+          background: rgba(255, 255, 255, 0.72);
+          color: ${modernTheme.colors.inkSoft};
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          &:hover { background: white; }
         `;
     }
   }}
@@ -205,16 +236,20 @@ const ActionButton = styled.button<{ variant?: 'primary' | 'secondary' | 'danger
 const EmptyState = styled.div`
   text-align: center;
   padding: 4rem 2rem;
-  color: #666;
+  color: ${modernTheme.colors.muted};
   
   h3 {
     font-size: 1.5rem;
     margin-bottom: 1rem;
-    color: #333;
+    color: ${modernTheme.colors.ink};
   }
   
   p {
     margin-bottom: 2rem;
+  }
+
+  @media (max-width: 768px) {
+    padding: 3rem 1rem;
   }
 `;
 
