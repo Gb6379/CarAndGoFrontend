@@ -19,6 +19,19 @@ const Filters = styled.div`
   flex-wrap: wrap;
 `;
 
+const FilterGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+`;
+
+const FilterLabel = styled.span`
+  color: ${modernTheme.colors.inkSoft};
+  font-size: 0.88rem;
+  font-weight: 600;
+`;
+
 const FilterBtn = styled.button<{ $active?: boolean }>`
   padding: 0.5rem 1rem;
   border-radius: ${modernTheme.radii.pill};
@@ -67,6 +80,11 @@ const Table = styled.table`
   }
 `;
 
+const EmptyCell = styled.td`
+  text-align: center !important;
+  color: ${modernTheme.colors.inkSoft};
+`;
+
 const Badge = styled.span<{ $status?: string }>`
   display: inline-block;
   padding: 0.25rem 0.6rem;
@@ -94,6 +112,26 @@ const DocBtn = styled.button`
   font-size: 0.85rem;
   cursor: pointer;
   box-shadow: ${modernTheme.shadows.glow};
+`;
+
+const ApproveBtn = styled.button`
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: ${modernTheme.radii.pill};
+  border: 1px solid transparent;
+  background: ${modernTheme.gradients.brand};
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: ${modernTheme.shadows.glow};
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
 `;
 
 const ModalOverlay = styled.div`
@@ -140,6 +178,18 @@ const ModalClose = styled.button`
   color: ${modernTheme.colors.inkSoft};
 `;
 
+const ModalHint = styled.p`
+  margin: 1rem 0 0;
+  color: ${modernTheme.colors.inkSoft};
+  font-size: 0.92rem;
+  line-height: 1.5;
+`;
+
+const SuccessMsg = styled.p`
+  color: #047857;
+  margin-top: 1rem;
+`;
+
 const ErrorMsg = styled.p`
   color: #c00;
   margin-top: 1rem;
@@ -152,75 +202,159 @@ interface UserRow {
   lastName: string;
   userType: string;
   status: string;
+  documentsVerified?: boolean;
+  emailSent?: boolean;
   createdAt?: string;
 }
 
 const AdminUsersPage: React.FC = () => {
-  const [searchParams] = useSearchParams();
-  const userTypeFromUrl = searchParams.get('userType') || '';
+  const [searchParams, setSearchParams] = useSearchParams();
+  const userTypeFilter = searchParams.get('userType') || '';
+  const statusFilter = searchParams.get('status') === 'pending' ? 'pending' : '';
   const [users, setUsers] = useState<UserRow[]>([]);
-  const [filter, setFilter] = useState<string>(userTypeFromUrl);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [docModalUser, setDocModalUser] = useState<UserRow | null>(null);
   const [loadingCnh, setLoadingCnh] = useState(false);
   const [loadingCac, setLoadingCac] = useState(false);
+  const [viewedDocs, setViewedDocs] = useState({ cnh: false, cac: false });
+  const [approvingDocs, setApprovingDocs] = useState(false);
+  const [approvalError, setApprovalError] = useState<string | null>(null);
+  const [approvalSuccess, setApprovalSuccess] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (userTypeFromUrl && userTypeFromUrl !== filter) setFilter(userTypeFromUrl);
-  }, [userTypeFromUrl]);
+  const updateFilters = ({ userType, status }: { userType?: string; status?: string }) => {
+    const params = new URLSearchParams(searchParams);
 
-  const load = (userType?: string) => {
+    if (userType !== undefined) {
+      if (userType) params.set('userType', userType);
+      else params.delete('userType');
+    }
+
+    if (status !== undefined) {
+      if (status) params.set('status', status);
+      else params.delete('status');
+    }
+
+    setSearchParams(params);
+  };
+
+  const load = (userType?: string, status?: string) => {
     setLoading(true);
-    adminService.getUsers(userType || undefined)
+    setError(null);
+    adminService.getUsers(userType || undefined, status || undefined)
       .then((data: UserRow[]) => setUsers(Array.isArray(data) ? data : []))
       .catch((err: any) => setError(getErrorMessage(err, 'Erro ao carregar usuários')))
       .finally(() => setLoading(false));
   };
 
   useEffect(() => {
-    const type = filter || (userTypeFromUrl || undefined);
-    load(type);
-  }, [filter, userTypeFromUrl]);
+    load(userTypeFilter || undefined, statusFilter || undefined);
+  }, [userTypeFilter, statusFilter]);
 
   const handleStatusChange = (userId: string, newStatus: string) => {
     setUpdatingId(userId);
     adminService.updateUserStatus(userId, newStatus)
-      .then(() => load(filter || undefined))
+      .then(() => load(userTypeFilter || undefined, statusFilter || undefined))
       .catch((err: any) => alert(err.response?.data?.message || 'Erro ao atualizar'))
       .finally(() => setUpdatingId(null));
   };
 
+  const openDocumentModal = (user: UserRow) => {
+    setDocModalUser(user);
+    setViewedDocs({ cnh: false, cac: false });
+    setApprovalError(null);
+    setApprovalSuccess(null);
+  };
+
   const openDoc = (url: string | null) => {
-    if (url) window.open(url, '_blank', 'noopener');
-    else alert('Documento não encontrado.');
+    if (url) {
+      window.open(url, '_blank', 'noopener');
+      return true;
+    }
+    alert('Documento não encontrado.');
+    return false;
   };
 
-  const handleVerCnh = (userId: string) => {
+  const handleVerCnh = async (userId: string) => {
     setLoadingCnh(true);
-    adminService.getUserCnhDocumentBlobUrl(userId)
-      .then((url) => openDoc(url))
-      .finally(() => setLoadingCnh(false));
+    try {
+      const url = await adminService.getUserCnhDocumentBlobUrl(userId);
+      if (openDoc(url)) {
+        setViewedDocs((current) => ({ ...current, cnh: true }));
+      }
+    } finally {
+      setLoadingCnh(false);
+    }
   };
 
-  const handleVerCac = (userId: string) => {
+  const handleVerCac = async (userId: string) => {
     setLoadingCac(true);
-    adminService.getUserCacDocumentBlobUrl(userId)
-      .then((url) => openDoc(url))
-      .finally(() => setLoadingCac(false));
+    try {
+      const url = await adminService.getUserCacDocumentBlobUrl(userId);
+      if (openDoc(url)) {
+        setViewedDocs((current) => ({ ...current, cac: true }));
+      }
+    } finally {
+      setLoadingCac(false);
+    }
+  };
+
+  const handleApproveDocuments = async () => {
+    if (!docModalUser) return;
+
+    setApprovingDocs(true);
+    setApprovalError(null);
+    setApprovalSuccess(null);
+    try {
+      const updatedUser = await adminService.approveUserDocuments(docModalUser.id);
+      setUsers((current) => {
+        const nextUsers = current.map((user) => (
+          user.id === updatedUser.id ? { ...user, ...updatedUser } : user
+        ));
+
+        if (statusFilter === 'pending' && String(updatedUser.status || '').toLowerCase() !== 'pending') {
+          return nextUsers.filter((user) => user.id !== updatedUser.id);
+        }
+
+        return nextUsers;
+      });
+      setDocModalUser((current) => (
+        current && current.id === updatedUser.id ? { ...current, ...updatedUser } : current
+      ));
+      setApprovalSuccess(
+        updatedUser.emailSent === false
+          ? 'Usuário aprovado e ativado com sucesso, mas o e-mail não pôde ser enviado.'
+          : 'Usuário aprovado, ativado e notificado por e-mail.'
+      );
+    } catch (err: any) {
+      setApprovalError(getErrorMessage(err, 'Erro ao aprovar usuário'));
+    } finally {
+      setApprovingDocs(false);
+    }
   };
 
   const userTypeLabel: Record<string, string> = { lessor: 'Locador', lessee: 'Locatário', both: 'Ambos' };
+  const isCurrentUserPending = String(docModalUser?.status || '').toLowerCase() === 'pending';
+  const canApproveCurrentUser = !!docModalUser && viewedDocs.cnh && viewedDocs.cac && isCurrentUserPending;
+  const isShowingPendingOnly = statusFilter === 'pending';
 
   return (
     <>
       <Title>Usuários</Title>
       <Filters>
-        <FilterBtn $active={filter === ''} onClick={() => setFilter('')}>Todos</FilterBtn>
-        <FilterBtn $active={filter === 'lessor'} onClick={() => setFilter('lessor')}>Locadores</FilterBtn>
-        <FilterBtn $active={filter === 'lessee'} onClick={() => setFilter('lessee')}>Locatários</FilterBtn>
-        <FilterBtn $active={filter === 'both'} onClick={() => setFilter('both')}>Ambos</FilterBtn>
+        <FilterGroup>
+          <FilterLabel>Tipo:</FilterLabel>
+          <FilterBtn $active={userTypeFilter === ''} onClick={() => updateFilters({ userType: '' })}>Todos</FilterBtn>
+          <FilterBtn $active={userTypeFilter === 'lessor'} onClick={() => updateFilters({ userType: 'lessor' })}>Locadores</FilterBtn>
+          <FilterBtn $active={userTypeFilter === 'lessee'} onClick={() => updateFilters({ userType: 'lessee' })}>Locatários</FilterBtn>
+          <FilterBtn $active={userTypeFilter === 'both'} onClick={() => updateFilters({ userType: 'both' })}>Ambos</FilterBtn>
+        </FilterGroup>
+        <FilterGroup>
+          <FilterLabel>Validação:</FilterLabel>
+          <FilterBtn $active={statusFilter === ''} onClick={() => updateFilters({ status: '' })}>Todos</FilterBtn>
+          <FilterBtn $active={statusFilter === 'pending'} onClick={() => updateFilters({ status: 'pending' })}>Por validar</FilterBtn>
+        </FilterGroup>
       </Filters>
 
       {error && <ErrorMsg>{errorToDisplay(error)}</ErrorMsg>}
@@ -240,7 +374,15 @@ const AdminUsersPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {users.map((u) => (
+              {users.length === 0 ? (
+                <tr>
+                  <EmptyCell colSpan={6}>
+                    {isShowingPendingOnly
+                      ? 'Nenhum cadastro pendente de validação encontrado.'
+                      : 'Nenhum usuário encontrado para os filtros selecionados.'}
+                  </EmptyCell>
+                </tr>
+              ) : users.map((u) => (
                 <tr key={u.id}>
                   <td>{u.firstName} {u.lastName}</td>
                   <td>{u.email}</td>
@@ -259,7 +401,7 @@ const AdminUsersPage: React.FC = () => {
                     </Select>
                   </td>
                   <td>
-                    <DocBtn type="button" onClick={() => setDocModalUser(u)}>
+                    <DocBtn type="button" onClick={() => openDocumentModal(u)}>
                       Ver documentos
                     </DocBtn>
                   </td>
@@ -286,6 +428,26 @@ const AdminUsersPage: React.FC = () => {
                 {loadingCac ? 'Abrindo...' : 'Ver CAC'}
               </DocBtn>
             </ModalDocRow>
+            <ModalHint>
+              {!isCurrentUserPending
+                ? 'Este usuário já saiu da fila pendente. Você ainda pode reabrir os documentos para conferência.'
+                : viewedDocs.cnh && viewedDocs.cac
+                  ? 'Documentos revisados. Você já pode aprovar o usuário.'
+                  : 'Abra a CNH e a CAC para liberar a aprovação do usuário.'}
+            </ModalHint>
+            {approvalError && <ErrorMsg>{errorToDisplay(approvalError)}</ErrorMsg>}
+            {approvalSuccess && <SuccessMsg>{approvalSuccess}</SuccessMsg>}
+            <ApproveBtn
+              type="button"
+              onClick={handleApproveDocuments}
+              disabled={!canApproveCurrentUser || approvingDocs}
+            >
+              {approvingDocs
+                  ? 'Aprovando...'
+                  : isCurrentUserPending
+                    ? 'APROVAR'
+                    : 'Usuário já aprovado'}
+            </ApproveBtn>
             <ModalClose type="button" onClick={() => setDocModalUser(null)}>Fechar</ModalClose>
           </ModalBox>
         </ModalOverlay>

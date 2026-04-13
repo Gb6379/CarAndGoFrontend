@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { Lock, Photo, CheckCircle, ArrowRight, ArrowLeft } from '../components/IconSystem';
-import { authService } from '../services/authService';
 import { errorToDisplay } from '../utils/errorUtils';
 import modernTheme from '../styles/modernTheme';
 import {
@@ -16,7 +15,7 @@ import {
   titleCss,
 } from '../styles/modernPrimitives';
 
-const CAC_LINK = 'https://servicos.pf.gov.br/epol-sinic-publico/';
+const CAC_LINK = 'https://www.pc.rs.gov.br/emitir-certidao-de-antecedentes-policiais';
 
 const Container = styled.div`
   ${pageShellCss}
@@ -227,8 +226,6 @@ const DocumentVerificationUploadPage: React.FC = () => {
   const cnhInputRef = useRef<HTMLInputElement>(null);
   const cacInputRef = useRef<HTMLInputElement>(null);
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-
   const handleCnhChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) setCnhFile(file);
@@ -283,33 +280,12 @@ const DocumentVerificationUploadPage: React.FC = () => {
 
     setLoading(true);
     try {
-      try {
-        await uploadVerificationDocument('cnh', cnhFile);
-        await uploadVerificationDocument('cac', cacFile);
-      } catch (uploadErr: any) {
-        console.warn('Upload de documentos não disponível, continuando com validação:', uploadErr?.message);
-      }
-
-      const document = (user.cpfCnpj || '').replace(/\D/g, '');
-      if (!document) {
-        setError('Nenhum CPF encontrado no seu cadastro. Atualize seu perfil.');
-        setLoading(false);
-        return;
-      }
-      const documentType = document.length === 11 ? 'CPF' : 'CNPJ';
-      const data = await authService.validateDocument({ document, type: documentType });
-
-      if (data.success && data.result?.isValid) {
-        const updatedUser = { ...user, documentsVerified: true };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-        setSuccess(true);
-        setTimeout(() => navigate('/verification', { replace: true }), 2000);
-      } else {
-        setError(data.error || data.result?.errors?.join(', ') || 'Falha na validação. Verifique seus dados ou tente mais tarde.');
-      }
+      await uploadVerificationDocument('cnh', cnhFile);
+      await uploadVerificationDocument('cac', cacFile);
+      setSuccess(true);
     } catch (err: any) {
       const res = err.response;
-      let msg = 'Falha ao validar documentos. Tente novamente.';
+      let msg = 'Falha ao enviar os documentos. Tente novamente.';
       if (res?.status === 401) msg = 'Sessão expirada. Faça login novamente.';
       else if (res?.data?.message) msg = res.data.message;
       else if (err.message) msg = err.message;
@@ -322,10 +298,20 @@ const DocumentVerificationUploadPage: React.FC = () => {
   if (success) {
     return (
       <Container>
-        <SuccessMessage>
-          <CheckCircle size={24} />
-          Documentos enviados e validados com sucesso. Redirecionando...
-        </SuccessMessage>
+        <Card>
+          <SuccessMessage>
+            <CheckCircle size={24} />
+            Documentos enviados com sucesso.
+          </SuccessMessage>
+          <CardDescription>
+            Seus documentos serao analisados pela nossa equipe. Logo lhe daremos um retorno por e-mail.
+          </CardDescription>
+          <ButtonRow>
+            <Button className="primary" onClick={() => navigate('/verification', { replace: true })}>
+              Voltar para verificacao
+            </Button>
+          </ButtonRow>
+        </Card>
       </Container>
     );
   }
@@ -337,7 +323,7 @@ const DocumentVerificationUploadPage: React.FC = () => {
         Verificação de documentos
       </Title>
       <Subtitle>
-        Envie sua Carteira Nacional de Habilitação (CNH) e a Certidão de Antecedentes Criminais (CAC) para validar sua conta e anunciar veículos.
+        Envie sua Carteira Nacional de Habilitacao (CNH) e a Certidao de Antecedentes Criminais (CAC). Apos o envio, nossa equipe analisara os documentos e retornara por e-mail.
       </Subtitle>
 
       <Steps>
@@ -400,11 +386,11 @@ const DocumentVerificationUploadPage: React.FC = () => {
             <LinkBox>
               <LinkTitle>Onde obter a CAC</LinkTitle>
               <LinkDescription>
-                A Certidão de Antecedentes Criminais é emitida pela Polícia Federal. Acesse o link abaixo para gerar o documento de forma gratuita.
+                A Certidão de Antecedentes Criminais pode ser emitida pela Polícia Civil do RS. Acesse o link abaixo para gerar o documento.
               </LinkDescription>
               <LinkAnchor href={CAC_LINK} target="_blank" rel="noopener noreferrer">
                 <ArrowRight size={18} />
-                Gerar CAC no site da Polícia Federal
+                Gerar CAC no site da Polícia Civil do RS
               </LinkAnchor>
             </LinkBox>
             <CardDescription>
@@ -431,9 +417,9 @@ const DocumentVerificationUploadPage: React.FC = () => {
               <ArrowLeft size={18} /> Voltar
             </Button>
             <Button className="primary" onClick={handleSubmit} disabled={loading || !cnhFile || !cacFile}>
-              {loading ? 'Validando...' : (
+              {loading ? 'Enviando...' : (
                 <>
-                  <CheckCircle size={18} /> Enviar e validar
+                  <CheckCircle size={18} /> Enviar para analise
                 </>
               )}
             </Button>

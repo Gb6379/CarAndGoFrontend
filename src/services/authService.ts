@@ -267,13 +267,19 @@ export const adminService = {
     const res = await api.get('/admin/dashboard');
     return res.data;
   },
-  async getUsers(userType?: string) {
-    const params = userType ? { userType } : {};
+  async getUsers(userType?: string, status?: string) {
+    const params: Record<string, string> = {};
+    if (userType) params.userType = userType;
+    if (status) params.status = status;
     const res = await api.get('/admin/users', { params });
     return res.data;
   },
   async updateUserStatus(userId: string, status: string) {
     const res = await api.patch(`/admin/users/${userId}/status`, { status });
+    return res.data;
+  },
+  async approveUserDocuments(userId: string) {
+    const res = await api.post(`/admin/users/${userId}/approve-documents`);
     return res.data;
   },
   /** Retorna blob URL do documento CNH do usuário (para abrir em nova aba). Revogar com URL.revokeObjectURL. */

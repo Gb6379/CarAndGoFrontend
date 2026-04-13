@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { CheckCircle, Error as ErrorIcon, Schedule } from './IconSystem';
+import { CheckCircle } from './IconSystem';
 import { authService } from '../services/authService';
 import modernTheme from '../styles/modernTheme';
 import {
-  errorNoticeCss,
   glassPanelCss,
   primaryButtonCss,
   successNoticeCss,
@@ -46,20 +45,6 @@ const Button = styled.button`
   gap: 0.5rem;
 `;
 
-const StatusContainer = styled.div<{ status: 'idle' | 'loading' | 'success' | 'error' }>`
-  ${props => props.status === 'success' ? successNoticeCss : props.status === 'error' ? errorNoticeCss : glassPanelCss}
-  padding: 1rem;
-  margin-top: 1rem;
-  color: ${props => {
-    switch (props.status) {
-      case 'loading': return modernTheme.colors.inkSoft;
-      case 'success': return '#047857';
-      case 'error': return '#b91c1c';
-      default: return modernTheme.colors.muted;
-    }
-  }};
-`;
-
 const VerifiedCard = styled.div`
   text-align: center;
   padding: 2.5rem 2rem;
@@ -87,57 +72,31 @@ const VerifiedText = styled.p`
 
 const GovBrIntegration: React.FC = () => {
   const navigate = useNavigate();
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [message, setMessage] = useState('');
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const isVerified = user?.documentsVerified === true;
+  const [currentUser, setCurrentUser] = useState(() => JSON.parse(localStorage.getItem('user') || '{}'));
+  const isVerified = currentUser?.documentsVerified === true;
+
+  useEffect(() => {
+    let cancelled = false;
+
+    authService.getProfile()
+      .then((profile) => {
+        if (cancelled) return;
+        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+        const updatedUser = { ...storedUser, ...profile };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        setCurrentUser(updatedUser);
+      })
+      .catch(() => {
+        // Keep the local session state if the profile refresh fails.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleGoToUploadDocuments = () => {
     navigate('/verification/upload-documents');
-  };
-
-  const handleDocumentValidation = async () => {
-    setStatus('loading');
-    setMessage('Validando CPF e consultando antecedentes...');
-
-    try {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const document = (user.cpfCnpj || '').replace(/\D/g, '');
-
-      if (!document) {
-        setStatus('error');
-        setMessage('Nenhum CPF/CNPJ encontrado no seu cadastro. Atualize seu perfil com seu CPF.');
-        return;
-      }
-
-      const documentType = document.length === 11 ? 'CPF' : 'CNPJ';
-      const data = await authService.validateDocument({ document, type: documentType });
-
-      if (data.success && data.result?.isValid) {
-        setStatus('success');
-        setMessage('Documentos validados com sucesso. Você já pode anunciar veículos.');
-        const updatedUser = { ...user, documentsVerified: true };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-      } else {
-        setStatus('error');
-        setMessage(data.error || data.result?.errors?.join(', ') || 'Falha na validação. Verifique seus dados ou tente mais tarde.');
-      }
-    } catch (error: any) {
-      setStatus('error');
-      const res = error.response;
-      let msg = 'Falha ao validar documentos. Tente novamente.';
-      if (res?.status === 401) {
-        msg = 'Sessão expirada. Faça login novamente.';
-      } else if (res?.data?.error) {
-        msg = res.data.error;
-      } else if (res?.data?.message) {
-        msg = res.data.message;
-      } else if (error.code === 'ERR_NETWORK' || !res) {
-        msg = 'Erro de conexão. Verifique se o servidor está rodando e sua internet.';
-      }
-      setMessage(msg);
-      console.error('Document validation error:', error);
-    }
   };
 
   if (isVerified) {
@@ -161,24 +120,15 @@ const GovBrIntegration: React.FC = () => {
       </Title>
       
       <Description>
-        Para anunciar veículos, validamos seu CPF e consultamos antecedentes criminais. 
-        Use o botão abaixo para validar com os dados do seu cadastro.
+        Envie sua CNH e sua CAC para analise. Depois do envio, nossa equipe revisara os documentos e
+        avisara por e-mail quando a aprovacao for concluida.
       </Description>
 
       <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
         <Button onClick={handleGoToUploadDocuments}>
-          <CheckCircle size={16} /> Validar documentos
+          <CheckCircle size={16} /> Enviar documentos
         </Button>
       </div>
-
-      {status !== 'idle' && (
-        <StatusContainer status={status}>
-          {status === 'loading' && <Schedule size={16} />}
-          {status === 'success' && <CheckCircle size={16} />}
-          {status === 'error' && <ErrorIcon size={16} />}
-          {message}
-        </StatusContainer>
-      )}
     </Container>
   );
 };

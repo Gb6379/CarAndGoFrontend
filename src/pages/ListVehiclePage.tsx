@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled, { css } from 'styled-components';
 import { useNavigate, useParams } from 'react-router-dom';
-import { vehicleService } from '../services/authService';
+import { authService, vehicleService } from '../services/authService';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -672,23 +672,44 @@ const ListVehiclePage: React.FC = () => {
 
   // Check if user is logged in when page loads
   useEffect(() => {
-    const isLoggedIn = !!localStorage.getItem('token');
-    if (!isLoggedIn) {
-      setAuthModalMode('login');
-      setIsAuthModalOpen(true);
-      return;
-    }
-    // Para anunciar (criar) veículo, locador precisa ter documentos verificados
-    if (!isEditMode) {
+    let cancelled = false;
+
+    const ensureUserCanListVehicle = async () => {
+      const isLoggedIn = !!localStorage.getItem('token');
+      if (!isLoggedIn) {
+        setAuthModalMode('login');
+        setIsAuthModalOpen(true);
+        return;
+      }
+
+      if (isEditMode) return;
+
       try {
         const userJson = localStorage.getItem('user');
-        const user = userJson ? JSON.parse(userJson) : null;
-        const isLessor = user?.userType === 'lessor' || user?.userType === 'both';
-        if (isLessor && !user?.documentsVerified) {
+        const storedUser = userJson ? JSON.parse(userJson) : null;
+        const isLessor = storedUser?.userType === 'lessor' || storedUser?.userType === 'both';
+
+        if (!isLessor || storedUser?.documentsVerified) return;
+
+        try {
+          const profile = await authService.getProfile();
+          if (cancelled) return;
+          const updatedUser = { ...storedUser, ...profile };
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+          if (updatedUser.documentsVerified) return;
+        } catch (_) {
+          // If profile refresh fails, keep the existing redirect behavior below.
+        }
+
+        if (!cancelled) {
           navigate('/verification', { state: { from: 'list-vehicle', message: 'Complete a verificação de CPF e antecedentes para anunciar veículos.' } });
         }
       } catch (_) {}
-    }
+    };
+
+    ensureUserCanListVehicle();
+
+    return () => { cancelled = true; };
   }, [isEditMode, navigate]);
 
   // Check if user is logged in when modal closes
