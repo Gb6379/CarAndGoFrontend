@@ -12,6 +12,28 @@ const Title = styled.h1`
   margin-bottom: 1.5rem;
 `;
 
+const Filters = styled.div`
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+`;
+
+const FilterBtn = styled.button<{ $active?: boolean }>`
+  padding: 0.5rem 1rem;
+  border-radius: ${modernTheme.radii.pill};
+  border: 1px solid ${p => p.$active ? 'transparent' : 'rgba(15, 23, 42, 0.08)'};
+  background: ${p => p.$active ? modernTheme.gradients.brand : 'rgba(255,255,255,0.72)'};
+  color: ${p => p.$active ? 'white' : modernTheme.colors.inkSoft};
+  cursor: pointer;
+  font-size: 0.9rem;
+  box-shadow: ${p => p.$active ? modernTheme.shadows.glow : 'none'};
+
+  &:hover {
+    background: ${p => p.$active ? modernTheme.gradients.brand : 'white'};
+  }
+`;
+
 const TableWrap = styled.div`
   ${glassPanelCss}
   border-radius: 20px;
@@ -44,6 +66,11 @@ const Table = styled.table`
       font-size: 0.9rem;
     }
   }
+`;
+
+const EmptyCell = styled.td`
+  text-align: center !important;
+  color: ${modernTheme.colors.inkSoft};
 `;
 
 const Badge = styled.span<{ $status?: string }>`
@@ -91,17 +118,50 @@ interface BookingRow {
 }
 
 const statusLower = (s: string) => String(s || '').toLowerCase();
+const bookingStatusLabels: Record<string, string> = {
+  pending: 'Pendentes',
+  confirmed: 'Confirmadas',
+  active: 'Ativas',
+  awaiting_return: 'Aguardando devolução',
+  completed: 'Concluídas',
+  cancelled: 'Canceladas',
+  rejected: 'Rejeitadas',
+  expired: 'Expiradas',
+};
+
+const bookingStatusFilters = [
+  { value: '', label: 'Todas' },
+  { value: 'pending', label: 'Pendentes' },
+  { value: 'confirmed', label: 'Confirmadas' },
+  { value: 'active', label: 'Ativas' },
+  { value: 'awaiting_return', label: 'Aguardando devolução' },
+  { value: 'completed', label: 'Concluídas' },
+  { value: 'cancelled', label: 'Canceladas' },
+  { value: 'rejected', label: 'Rejeitadas' },
+  { value: 'expired', label: 'Expiradas' },
+];
 
 const AdminBookingsPage: React.FC = () => {
-  const [searchParams] = useSearchParams();
-  const statusFilter = searchParams.get('status') || '';
+  const [searchParams, setSearchParams] = useSearchParams();
+  const rawStatusFilter = statusLower(searchParams.get('status') || '');
+  const statusFilter = bookingStatusLabels[rawStatusFilter] ? rawStatusFilter : '';
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionId, setActionId] = useState<string | null>(null);
 
+  const updateStatusFilter = (status: string) => {
+    const params = new URLSearchParams(searchParams);
+
+    if (status) params.set('status', status);
+    else params.delete('status');
+
+    setSearchParams(params);
+  };
+
   const load = () => {
     setLoading(true);
+    setError(null);
     adminService.getBookings()
       .then((data: BookingRow[]) => setBookings(Array.isArray(data) ? data : []))
       .catch((err: any) => setError(getErrorMessage(err, 'Erro ao carregar reservas')))
@@ -142,19 +202,22 @@ const AdminBookingsPage: React.FC = () => {
   };
 
   const formatDate = (d: string) => d ? new Date(d).toLocaleDateString('pt-BR') : '-';
-
-  const statusLabel: Record<string, string> = {
-    pending: 'Pendentes',
-    active: 'Ativas',
-    completed: 'Concluídas',
-    cancelled: 'Canceladas',
-    confirmed: 'Confirmadas',
-  };
-  const filterLabel = statusFilter ? statusLabel[statusFilter.toLowerCase()] || statusFilter : null;
+  const filterLabel = statusFilter ? bookingStatusLabels[statusFilter] || statusFilter : null;
 
   return (
     <>
       <Title>Reservas{filterLabel ? ` — ${filterLabel}` : ''}</Title>
+      <Filters>
+        {bookingStatusFilters.map((filter) => (
+          <FilterBtn
+            key={filter.value || 'all'}
+            $active={statusFilter === filter.value}
+            onClick={() => updateStatusFilter(filter.value)}
+          >
+            {filter.label}
+          </FilterBtn>
+        ))}
+      </Filters>
       {error && <ErrorMsg>{errorToDisplay(error)}</ErrorMsg>}
       {loading ? (
         <p>Carregando...</p>
@@ -172,7 +235,15 @@ const AdminBookingsPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredBookings.map((b) => {
+              {filteredBookings.length === 0 ? (
+                <tr>
+                  <EmptyCell colSpan={6}>
+                    {filterLabel
+                      ? `Nenhuma reserva ${filterLabel.toLowerCase()} encontrada.`
+                      : 'Nenhuma reserva encontrada.'}
+                  </EmptyCell>
+                </tr>
+              ) : filteredBookings.map((b) => {
                 const status = statusLower(b.status);
                 const canApprove = status === 'pending';
                 const canCancel = ['pending', 'confirmed', 'active'].includes(status);
@@ -183,7 +254,7 @@ const AdminBookingsPage: React.FC = () => {
                     <td>{b.lessee ? `${b.lessee.firstName} ${b.lessee.lastName}` : '-'}</td>
                     <td>{formatDate(b.startDate)} – {formatDate(b.endDate)}</td>
                     <td>R$ {Number(b.totalAmount).toLocaleString('pt-BR')}</td>
-                    <td><Badge $status={status}>{b.status}</Badge></td>
+                    <td><Badge $status={status}>{bookingStatusLabels[status] || b.status}</Badge></td>
                     <td>
                       {canApprove && (
                         <Btn onClick={() => handleApprove(b.id)} disabled={!!actionId}>Aprovar</Btn>
