@@ -7,7 +7,6 @@ import { getErrorMessage, errorToDisplay } from '../utils/errorUtils';
 import modernTheme from '../styles/modernTheme';
 import {
   errorNoticeCss,
-  formFieldCss,
   glassPanelCss,
   pageShellCss,
   primaryButtonCss,
@@ -85,65 +84,11 @@ const SummaryCard = styled(MainCard)`
   height: fit-content;
 `;
 
-const Tabs = styled.div`
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-  padding: 0.35rem;
-  border-radius: ${modernTheme.radii.pill};
-  background: rgba(15, 23, 42, 0.05);
-
-  @media (max-width: 560px) {
-    flex-direction: column;
-  }
-`;
-
-const Tab = styled.button<{ active: boolean }>`
-  padding: 1rem 1.5rem;
-  border: none;
-  border-radius: ${modernTheme.radii.pill};
-  background: ${p => p.active ? modernTheme.gradients.brand : 'transparent'};
-  font-size: 1rem;
-  font-weight: 600;
-  color: ${p => p.active ? 'white' : modernTheme.colors.muted};
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: ${p => p.active ? modernTheme.shadows.glow : 'none'};
-
-  &:hover {
-    color: ${p => p.active ? 'white' : modernTheme.colors.brandStrong};
-  }
-
-  @media (max-width: 560px) {
-    width: 100%;
-    justify-content: center;
-  }
-`;
-
-const FormGroup = styled.div`
-  margin-bottom: 1.25rem;
-
-  label {
-    display: block;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: ${modernTheme.colors.inkSoft};
-    margin-bottom: 0.5rem;
-  }
-
-  input {
-    ${formFieldCss}
-  }
-`;
-
-const Row = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-
-  @media (max-width: 500px) {
-    grid-template-columns: 1fr;
-  }
+const CheckoutInfo = styled.div`
+  color: ${modernTheme.colors.muted};
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
 `;
 
 const PayButton = styled.button`
@@ -168,15 +113,6 @@ const PayButton = styled.button`
 
   &.primary {
     color: white;
-  }
-
-  &.pix {
-    background: linear-gradient(135deg, #32bcad 0%, #0f766e 100%);
-    color: white;
-
-    &:hover:not(:disabled) {
-      transform: translateY(-1px);
-    }
   }
 `;
 
@@ -223,49 +159,6 @@ const VehicleLine = styled.div`
   margin-bottom: 0.5rem;
 `;
 
-const PixBox = styled.div`
-  background: rgba(236, 253, 245, 0.8);
-  border: 2px dashed rgba(50, 188, 173, 0.7);
-  border-radius: 18px;
-  padding: 2rem;
-  text-align: center;
-  margin-bottom: 1rem;
-`;
-
-const PixQrPlaceholder = styled.div`
-  width: 200px;
-  height: 200px;
-  margin: 0 auto 1rem;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.85rem;
-  color: ${modernTheme.colors.muted};
-`;
-
-const PixCode = styled.code`
-  display: block;
-  background: rgba(255, 255, 255, 0.92);
-  padding: 1rem;
-  border-radius: 14px;
-  font-size: 0.8rem;
-  word-break: break-all;
-  margin-top: 1rem;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-`;
-
-const CopyButton = styled.button`
-  ${secondaryButtonCss}
-  margin-top: 1rem;
-  padding: 0.5rem 1rem;
-  color: #0f766e;
-  font-size: 0.9rem;
-  cursor: pointer;
-`;
-
 const LoadingContainer = styled.div`
   display: flex;
   justify-content: center;
@@ -310,13 +203,6 @@ const PaymentPage: React.FC = () => {
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [method, setMethod] = useState<'credit_card' | 'pix'>('credit_card');
-  const [card, setCard] = useState({
-    number: '',
-    name: '',
-    expiry: '',
-    cvv: '',
-  });
 
   // Fluxo 1: veio do formulário de reserva (state) → reserva será criada só após pagamento
   const isNewBookingFlow = !!state?.bookingPayload;
@@ -346,22 +232,7 @@ const PaymentPage: React.FC = () => {
     load();
   }, [existingBookingId, isNewBookingFlow]);
 
-  const handleCardChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    let v = value;
-    if (name === 'number') v = value.replace(/\D/g, '').slice(0, 16);
-    if (name === 'expiry') v = value.replace(/\D/g, '').slice(0, 4);
-    if (name === 'cvv') v = value.replace(/\D/g, '').slice(0, 4);
-    setCard(prev => ({ ...prev, [name]: v }));
-  };
-
-  const formatExpiry = (val: string) => {
-    if (val.length >= 2) return val.slice(0, 2) + '/' + val.slice(2);
-    return val;
-  };
-
   const handlePay = async () => {
-    // PIX: sem validação extra. Cartão: no modo real (PagSeguro) o usuário preenche na página deles; no simulado aceita vazio.
     setError('');
     setPaying(true);
     try {
@@ -383,14 +254,9 @@ const PaymentPage: React.FC = () => {
         return;
       }
 
-      const response = await paymentService.pay(bookingId, method, method === 'credit_card' ? {
-        number: card.number,
-        name: card.name,
-        expiry: card.expiry,
-        cvv: card.cvv,
-      } : undefined);
+      // No checkout hospedado (Mercado Pago/PagBank), os métodos são escolhidos na página do gateway.
+      const response = await paymentService.pay(bookingId, 'pix');
 
-      // Pagamento real via PagSeguro: redirecionar para a URL de checkout
       if (response?.paymentUrl) {
         window.location.href = response.paymentUrl;
         return;
@@ -421,13 +287,6 @@ const PaymentPage: React.FC = () => {
     : (Number(booking?.dailyRate) * Math.ceil((new Date(endDateStr).getTime() - new Date(startDateStr).getTime()) / (1000 * 60 * 60 * 24)));
   const securityDepositValue = summaryForDisplay?.securityDeposit != null ? summaryForDisplay.securityDeposit : (Number(booking?.securityDeposit) || 0);
   const platformFeeValue = summaryForDisplay?.platformFee != null ? summaryForDisplay.platformFee : (Number(booking?.platformFee) || 0);
-
-  const copyPixCode = () => {
-    const code = `00020126580014br.gov.bcb.pix0136${bookingForDisplay?.id || 'pending'}520400005303986540${total.toFixed(2)}5802BR5925CAR AND GO LOCACAO6009SAO PAULO62070503***6304`;
-    navigator.clipboard.writeText(code);
-    setSuccess('Código PIX copiado!');
-    setTimeout(() => setSuccess(''), 2000);
-  };
 
   if (loading) {
     return (
@@ -463,88 +322,13 @@ const PaymentPage: React.FC = () => {
 
       <Grid>
         <MainCard>
-          <Tabs>
-            <Tab active={method === 'credit_card'} onClick={() => setMethod('credit_card')}>
-              Cartão de Crédito
-            </Tab>
-            <Tab active={method === 'pix'} onClick={() => setMethod('pix')}>
-              PIX
-            </Tab>
-          </Tabs>
-
-          {method === 'credit_card' && (
-            <>
-              <FormGroup>
-                <label>Número do cartão</label>
-                <input
-                  type="text"
-                  name="number"
-                  placeholder="0000 0000 0000 0000"
-                  value={card.number.replace(/(\d{4})/g, '$1 ').trim()}
-                  onChange={(e) => setCard(prev => ({ ...prev, number: e.target.value.replace(/\D/g, '').slice(0, 16) }))}
-                  maxLength={19}
-                />
-              </FormGroup>
-              <FormGroup>
-                <label>Nome no cartão</label>
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="Como está no cartão"
-                  value={card.name}
-                  onChange={(e) => setCard(prev => ({ ...prev, name: e.target.value }))}
-                />
-              </FormGroup>
-              <Row>
-                <FormGroup>
-                  <label>Validade (MM/AA)</label>
-                  <input
-                    type="text"
-                    name="expiry"
-                    placeholder="MM/AA"
-                    value={formatExpiry(card.expiry)}
-                    onChange={(e) => setCard(prev => ({ ...prev, expiry: e.target.value.replace(/\D/g, '').slice(0, 4) }))}
-                    maxLength={5}
-                  />
-                </FormGroup>
-                <FormGroup>
-                  <label>CVV</label>
-                  <input
-                    type="text"
-                    name="cvv"
-                    placeholder="123"
-                    value={card.cvv}
-                    onChange={handleCardChange}
-                    maxLength={4}
-                  />
-                </FormGroup>
-              </Row>
-              <PayButton className="primary" onClick={handlePay} disabled={paying}>
-                {paying ? 'Processando...' : <> <CreditCard size={20} /> Pagar com Cartão </>}
-              </PayButton>
-            </>
-          )}
-
-          {method === 'pix' && (
-            <>
-              <PixBox>
-                <p style={{ marginBottom: '1rem', fontWeight: 600, color: '#0f766e' }}>Pague via PIX</p>
-                <PixQrPlaceholder>QR Code PIX<br />(simulado)</PixQrPlaceholder>
-                <p style={{ fontSize: '0.9rem', color: '#666' }}>
-                  Com PagSeguro configurado, ao continuar voce sera redirecionado para o checkout PIX real.
-                  Em ambiente de desenvolvimento, este bloco pode operar em modo simulado.
-                </p>
-                <PixCode>00020126...{(bookingForDisplay?.id || 'pending').slice(-8)}...{total.toFixed(2)}...</PixCode>
-                <CopyButton onClick={copyPixCode}>Copiar código PIX</CopyButton>
-              </PixBox>
-              <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '1rem' }}>
-                Clique no botao abaixo para continuar o pagamento via PIX.
-              </p>
-              <PayButton className="pix" onClick={handlePay} disabled={paying}>
-                {paying ? 'Processando...' : <> Continuar com PIX </>}
-              </PayButton>
-            </>
-          )}
+          <CheckoutInfo>
+            Você será redirecionado para a página segura do gateway de pagamento para
+            escolher a forma de pagamento (PIX, cartão e opções disponíveis).
+          </CheckoutInfo>
+          <PayButton className="primary" onClick={handlePay} disabled={paying}>
+            {paying ? 'Processando...' : 'Ir para pagamento'}
+          </PayButton>
         </MainCard>
 
         <SummaryCard>
