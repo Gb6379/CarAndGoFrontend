@@ -31,6 +31,8 @@ L.Icon.Default.mergeOptions({
 
 const Container = styled.div`
   ${pageShellCss}
+  width: 100%;
+  box-sizing: border-box;
 `;
 
 const Header = styled.div`
@@ -45,6 +47,7 @@ const Breadcrumb = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
   margin-bottom: 1rem;
   color: ${modernTheme.colors.muted};
   font-size: 0.9rem;
@@ -69,6 +72,19 @@ const TitleRow = styled.div`
   @media (max-width: 768px) {
     flex-direction: column;
     align-items: flex-start;
+  }
+`;
+
+const TitleActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  @media (max-width: 640px) {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
 `;
 
@@ -137,10 +153,21 @@ const VehicleSubtitle = styled.div`
   color: ${modernTheme.colors.muted};
   font-size: 1.1rem;
 
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 0;
+  }
+
   @media (max-width: 768px) {
     flex-wrap: wrap;
     gap: 0.75rem;
     font-size: 1rem;
+
+    span {
+      overflow-wrap: anywhere;
+    }
   }
 `;
 
@@ -171,12 +198,14 @@ const LeftColumn = styled.div`
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  min-width: 0;
 `;
 
 const RightColumn = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  min-width: 0;
 `;
 
 // Photo Gallery
@@ -393,6 +422,10 @@ const PhotoLightboxThumb = styled.button<{ $active?: boolean }>`
 const VehicleInfoSection = styled.div`
   ${glassPanelCss}
   padding: 2rem;
+
+  @media (max-width: 768px) {
+    padding: 1.25rem;
+  }
 `;
 
 const SectionTitle = styled.h2`
@@ -400,12 +433,22 @@ const SectionTitle = styled.h2`
   color: ${modernTheme.colors.ink};
   margin-bottom: 1.5rem;
   font-weight: 600;
+
+  @media (max-width: 768px) {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+  }
 `;
 
 const InfoGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1.5rem;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 `;
 
 const InfoItem = styled.div`
@@ -430,6 +473,10 @@ const MapSection = styled.div`
   ${glassPanelCss}
   overflow: hidden;
   padding: 1.5rem 1.5rem 0 1.5rem;
+
+  @media (max-width: 768px) {
+    padding: 1rem 1rem 0 1rem;
+  }
 `;
 
 const MapSectionTitle = styled.h2`
@@ -472,6 +519,11 @@ const MapWrapper = styled.div`
   overflow: hidden;
   margin: 0 -1.5rem 0 -1.5rem;
 
+  @media (max-width: 768px) {
+    height: 240px;
+    margin: 0 -1rem 0 -1rem;
+  }
+
   .leaflet-container {
     height: 100%;
     width: 100%;
@@ -482,12 +534,20 @@ const MapWrapper = styled.div`
 const FeaturesSection = styled.div`
   ${glassPanelCss}
   padding: 2rem;
+
+  @media (max-width: 768px) {
+    padding: 1.25rem;
+  }
 `;
 
 const FeaturesGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const FeatureItem = styled.div`
@@ -497,6 +557,10 @@ const FeatureItem = styled.div`
   padding: 1rem;
   background: rgba(255, 255, 255, 0.74);
   border-radius: 14px;
+
+  @media (max-width: 768px) {
+    padding: 0.85rem;
+  }
 `;
 
 const FeatureIcon = styled.span`
@@ -574,6 +638,13 @@ const BookingButton = styled.button`
   cursor: pointer;
   transition: all 0.3s;
   margin-top: 1rem;
+
+  @media (max-width: 640px) {
+    padding: 0.95rem 1rem;
+    font-size: 1rem;
+    line-height: 1.3;
+    white-space: normal;
+  }
 `;
 
 const MonthlyButton = styled.button`
@@ -586,12 +657,23 @@ const MonthlyButton = styled.button`
   cursor: pointer;
   transition: all 0.2s;
   margin-top: 0.75rem;
+
+  @media (max-width: 640px) {
+    padding: 0.85rem 1rem;
+    font-size: 0.95rem;
+    line-height: 1.3;
+    white-space: normal;
+  }
 `;
 
 // Host Section
 const HostSection = styled.div`
   ${glassPanelCss}
   padding: 2rem;
+
+  @media (max-width: 768px) {
+    padding: 1.25rem;
+  }
 `;
 
 const HostInfo = styled.div`
@@ -599,6 +681,11 @@ const HostInfo = styled.div`
   align-items: center;
   gap: 1rem;
   margin-bottom: 1.5rem;
+
+  @media (max-width: 640px) {
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
 `;
 
 const HostAvatar = styled.div`
@@ -637,12 +724,20 @@ const HostBadge = styled.div`
   border-radius: 20px;
   font-size: 0.8rem;
   font-weight: 600;
+
+  @media (max-width: 640px) {
+    margin-left: auto;
+  }
 `;
 
 // Reviews Section
 const ReviewsSection = styled.div`
   ${glassPanelCss}
   padding: 2rem;
+
+  @media (max-width: 768px) {
+    padding: 1.25rem;
+  }
 `;
 
 const ReviewItem = styled.div`
@@ -659,6 +754,11 @@ const ReviewHeader = styled.div`
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 1rem;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
 `;
 
 const ReviewInfo = styled.div`
@@ -733,12 +833,20 @@ const ReviewEmpty = styled.p`
 const SafetySection = styled.div`
   ${glassPanelCss}
   padding: 2rem;
+
+  @media (max-width: 768px) {
+    padding: 1.25rem;
+  }
 `;
 
 const SafetyGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const SafetyItem = styled.div`
@@ -1129,7 +1237,7 @@ const VehicleDetailPage: React.FC = () => {
         
         <TitleRow>
           <VehicleTitle>{vehicle.make} {vehicle.model} {vehicle.year}</VehicleTitle>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <TitleActions>
             {isOwner && (
               <EditAnnouncementButton type="button" onClick={() => navigate(`/list-vehicle/edit/${vehicle.id}`)}>
                 <Edit size={18} /> Editar anúncio
@@ -1138,7 +1246,7 @@ const VehicleDetailPage: React.FC = () => {
             <FavoriteButton onClick={handleToggleFavorite} type="button" aria-label={isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}>
               {isFav ? <Favorite /> : <FavoriteBorder />}
             </FavoriteButton>
-          </div>
+          </TitleActions>
         </TitleRow>
 
         <VehicleSubtitle>

@@ -62,6 +62,7 @@ const Tab = styled.button<{ active: boolean }>`
 
   @media (max-width: 768px) {
     padding: 0.75rem 1rem;
+    min-width: 0;
   }
 `;
 
@@ -266,6 +267,11 @@ const TripStatus = styled.span<{ status: string }>`
       default: return '#495057';
     }
   }};
+
+  @media (max-width: 640px) {
+    margin-left: 0;
+    white-space: normal;
+  }
 `;
 
 const TripLocation = styled.div`

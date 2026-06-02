@@ -2,9 +2,11 @@ import { css } from 'styled-components';
 import modernTheme from './modernTheme';
 
 export const pageShellCss = css`
+  width: 100%;
   max-width: ${modernTheme.widths.content};
   margin: 0 auto;
   padding: 2rem;
+  box-sizing: border-box;
 
   @media (max-width: 1024px) {
     padding: 1.5rem;

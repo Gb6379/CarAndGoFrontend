@@ -236,6 +236,11 @@ const DropdownMenu = styled.div<{ isOpen: boolean }>`
   transform: ${props => props.isOpen ? 'translateY(0)' : 'translateY(-10px)'};
   transition: all 0.3s ease;
   z-index: 1001;
+
+  @media (max-width: 480px) {
+    min-width: min(240px, calc(100vw - 1.5rem));
+    right: -0.25rem;
+  }
 `;
 
 const DropdownItem = styled(Link)`

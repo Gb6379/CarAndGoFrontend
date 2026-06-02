@@ -53,7 +53,9 @@ const Tab = styled.button<{ active: boolean }>`
 
   @media (max-width: 640px) {
     padding: 0.85rem 1rem;
-    white-space: nowrap;
+    white-space: normal;
+    text-align: center;
+    min-width: 180px;
   }
 `;
 
@@ -235,6 +237,10 @@ const ActionButton = styled.button<{ variant?: 'primary' | 'secondary' | 'danger
         `;
     }
   }}
+
+  @media (max-width: 640px) {
+    width: 100%;
+  }
 `;
 
 const EmptyState = styled.div`

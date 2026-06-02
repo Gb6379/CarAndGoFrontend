@@ -334,6 +334,11 @@ const Button = styled.button`
   cursor: pointer;
   transition: background 0.3s;
   min-width: 190px;
+
+  @media (max-width: 640px) {
+    min-width: 0;
+    width: 100%;
+  }
 `;
 
 const DangerButton = styled.button`
@@ -351,6 +356,11 @@ const DangerButton = styled.button`
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 20px 44px rgba(185, 28, 28, 0.22);
+  }
+
+  @media (max-width: 640px) {
+    min-width: 0;
+    width: 100%;
   }
 `;
 

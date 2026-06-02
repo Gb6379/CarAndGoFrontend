@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import styled from 'styled-components';
+import styled, { createGlobalStyle } from 'styled-components';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import RouteGuard from './components/RouteGuard';
@@ -36,6 +36,30 @@ const AppContainer = styled.div`
   min-height: calc(100vh - env(safe-area-inset-bottom, 0px));
   background: ${modernTheme.gradients.page};
   overflow-x: hidden;
+`;
+
+const ResponsiveGlobalStyle = createGlobalStyle`
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html,
+  body,
+  #root {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  img,
+  video,
+  canvas,
+  svg {
+    max-width: 100%;
+    height: auto;
+  }
 `;
 
 const MainContent = styled.main`
@@ -92,6 +116,7 @@ function App() {
 
   return (
     <AppContainer>
+      <ResponsiveGlobalStyle />
       {!isAdminPath && (
         <PortInfo>
           Port: {currentPort}

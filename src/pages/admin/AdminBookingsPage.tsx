@@ -66,6 +66,10 @@ const Table = styled.table`
       font-size: 0.9rem;
     }
   }
+
+  @media (max-width: 480px) {
+    min-width: 460px;
+  }
 `;
 
 const EmptyCell = styled.td`

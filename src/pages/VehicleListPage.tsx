@@ -48,6 +48,12 @@ const Container = styled.div`
   max-width: ${modernTheme.widths.hero};
   margin: 0 auto;
   padding: 2rem;
+  width: 100%;
+  box-sizing: border-box;
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
 `;
 
 const Header = styled.div`
@@ -58,6 +64,11 @@ const Header = styled.div`
   margin-bottom: 2rem;
   box-shadow: 0 30px 75px rgba(15, 23, 42, 0.18);
   border: 1px solid rgba(255, 255, 255, 0.12);
+
+  @media (max-width: 768px) {
+    padding: 1.25rem;
+    border-radius: 20px;
+  }
 `;
 
 const HeaderTitle = styled.h1`
@@ -265,6 +276,13 @@ const CarsHeader = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
 `;
 
 const CarsCount = styled.div`
@@ -406,12 +424,19 @@ const CarLocation = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  overflow-wrap: anywhere;
 `;
 
 const PriceSection = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
 `;
 
 const PriceInfo = styled.div`
@@ -518,6 +543,11 @@ const LocationSearchContainer = styled.div`
   position: relative;
   flex: 1;
   min-width: 200px;
+
+  @media (max-width: 768px) {
+    min-width: 0;
+    width: 100%;
+  }
 `;
 
 const LocationInput = styled.input`
@@ -600,6 +630,12 @@ const SearchButton = styled.button<{ searching?: boolean }>`
 
   &:hover {
     background: ${props => props.searching ? '#ccc' : '#ED733A'};
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: center;
+    white-space: normal;
   }
 `;
 

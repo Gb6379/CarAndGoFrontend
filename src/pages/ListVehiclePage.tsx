@@ -512,6 +512,7 @@ const Button = styled.button<{ variant?: 'primary' | 'secondary' }>`
 
   @media (max-width: 768px) {
     width: 100%;
+    min-width: 0;
   }
 `;
 

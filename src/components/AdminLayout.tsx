@@ -241,6 +241,12 @@ const SearchBox = styled.div`
       font-size: 0.9rem;
     }
   }
+
+  @media (max-width: 640px) {
+    span {
+      display: none;
+    }
+  }
 `;
 
 const TopBarMeta = styled.div`
