@@ -30,6 +30,23 @@ function parseBrazilianCepDigits(raw: string): string | null {
   return null;
 }
 
+type CrlvPrefill = {
+  licensePlate?: string;
+  make?: string;
+  model?: string;
+  year?: string;
+  color?: string;
+  fuelType?: string;
+  vehicleType?: string;
+  extractionStatus?: 'parsed' | 'partial' | 'unsupported';
+};
+
+const normalizePlate = (plate?: string): string => {
+  const raw = (plate || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (raw.length === 7) return `${raw.slice(0, 3)}-${raw.slice(3)}`;
+  return raw;
+};
+
 const Container = styled.div`
   ${pageShellCss}
 `;
@@ -589,6 +606,7 @@ const ListVehiclePage: React.FC = () => {
   const [geocodingAddress, setGeocodingAddress] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
+  const [crlvPrefillNotice, setCrlvPrefillNotice] = useState<string | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const geocodeDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const geocodeAbortRef = useRef<AbortController | null>(null);
@@ -614,7 +632,7 @@ const ListVehiclePage: React.FC = () => {
     // Pricing
     dailyRate: '',
     hourlyRate: '',
-    securityDeposit: '700',
+    securityDeposit: '1',
     
     // Features
     airConditioning: false,
@@ -650,7 +668,7 @@ const ListVehiclePage: React.FC = () => {
           longitude: v.longitude != null ? Number(v.longitude) : null,
           dailyRate: String(v.dailyRate ?? ''),
           hourlyRate: String(v.hourlyRate ?? ''),
-          securityDeposit: '700',
+          securityDeposit: '1',
           airConditioning: !!v.airConditioning,
           gps: !!v.gps,
           bluetooth: !!v.bluetooth,
@@ -670,6 +688,33 @@ const ListVehiclePage: React.FC = () => {
       });
     return () => { cancelled = true; };
   }, [editId]);
+
+  useEffect(() => {
+    if (isEditMode) return;
+    let cancelled = false;
+
+    const loadCrlvPrefill = async () => {
+      try {
+        const local = localStorage.getItem('crlvPrefill');
+        if (local) {
+          const parsed = JSON.parse(local) as CrlvPrefill;
+          if (!cancelled) applyCrlvPrefill(parsed);
+          localStorage.removeItem('crlvPrefill');
+          return;
+        }
+
+        const extracted = await authService.getCrlvExtractedData();
+        if (!cancelled && extracted) applyCrlvPrefill(extracted as CrlvPrefill);
+      } catch {
+        // Prefill is optional.
+      }
+    };
+
+    void loadCrlvPrefill();
+    return () => {
+      cancelled = true;
+    };
+  }, [isEditMode]);
 
   // Check if user is logged in when page loads
   useEffect(() => {
@@ -763,6 +808,27 @@ const ListVehiclePage: React.FC = () => {
   ];
   const transmissions = ['manual', 'automatic'];
   const states = ['AC', 'AL', 'AM', 'AP', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MG', 'MS', 'MT', 'PA', 'PB', 'PE', 'PI', 'PR', 'RJ', 'RN', 'RO', 'RS', 'SC', 'SE', 'SP', 'TO'];
+
+  const applyCrlvPrefill = (prefill: CrlvPrefill) => {
+    setFormData(prev => ({
+      ...prev,
+      make: prev.make || prefill.make || '',
+      model: prev.model || prefill.model || '',
+      year: prev.year || prefill.year || '',
+      licensePlate: prev.licensePlate || normalizePlate(prefill.licensePlate),
+      color: prev.color || prefill.color || '',
+      fuelType: prev.fuelType || prefill.fuelType || '',
+      type: prev.type || prefill.vehicleType || '',
+    }));
+
+    if (prefill.extractionStatus === 'parsed') {
+      setCrlvPrefillNotice('Dados do CRLV preenchidos automaticamente.');
+    } else if (prefill.extractionStatus === 'partial') {
+      setCrlvPrefillNotice('Alguns dados do CRLV foram preenchidos automaticamente. Revise antes de publicar.');
+    } else if (prefill.extractionStatus === 'unsupported') {
+      setCrlvPrefillNotice('CRLV enviado, mas não foi possível extrair dados automáticos deste arquivo.');
+    }
+  };
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => {
@@ -1366,7 +1432,7 @@ const ListVehiclePage: React.FC = () => {
                 <Input
                   type="number"
                   readOnly
-                  value="700"
+                  value="1"
                   style={{ backgroundColor: '#f0f0f0', cursor: 'not-allowed' }}
                 />
               </FormGroup>
@@ -1559,6 +1625,11 @@ const ListVehiclePage: React.FC = () => {
       </ProgressBar>
 
       <FormContainer>
+        {crlvPrefillNotice && (
+          <div style={{ marginBottom: '1rem', padding: '0.9rem 1rem', background: '#eefdf4', border: '1px solid #9ae6b4', color: '#166534', borderRadius: '10px' }}>
+            {crlvPrefillNotice}
+          </div>
+        )}
         {renderStepContent()}
         
         <ButtonGroup>

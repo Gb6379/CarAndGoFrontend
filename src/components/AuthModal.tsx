@@ -646,7 +646,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                 >
                   <option value="rent">Quero alugar carros</option>
                   <option value="host">Quero alugar meu carro</option>
-                  <option value="both">Ambos</option>
                 </Select>
               </SelectContainer>
             </InputGroup>

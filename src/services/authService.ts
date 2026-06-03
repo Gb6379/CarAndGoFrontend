@@ -103,6 +103,11 @@ export const authService = {
     }
   },
 
+  async getCrlvExtractedData(): Promise<any | null> {
+    const response = await api.get('/users/profile/me/verification/crlv/extracted');
+    return response.data || null;
+  },
+
 };
 
 export const vehicleService = {

@@ -26,6 +26,7 @@ import VerificationPage from './pages/VerificationPage';
 import DocumentVerificationUploadPage from './pages/DocumentVerificationUploadPage';
 import MensalistaPage from './pages/MensalistaPage';
 import MensalistaLandingPage from './pages/MensalistaLandingPage';
+import HostPublicProfilePage from './pages/HostPublicProfilePage';
 import AdminLayout from './components/AdminLayout';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AdminUsersPage from './pages/admin/AdminUsersPage';
@@ -157,6 +158,7 @@ function App() {
           {/* Public vehicle browsing - accessible to all users */}
           <Route path="/vehicles" element={<VehicleListPage />} />
           <Route path="/vehicle/:id" element={<VehicleDetailPage />} />
+          <Route path="/host/:hostId" element={<HostPublicProfilePage />} />
           
           {/* Booking - requires authentication as lessee */}
           <Route path="/booking" element={

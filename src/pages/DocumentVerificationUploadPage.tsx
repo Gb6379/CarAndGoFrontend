@@ -214,17 +214,21 @@ const SuccessMessage = styled.div`
 
 const ACCEPT_CNH = 'image/jpeg,image/png,image/webp,application/pdf';
 const ACCEPT_CAC = 'image/jpeg,image/png,image/webp,application/pdf';
+const ACCEPT_CRLV = 'image/jpeg,image/png,image/webp,application/pdf';
 
 const DocumentVerificationUploadPage: React.FC = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [cnhFile, setCnhFile] = useState<File | null>(null);
   const [cacFile, setCacFile] = useState<File | null>(null);
+  const [crlvFile, setCrlvFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [crlvStatus, setCrlvStatus] = useState<'parsed' | 'partial' | 'unsupported' | null>(null);
   const cnhInputRef = useRef<HTMLInputElement>(null);
   const cacInputRef = useRef<HTMLInputElement>(null);
+  const crlvInputRef = useRef<HTMLInputElement>(null);
 
   const handleCnhChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -238,15 +242,26 @@ const DocumentVerificationUploadPage: React.FC = () => {
     setError('');
   };
 
+  const handleCrlvChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) setCrlvFile(file);
+    setError('');
+  };
+
   const handleNext = () => {
     if (step === 1 && cnhFile) setStep(2);
+    if (step === 2 && cacFile) setStep(3);
   };
 
   const handleBack = () => {
-    if (step === 2) setStep(1);
+    if (step === 3) setStep(2);
+    else if (step === 2) setStep(1);
   };
 
-  const uploadVerificationDocument = async (type: 'cnh' | 'cac', file: File): Promise<void> => {
+  const uploadVerificationDocument = async (
+    type: 'cnh' | 'cac' | 'crlv',
+    file: File
+  ): Promise<any> => {
     const formData = new FormData();
     formData.append('file', file);
     const token = localStorage.getItem('token');
@@ -255,7 +270,9 @@ const DocumentVerificationUploadPage: React.FC = () => {
       : 'https://carandgobackend-production.up.railway.app';
     const endpoint = type === 'cnh'
       ? `${API_BASE_URL}/users/profile/me/verification/cnh`
-      : `${API_BASE_URL}/users/profile/me/verification/cac`;
+      : type === 'cac'
+        ? `${API_BASE_URL}/users/profile/me/verification/cac`
+        : `${API_BASE_URL}/users/profile/me/verification/crlv`;
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
@@ -263,8 +280,10 @@ const DocumentVerificationUploadPage: React.FC = () => {
     });
     if (!response.ok) {
       const data = await response.json().catch(() => ({}));
-      throw new Error(data.message || `Falha ao enviar ${type === 'cnh' ? 'CNH' : 'CAC'}.`);
+      const fallback = type === 'cnh' ? 'CNH' : type === 'cac' ? 'CAC' : 'CRLV';
+      throw new Error(data.message || `Falha ao enviar ${fallback}.`);
     }
+    return response.json().catch(() => null);
   };
 
   const handleSubmit = async () => {
@@ -277,11 +296,21 @@ const DocumentVerificationUploadPage: React.FC = () => {
       setError('Envie a Certidão de Antecedentes Criminais (CAC).');
       return;
     }
+    if (!crlvFile) {
+      setError('Envie o CRLV do veículo.');
+      return;
+    }
 
     setLoading(true);
     try {
       await uploadVerificationDocument('cnh', cnhFile);
       await uploadVerificationDocument('cac', cacFile);
+      const crlvResponse = await uploadVerificationDocument('crlv', crlvFile);
+      const extracted = crlvResponse?.extractedData || null;
+      if (extracted) {
+        localStorage.setItem('crlvPrefill', JSON.stringify(extracted));
+        setCrlvStatus(extracted.extractionStatus || null);
+      }
       setSuccess(true);
     } catch (err: any) {
       const res = err.response;
@@ -304,11 +333,16 @@ const DocumentVerificationUploadPage: React.FC = () => {
             Documentos enviados com sucesso.
           </SuccessMessage>
           <CardDescription>
-            Seus documentos serao analisados pela nossa equipe. Logo lhe daremos um retorno por e-mail.
+            Seus documentos foram enviados. O sistema usara os dados do CRLV para ajudar no preenchimento do anuncio do veículo.
           </CardDescription>
+          {crlvStatus === 'unsupported' && (
+            <CardDescription>
+              Não foi possível extrair automaticamente os dados do CRLV deste arquivo. Você ainda pode preencher manualmente no anúncio.
+            </CardDescription>
+          )}
           <ButtonRow>
-            <Button className="primary" onClick={() => navigate('/verification', { replace: true })}>
-              Voltar para verificacao
+            <Button className="primary" onClick={() => navigate('/list-vehicle', { replace: true })}>
+              Ir para anúncio do veículo
             </Button>
           </ButtonRow>
         </Card>
@@ -323,7 +357,7 @@ const DocumentVerificationUploadPage: React.FC = () => {
         Verificação de documentos
       </Title>
       <Subtitle>
-        Envie sua Carteira Nacional de Habilitacao (CNH) e a Certidao de Antecedentes Criminais (CAC). Apos o envio, nossa equipe analisara os documentos e retornara por e-mail.
+        Envie sua Carteira Nacional de Habilitacao (CNH), a Certidao de Antecedentes Criminais (CAC) e o CRLV do veículo. Após o envio do CRLV, os dados do veículo serão preenchidos automaticamente no anúncio.
       </Subtitle>
 
       <Steps>
@@ -332,8 +366,12 @@ const DocumentVerificationUploadPage: React.FC = () => {
           <StepLabel active={step === 1}>1. CNH</StepLabel>
         </StepRow>
         <StepRow>
-          <StepDot active={step === 2} done={false} />
+          <StepDot active={step === 2} done={step > 2} />
           <StepLabel active={step === 2}>2. CAC</StepLabel>
+        </StepRow>
+        <StepRow>
+          <StepDot active={step === 3} done={false} />
+          <StepLabel active={step === 3}>3. CRLV</StepLabel>
         </StepRow>
       </Steps>
 
@@ -416,10 +454,47 @@ const DocumentVerificationUploadPage: React.FC = () => {
             <Button className="secondary" onClick={handleBack}>
               <ArrowLeft size={18} /> Voltar
             </Button>
-            <Button className="primary" onClick={handleSubmit} disabled={loading || !cnhFile || !cacFile}>
+            <Button className="primary" onClick={handleNext} disabled={!cacFile}>
+              Próximo: CRLV <ArrowRight size={18} />
+            </Button>
+          </ButtonRow>
+        </>
+      )}
+
+      {step === 3 && (
+        <>
+          <Card>
+            <CardTitle>
+              <Lock size={20} />
+              Certificado de Registro e Licenciamento do Veículo (CRLV)
+            </CardTitle>
+            <CardDescription>
+              Envie uma foto legível ou PDF do CRLV. Após o upload, vamos extrair placa, marca, modelo, ano e outros dados para preencher automaticamente o anúncio.
+            </CardDescription>
+            <UploadZone hasFile={!!crlvFile}>
+              <input
+                ref={crlvInputRef}
+                type="file"
+                accept={ACCEPT_CRLV}
+                onChange={handleCrlvChange}
+              />
+              <UploadIcon>
+                <Photo size={32} />
+              </UploadIcon>
+              <UploadText>
+                {crlvFile ? 'Arquivo selecionado' : 'Clique ou arraste aqui para enviar'}
+              </UploadText>
+              {crlvFile && <FileName>{crlvFile.name}</FileName>}
+            </UploadZone>
+          </Card>
+          <ButtonRow>
+            <Button className="secondary" onClick={handleBack}>
+              <ArrowLeft size={18} /> Voltar
+            </Button>
+            <Button className="primary" onClick={handleSubmit} disabled={loading || !cnhFile || !cacFile || !crlvFile}>
               {loading ? 'Enviando...' : (
                 <>
-                  <CheckCircle size={18} /> Enviar para analise
+                  <CheckCircle size={18} /> Enviar e preencher anúncio
                 </>
               )}
             </Button>

@@ -667,9 +667,19 @@ const MonthlyButton = styled.button`
 `;
 
 // Host Section
-const HostSection = styled.div`
+const HostSection = styled.button`
   ${glassPanelCss}
   padding: 2rem;
+  width: 100%;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.14);
+  }
 
   @media (max-width: 768px) {
     padding: 1.25rem;
@@ -728,6 +738,12 @@ const HostBadge = styled.div`
   @media (max-width: 640px) {
     margin-left: auto;
   }
+`;
+
+const HostHint = styled.div`
+  margin-top: 0.9rem;
+  font-size: 0.85rem;
+  color: ${modernTheme.colors.muted};
 `;
 
 // Reviews Section
@@ -1631,7 +1647,13 @@ const VehicleDetailPage: React.FC = () => {
           </BookingSection>
 
           {/* Host Section */}
-          <HostSection>
+          <HostSection
+            type="button"
+            onClick={() => {
+              const ownerId = vehicle.ownerId || vehicle.owner?.id;
+              if (ownerId) navigate(`/host/${ownerId}`);
+            }}
+          >
             <SectionTitle>Conheça seu anfitrião</SectionTitle>
             <HostInfo>
               <HostAvatar>
@@ -1653,6 +1675,7 @@ const VehicleDetailPage: React.FC = () => {
             }}>
               Anfitrião experiente com excelentes avaliações. Sempre disponível para ajudar com as necessidades da sua viagem.
             </div>
+            <HostHint>Toque para ver o perfil público (avaliações, carros e histórico de locações).</HostHint>
           </HostSection>
         </RightColumn>
       </MainContent>

@@ -850,7 +850,6 @@ const ProfilePage: React.FC = () => {
                 >
                   <option value="lessee">Quero Alugar Carros (Locatário)</option>
                   <option value="lessor">Quero Alugar Meu Carro (Locador)</option>
-                  <option value="both">Ambos (Locador e Locatário)</option>
                 </Select>
               </FormGroup>
             </FormGrid>

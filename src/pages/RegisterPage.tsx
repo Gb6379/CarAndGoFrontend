@@ -257,7 +257,6 @@ const RegisterPage: React.FC = () => {
           >
             <option value="lessee">Quero alugar carros</option>
             <option value="lessor">Quero alugar meu carro</option>
-            <option value="both">Ambos</option>
           </Select>
           
           <Input
