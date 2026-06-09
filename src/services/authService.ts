@@ -108,6 +108,15 @@ export const authService = {
     return response.data || null;
   },
 
+  async uploadCrlvDocument(file: File): Promise<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post('/users/profile/me/verification/crlv', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
 };
 
 export const vehicleService = {

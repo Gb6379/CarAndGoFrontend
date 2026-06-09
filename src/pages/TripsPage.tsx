@@ -362,28 +362,11 @@ const TripsPage: React.FC = () => {
       setLoading(true);
       const bookings = await bookingService.getBookings();
       
-      // Filter bookings based on user type
-      let userTrips: any[] = [];
-      
-      if (userData.userType === 'lessee') {
-        // Show bookings where user is the lessee (renter)
-        userTrips = bookings.filter((booking: any) => 
-          booking.lesseeId === userData.id || booking.lessee?.id === userData.id
-        );
-      } else if (userData.userType === 'lessor') {
-        // Show bookings where user is the lessor (car owner)
-        userTrips = bookings.filter((booking: any) => 
-          booking.lessorId === userData.id || booking.lessor?.id === userData.id
-        );
-      } else if (userData.userType === 'both') {
-        // Show all bookings where user is either lessee or lessor
-        userTrips = bookings.filter((booking: any) => 
-          booking.lesseeId === userData.id || 
-          booking.lessee?.id === userData.id ||
-          booking.lessorId === userData.id || 
-          booking.lessor?.id === userData.id
-        );
-      }
+      // "Viagens" exibe apenas reservas em que o usuário é locatário.
+      // Locações como locador ficam na página "Minhas locações".
+      const userTrips = bookings.filter((booking: any) =>
+        booking.lesseeId === userData.id || booking.lessee?.id === userData.id
+      );
 
       setTrips(userTrips);
     } catch (error) {

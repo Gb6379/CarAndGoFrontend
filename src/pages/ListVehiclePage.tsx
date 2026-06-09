@@ -253,6 +253,19 @@ const UploadButton = styled.button`
   font-weight: 600;
 `;
 
+const UploadHint = styled.p`
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: ${modernTheme.colors.muted};
+`;
+
+const InlineError = styled.div`
+  margin-top: 0.75rem;
+  color: #b91c1c;
+  font-size: 0.9rem;
+`;
+
+const ACCEPT_CRLV = 'image/jpeg,image/png,image/webp,application/pdf';
 const MAX_PHOTOS = 20;
 
 const PhotoPreviewGrid = styled.div`
@@ -607,6 +620,11 @@ const ListVehiclePage: React.FC = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
   const [crlvPrefillNotice, setCrlvPrefillNotice] = useState<string | null>(null);
+  const [crlvFile, setCrlvFile] = useState<File | null>(null);
+  const [crlvUploaded, setCrlvUploaded] = useState(false);
+  const [uploadingCrlv, setUploadingCrlv] = useState(false);
+  const [crlvUploadError, setCrlvUploadError] = useState<string | null>(null);
+  const crlvInputRef = useRef<HTMLInputElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const geocodeDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const geocodeAbortRef = useRef<AbortController | null>(null);
@@ -633,6 +651,9 @@ const ListVehiclePage: React.FC = () => {
     dailyRate: '',
     hourlyRate: '',
     securityDeposit: '1',
+    autoApproveBookings: false,
+    pickupTimeStart: '',
+    pickupTimeEnd: '',
     
     // Features
     airConditioning: false,
@@ -669,6 +690,9 @@ const ListVehiclePage: React.FC = () => {
           dailyRate: String(v.dailyRate ?? ''),
           hourlyRate: String(v.hourlyRate ?? ''),
           securityDeposit: '1',
+          autoApproveBookings: !!v.autoApproveBookings,
+          pickupTimeStart: v.pickupTimeStart || '',
+          pickupTimeEnd: v.pickupTimeEnd || '',
           airConditioning: !!v.airConditioning,
           gps: !!v.gps,
           bluetooth: !!v.bluetooth,
@@ -688,33 +712,6 @@ const ListVehiclePage: React.FC = () => {
       });
     return () => { cancelled = true; };
   }, [editId]);
-
-  useEffect(() => {
-    if (isEditMode) return;
-    let cancelled = false;
-
-    const loadCrlvPrefill = async () => {
-      try {
-        const local = localStorage.getItem('crlvPrefill');
-        if (local) {
-          const parsed = JSON.parse(local) as CrlvPrefill;
-          if (!cancelled) applyCrlvPrefill(parsed);
-          localStorage.removeItem('crlvPrefill');
-          return;
-        }
-
-        const extracted = await authService.getCrlvExtractedData();
-        if (!cancelled && extracted) applyCrlvPrefill(extracted as CrlvPrefill);
-      } catch {
-        // Prefill is optional.
-      }
-    };
-
-    void loadCrlvPrefill();
-    return () => {
-      cancelled = true;
-    };
-  }, [isEditMode]);
 
   // Check if user is logged in when page loads
   useEffect(() => {
@@ -785,13 +782,24 @@ const ListVehiclePage: React.FC = () => {
     };
   }, []);
 
-  const steps = [
+  const requiresCrlvStep = !isEditMode;
+  const baseSteps = [
     { number: 1, title: 'Informações Básicas' },
     { number: 2, title: 'Localização' },
     { number: 3, title: 'Preços' },
     { number: 4, title: 'Recursos' },
     { number: 5, title: 'Fotos' }
   ];
+  const steps = requiresCrlvStep
+    ? [{ number: 1, title: 'CRLV' }, ...baseSteps.map((step) => ({ ...step, number: step.number + 1 }))]
+    : baseSteps;
+  const totalSteps = steps.length;
+
+  const handleCrlvChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setCrlvFile(file);
+    setCrlvUploadError(null);
+  };
 
   const vehicleTypes = ['sedan', 'suv', 'hatchback', 'pickup', 'convertible', 'coupe'];
   const brandOptions = formData.make && !vehicleBrands.includes(formData.make)
@@ -827,6 +835,31 @@ const ListVehiclePage: React.FC = () => {
       setCrlvPrefillNotice('Alguns dados do CRLV foram preenchidos automaticamente. Revise antes de publicar.');
     } else if (prefill.extractionStatus === 'unsupported') {
       setCrlvPrefillNotice('CRLV enviado, mas não foi possível extrair dados automáticos deste arquivo.');
+    }
+  };
+
+  const handleUploadCrlv = async () => {
+    if (!crlvFile) {
+      setCrlvUploadError('Selecione um arquivo CRLV para continuar.');
+      return;
+    }
+
+    setUploadingCrlv(true);
+    setCrlvUploadError(null);
+    try {
+      const response = await authService.uploadCrlvDocument(crlvFile);
+      const extracted = (response?.extractedData || null) as CrlvPrefill | null;
+      if (extracted) {
+        applyCrlvPrefill(extracted);
+      } else {
+        setCrlvPrefillNotice('CRLV enviado. Preencha os dados do veículo manualmente.');
+      }
+      setCrlvUploaded(true);
+      if (requiresCrlvStep) setCurrentStep(2);
+    } catch (err: any) {
+      setCrlvUploadError(err?.response?.data?.message || err?.message || 'Falha ao enviar CRLV.');
+    } finally {
+      setUploadingCrlv(false);
     }
   };
 
@@ -1084,7 +1117,13 @@ const ListVehiclePage: React.FC = () => {
   };
 
   const handleNext = () => {
-    if (currentStep === 1) {
+    if (requiresCrlvStep && currentStep === 1 && !crlvUploaded) {
+      setCrlvUploadError('Envie o CRLV para continuar.');
+      return;
+    }
+
+    const effectiveStep = requiresCrlvStep ? currentStep - 1 : currentStep;
+    if (effectiveStep === 1) {
       const currentYear = new Date().getFullYear();
       const minYear = currentYear - 10;
       const maxYear = currentYear + 1;
@@ -1093,8 +1132,21 @@ const ListVehiclePage: React.FC = () => {
         alert(`O ano do veículo deve estar entre ${minYear} e ${maxYear} (veículos com até 10 anos de uso).`);
         return;
       }
+
+      if (formData.autoApproveBookings) {
+        if (!formData.pickupTimeStart || !formData.pickupTimeEnd) {
+          alert('Defina o horário de retirada (início e fim) para ativar aprovação automática.');
+          setLoading(false);
+          return;
+        }
+        if (formData.pickupTimeStart >= formData.pickupTimeEnd) {
+          alert('O horário final de retirada deve ser maior que o horário inicial.');
+          setLoading(false);
+          return;
+        }
+      }
     }
-    if (currentStep < 5) {
+    if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -1153,6 +1205,9 @@ const ListVehiclePage: React.FC = () => {
         dailyRate: parseFloat(formData.dailyRate) || 0,
         hourlyRate: parseFloat(formData.hourlyRate) || 0,
         securityDeposit: parseFloat(formData.securityDeposit) || 0,
+        autoApproveBookings: !!formData.autoApproveBookings,
+        pickupTimeStart: formData.pickupTimeStart || undefined,
+        pickupTimeEnd: formData.pickupTimeEnd || undefined,
         address: formData.address,
         city: formData.city,
         state: formData.state,
@@ -1188,7 +1243,50 @@ const ListVehiclePage: React.FC = () => {
   };
 
   const renderStepContent = () => {
-    switch (currentStep) {
+    if (requiresCrlvStep && currentStep === 1) {
+      return (
+        <FormSection>
+          <SectionTitle>Envio do CRLV</SectionTitle>
+          <p style={{ margin: '0 0 1rem 0', color: '#666', lineHeight: 1.6 }}>
+            Envie o CRLV do veículo para preenchermos automaticamente os campos básicos.
+          </p>
+          <PhotoUploadSection onClick={() => crlvInputRef.current?.click()} style={{ cursor: 'pointer' }}>
+            <input
+              ref={crlvInputRef}
+              type="file"
+              accept={ACCEPT_CRLV}
+              onChange={handleCrlvChange}
+              style={{ display: 'none' }}
+            />
+            <UploadIcon><Photo size={24} /></UploadIcon>
+            <UploadText>
+              <strong>{crlvFile ? 'Arquivo selecionado' : 'Clique para enviar o CRLV'}</strong><br />
+              Formatos aceitos: JPG, PNG, WEBP ou PDF
+            </UploadText>
+            {crlvFile && <UploadHint>{crlvFile.name}</UploadHint>}
+            <UploadButton
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                void handleUploadCrlv();
+              }}
+              disabled={uploadingCrlv || !crlvFile}
+            >
+              {uploadingCrlv ? 'Enviando CRLV...' : 'Enviar CRLV e continuar'}
+            </UploadButton>
+            {!crlvUploaded && (
+              <UploadHint>
+                Este passo é obrigatório para iniciar o anúncio.
+              </UploadHint>
+            )}
+            {crlvUploadError && <InlineError>{crlvUploadError}</InlineError>}
+          </PhotoUploadSection>
+        </FormSection>
+      );
+    }
+
+    const effectiveStep = requiresCrlvStep ? currentStep - 1 : currentStep;
+    switch (effectiveStep) {
       case 1:
         return (
           <FormSection>
@@ -1436,7 +1534,36 @@ const ListVehiclePage: React.FC = () => {
                   style={{ backgroundColor: '#f0f0f0', cursor: 'not-allowed' }}
                 />
               </FormGroup>
+              <FormGroup>
+                <Label>Aprovação automática de reservas</Label>
+                <Select
+                  value={formData.autoApproveBookings ? 'true' : 'false'}
+                  onChange={(e) => handleInputChange('autoApproveBookings', e.target.value === 'true')}
+                >
+                  <option value="false">Não (aprovação manual)</option>
+                  <option value="true">Sim (aprovar automaticamente)</option>
+                </Select>
+              </FormGroup>
+              <FormGroup>
+                <Label>Retirada - início</Label>
+                <Input
+                  type="time"
+                  value={formData.pickupTimeStart}
+                  onChange={(e) => handleInputChange('pickupTimeStart', e.target.value)}
+                />
+              </FormGroup>
+              <FormGroup>
+                <Label>Retirada - fim</Label>
+                <Input
+                  type="time"
+                  value={formData.pickupTimeEnd}
+                  onChange={(e) => handleInputChange('pickupTimeEnd', e.target.value)}
+                />
+              </FormGroup>
             </FormGrid>
+            <div style={{ marginTop: '0.85rem', color: '#666', fontSize: '0.92rem' }}>
+              Se ativar aprovação automática, o locatário já verá a reserva como aprovada e poderá seguir para o pagamento.
+            </div>
             <div style={{ marginTop: '2rem', padding: '1rem', background: '#f8f9fa', borderRadius: '8px' }}>
               <h4 style={{ margin: '0 0 1rem 0', color: '#333' }}>
                 <Money size={16} /> Dicas de Preço
@@ -1579,7 +1706,7 @@ const ListVehiclePage: React.FC = () => {
     }
   };
 
-  const progress = (currentStep / 5) * 100;
+  const progress = (currentStep / totalSteps) * 100;
 
   if (loadingVehicle) {
     return (
@@ -1608,7 +1735,10 @@ const ListVehiclePage: React.FC = () => {
             type="button"
             active={currentStep === step.number}
             completed={currentStep > step.number}
-            onClick={() => setCurrentStep(step.number)}
+            onClick={() => {
+              if (requiresCrlvStep && !crlvUploaded && step.number > 1) return;
+              setCurrentStep(step.number);
+            }}
             aria-current={currentStep === step.number ? 'step' : undefined}
             aria-label={`Etapa ${step.number}: ${step.title}`}
           >
@@ -1638,7 +1768,7 @@ const ListVehiclePage: React.FC = () => {
               Anterior
             </Button>
           )}
-          {currentStep < 5 ? (
+          {currentStep < totalSteps ? (
             <Button onClick={handleNext}>
               Próximo
             </Button>

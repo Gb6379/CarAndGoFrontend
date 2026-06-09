@@ -472,6 +472,7 @@ const Header: React.FC = () => {
   const userData = JSON.parse(localStorage.getItem('user') || '{}');
   const userType = userData.userType;
   const isLocatario = userType === 'lessee' || userType === 'rent';
+  const canSeeTrips = userType === 'lessee' || userType === 'rent' || userType === 'both';
 
   const loadHeaderPhoto = () => {
     const u = JSON.parse(localStorage.getItem('user') || '{}');
@@ -609,8 +610,19 @@ const Header: React.FC = () => {
             {userType === 'admin' && (
               <MobileMenuLink to="/admin" onClick={closeMobileMenu}><DashboardIcon fontSize="small" /> Painel Admin</MobileMenuLink>
             )}
-            <MobileMenuLink to="/bookings" onClick={closeMobileMenu}><FlightTakeoff size={20} /> Viagens</MobileMenuLink>
+            {canSeeTrips && (
+              <MobileMenuLink to="/bookings" onClick={closeMobileMenu}><FlightTakeoff size={20} /> Viagens</MobileMenuLink>
+            )}
+            {canSeeTrips && (
+              <MobileMenuLink to="/minhas-reservas" onClick={closeMobileMenu}><CarIcon fontSize="small" /> Minhas reservas</MobileMenuLink>
+            )}
             <MobileMenuLink to="/profile" onClick={closeMobileMenu}><User size={20} /> Perfil</MobileMenuLink>
+            {(userType === 'lessor' || userType === 'both') && (
+              <MobileMenuLink to="/vehicles/my" onClick={closeMobileMenu}><CarIcon fontSize="small" /> Meus Anuncios</MobileMenuLink>
+            )}
+            {(userType === 'lessor' || userType === 'both') && (
+              <MobileMenuLink to="/minhas-locacoes" onClick={closeMobileMenu}><CarIcon fontSize="small" /> Minhas locações</MobileMenuLink>
+            )}
             <MobileMenuLink to="/verification" onClick={closeMobileMenu}><VerifiedUser fontSize="small" /> Verificação</MobileMenuLink>
             {(userType === 'lessor' || userType === 'both') && (
               <MobileMenuLink to="/bank-details" onClick={closeMobileMenu}><CreditCard size={20} /> Dados bancários</MobileMenuLink>
@@ -689,13 +701,24 @@ const Header: React.FC = () => {
               )}
               <DropdownDivider />
               {/* Seção Superior */}
-              <DropdownItem 
-                to="/bookings"
-                onClick={() => setIsUserMenuOpen(false)}
-              >
-                <FlightTakeoff size={20} />
-                Viagens
-              </DropdownItem>
+              {canSeeTrips && (
+                <DropdownItem 
+                  to="/bookings"
+                  onClick={() => setIsUserMenuOpen(false)}
+                >
+                  <FlightTakeoff size={20} />
+                  Viagens
+                </DropdownItem>
+              )}
+              {canSeeTrips && (
+                <DropdownItem
+                  to="/minhas-reservas"
+                  onClick={() => setIsUserMenuOpen(false)}
+                >
+                  <CarIcon fontSize="small" />
+                  Minhas reservas
+                </DropdownItem>
+              )}
               {isLocatario && (
                 <DropdownItem 
                   to="/mensalista"
@@ -723,6 +746,24 @@ const Header: React.FC = () => {
                 <User size={20} />
                 Perfil
               </DropdownItem>
+              {(userType === 'lessor' || userType === 'both') && (
+                <DropdownItem
+                  to="/vehicles/my"
+                  onClick={() => setIsUserMenuOpen(false)}
+                >
+                  <CarIcon fontSize="small" />
+                  Meus Anuncios
+                </DropdownItem>
+              )}
+              {(userType === 'lessor' || userType === 'both') && (
+                <DropdownItem
+                  to="/minhas-locacoes"
+                  onClick={() => setIsUserMenuOpen(false)}
+                >
+                  <CarIcon fontSize="small" />
+                  Minhas locações
+                </DropdownItem>
+              )}
               <DropdownItem 
                 to="/verification"
                 onClick={() => setIsUserMenuOpen(false)}

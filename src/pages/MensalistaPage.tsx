@@ -148,6 +148,21 @@ const SecondaryActionButton = styled.button`
   color: #9a3412;
 `;
 
+type KmPlan = {
+  km: number;
+  discountRate: number;
+};
+
+const KM_PLANS: KmPlan[] = [
+  { km: 1000, discountRate: 0 },
+  { km: 2000, discountRate: 0.1 },
+  { km: 3000, discountRate: 0.2 },
+  { km: 4000, discountRate: 0.3 },
+  { km: 5000, discountRate: 0.4 },
+];
+
+const FIXED_SECURITY_DEPOSIT = 500;
+
 const MensalistaPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -156,6 +171,7 @@ const MensalistaPage: React.FC = () => {
   const [loadingVehicles, setLoadingVehicles] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedVehicleId, setSelectedVehicleId] = useState('');
+  const [selectedKmPlan, setSelectedKmPlan] = useState<number>(1000);
   const [selectedMonth, setSelectedMonth] = useState<string>(() => {
     const now = new Date();
     const year = now.getFullYear();
@@ -204,10 +220,17 @@ const MensalistaPage: React.FC = () => {
   }, [selectedMonth]);
 
   const dailyRate = Number(selectedVehicle?.dailyRate || 0);
+  const selectedPlan = KM_PLANS.find((plan) => plan.km === selectedKmPlan) || KM_PLANS[0];
+  const discountedDailyRate = dailyRate * (1 - selectedPlan.discountRate);
   const grossTotal = dailyRate * daysInMonth;
-  const discountRate = 0.2;
-  const discountAmount = selectedVehicle && isMensalista ? grossTotal * discountRate : 0;
-  const totalToPay = selectedVehicle && isMensalista ? grossTotal - discountAmount : 0;
+  const discountAmount =
+    selectedVehicle && isMensalista ? grossTotal * selectedPlan.discountRate : 0;
+  const monthlySubtotal =
+    selectedVehicle && isMensalista ? grossTotal - discountAmount : 0;
+  const totalToPay =
+    selectedVehicle && isMensalista
+      ? monthlySubtotal + FIXED_SECURITY_DEPOSIT
+      : 0;
 
   const currency = (value: number) =>
     value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -235,9 +258,12 @@ const MensalistaPage: React.FC = () => {
       vehicleId: selectedVehicle.id,
       startDate: startDateTime.toISOString(),
       endDate: endDateTime.toISOString(),
-      dailyRate: Number(selectedVehicle.dailyRate) || 0,
-      hourlyRate: Number(selectedVehicle.hourlyRate) || 0,
-      securityDeposit: 0,
+      dailyRate: Number(discountedDailyRate) || 0,
+      hourlyRate:
+        Number(selectedVehicle.hourlyRate) > 0
+          ? Number(selectedVehicle.hourlyRate) * (1 - selectedPlan.discountRate)
+          : 0,
+      securityDeposit: FIXED_SECURITY_DEPOSIT,
     };
 
     navigate('/payment', {
@@ -246,9 +272,9 @@ const MensalistaPage: React.FC = () => {
         vehicle: selectedVehicle,
         bookingSummary: {
           totalAmount: totalToPay,
-          baseAmount: grossTotal,
+          baseAmount: monthlySubtotal,
           platformFee: 0,
-          securityDeposit: 0,
+          securityDeposit: FIXED_SECURITY_DEPOSIT,
           totalDays: daysInMonth,
           totalHours: daysInMonth * 24,
         },
@@ -294,6 +320,24 @@ const MensalistaPage: React.FC = () => {
           <Info>
             Dias no mês selecionado: <strong>{daysInMonth}</strong>
           </Info>
+
+          <CardTitle style={{ marginTop: '1.25rem' }}>
+            <Car size={20} /> Plano de quilometragem
+          </CardTitle>
+          <Select
+            value={String(selectedKmPlan)}
+            onChange={(e) => setSelectedKmPlan(Number(e.target.value))}
+            disabled={!isMensalista}
+          >
+            {KM_PLANS.map((plan) => (
+              <option key={plan.km} value={String(plan.km)}>
+                {plan.km} km {plan.discountRate > 0 ? `- ${Math.round(plan.discountRate * 100)}% de desconto` : '- base'}
+              </option>
+            ))}
+          </Select>
+          <Info>
+            Caução fixa para todos os planos: <strong>{currency(FIXED_SECURITY_DEPOSIT)}</strong>
+          </Info>
         </Card>
 
         <Card>
@@ -320,7 +364,7 @@ const MensalistaPage: React.FC = () => {
           {selectedVehicle && (
             <Info>
               <strong>{selectedVehicle.make} {selectedVehicle.model}</strong>
-              {' '}({selectedVehicle.year}) - diária de {currency(dailyRate)}.
+              {' '}({selectedVehicle.year}) - diária base de {currency(dailyRate)}.
             </Info>
           )}
 
@@ -330,7 +374,7 @@ const MensalistaPage: React.FC = () => {
             </CardTitle>
             <ResultLabel>
               {selectedVehicle && isMensalista
-                ? `Cálculo: ${currency(dailyRate)} x ${daysInMonth} dias - 20% de desconto`
+                ? `Plano ${selectedPlan.km} km: ${currency(dailyRate)} x ${daysInMonth} dias - ${Math.round(selectedPlan.discountRate * 100)}% + caução fixa`
                 : 'Ative o plano mensalista e selecione um carro para calcular.'}
             </ResultLabel>
             <ResultValue>
@@ -339,12 +383,14 @@ const MensalistaPage: React.FC = () => {
             {selectedVehicle && isMensalista && (
               <Breakdown>
                 <div>Subtotal sem desconto: {currency(grossTotal)}</div>
-                <div>Desconto mensalista (20%): -{currency(discountAmount)}</div>
+                <div>Desconto do plano ({Math.round(selectedPlan.discountRate * 100)}%): -{currency(discountAmount)}</div>
+                <div>Subtotal com desconto: {currency(monthlySubtotal)}</div>
+                <div>Caução fixa: {currency(FIXED_SECURITY_DEPOSIT)}</div>
               </Breakdown>
             )}
             {selectedVehicle && isMensalista && (
               <InlineMuted>
-                Valor diário final com desconto: {currency(daysInMonth > 0 ? totalToPay / daysInMonth : 0)}.
+                Valor diário final com desconto: {currency(daysInMonth > 0 ? monthlySubtotal / daysInMonth : 0)}.
               </InlineMuted>
             )}
           </ResultBox>

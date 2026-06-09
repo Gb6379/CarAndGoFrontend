@@ -19,6 +19,8 @@ import BookingDetailsPage from './pages/BookingDetailsPage';
 import PaymentPage from './pages/PaymentPage';
 import PaymentCallbackPage from './pages/PaymentCallbackPage';
 import MyCarsPage from './pages/MyCarsPage';
+import MyRentalsPage from './pages/MyRentalsPage';
+import MyBookingsPage from './pages/MyBookingsPage';
 import HowItWorksPage from './pages/HowItWorksPage';
 import BecomeHostPage from './pages/BecomeHostPage';
 import BankDetailsPage from './pages/BankDetailsPage';
@@ -150,8 +152,13 @@ function App() {
           
           {/* Trips - requires authentication */}
           <Route path="/bookings" element={
-            <RouteGuard allowedUserTypes={['lessee', 'lessor', 'both']}>
+            <RouteGuard allowedUserTypes={['rent', 'lessee', 'both']}>
               <TripsPage />
+            </RouteGuard>
+          } />
+          <Route path="/minhas-reservas" element={
+            <RouteGuard allowedUserTypes={['rent', 'lessee', 'both']} redirectTo="/">
+              <MyBookingsPage />
             </RouteGuard>
           } />
           
@@ -194,6 +201,11 @@ function App() {
           <Route path="/vehicles/my" element={
             <RouteGuard allowedUserTypes={['lessor', 'both']} redirectTo="/vehicles">
               <MyCarsPage />
+            </RouteGuard>
+          } />
+          <Route path="/minhas-locacoes" element={
+            <RouteGuard allowedUserTypes={['lessor', 'both']} redirectTo="/">
+              <MyRentalsPage />
             </RouteGuard>
           } />
           

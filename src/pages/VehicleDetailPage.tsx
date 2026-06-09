@@ -1451,6 +1451,18 @@ const VehicleDetailPage: React.FC = () => {
                 <InfoLabel>Localização</InfoLabel>
                 <InfoValue>{vehicle.city}, {vehicle.state}</InfoValue>
               </InfoItem>
+              <InfoItem>
+                <InfoLabel>Aprovação da reserva</InfoLabel>
+                <InfoValue>{vehicle.autoApproveBookings ? 'Automática' : 'Manual pelo locador'}</InfoValue>
+              </InfoItem>
+              <InfoItem>
+                <InfoLabel>Retirada</InfoLabel>
+                <InfoValue>
+                  {vehicle.pickupTimeStart && vehicle.pickupTimeEnd
+                    ? `Entre ${vehicle.pickupTimeStart} e ${vehicle.pickupTimeEnd}`
+                    : 'Combinar com locador'}
+                </InfoValue>
+              </InfoItem>
             </InfoGrid>
           </VehicleInfoSection>
 

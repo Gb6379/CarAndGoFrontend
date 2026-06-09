@@ -350,7 +350,7 @@ const MyCarsPage: React.FC = () => {
   if (loading) {
     return (
       <Container>
-        <Title>Meus Veículos</Title>
+        <Title>Meus Anuncios</Title>
         <p>Carregando...</p>
       </Container>
     );
@@ -359,7 +359,7 @@ const MyCarsPage: React.FC = () => {
   return (
     <Container>
       <Header>
-        <Title>Meus Veículos</Title>
+        <Title>Meus Anuncios</Title>
         <AddCarButton onClick={handleAddCar}>
           + Anunciar veículo
         </AddCarButton>

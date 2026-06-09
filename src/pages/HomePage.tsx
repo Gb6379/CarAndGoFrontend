@@ -2025,7 +2025,7 @@ const LessorHomeView: React.FC<{ navigate: (path: string) => void }> = ({ naviga
   const maxStatusValue = Math.max(...statusRows.map((item) => item.value), 1);
 
   const actions = [
-    { title: 'Meus veículos', desc: 'Ver e editar seus anúncios ativos', onClick: () => navigate('/vehicles/my'), icon: <Car size={22} /> },
+    { title: 'Meus Anuncios', desc: 'Ver e editar seus anúncios ativos', onClick: () => navigate('/vehicles/my'), icon: <Car size={22} /> },
     { title: 'Anunciar veículo', desc: 'Cadastrar um novo carro para locação', onClick: () => navigate('/list-vehicle'), icon: <Edit size={22} /> },
     { title: 'Reservas', desc: 'Acompanhar solicitações e locatários', onClick: () => setTab('bookings'), icon: <Calendar size={22} /> },
     { title: 'Dados bancários', desc: 'Configurar onde receber os pagamentos', onClick: () => navigate('/bank-details'), icon: <Money size={22} /> },
@@ -2058,7 +2058,7 @@ const LessorHomeView: React.FC<{ navigate: (path: string) => void }> = ({ naviga
             </LessorSidebarNavButton>
             <LessorSidebarNavButton type="button" onClick={() => navigate('/vehicles/my')}>
               <Edit size={18} color="white" />
-              Meus veículos
+              Meus Anuncios
             </LessorSidebarNavButton>
             <LessorSidebarNavButton type="button" onClick={() => navigate('/bank-details')}>
               <Money size={18} color="white" />
